@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   saveAdditionalEducation,
   getUserResume,
-} from "./services/resumeService";
+} from "../../services/resumeService";
 
 // Progress Steps Component
 const ProgressSteps = ({ currentStep = 3 }) => {

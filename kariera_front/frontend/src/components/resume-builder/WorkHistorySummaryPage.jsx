@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUserResume, deleteWorkExperience } from "./services/resumeService";
+import {
+  getUserResume,
+  deleteWorkExperience,
+} from "../../services/resumeService";
 
 // Progress Steps Component
 const ProgressSteps = ({ currentStep = 2 }) => {

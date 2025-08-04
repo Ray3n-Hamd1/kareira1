@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { saveEducation, getUserResume } from "./services/resumeService";
+import { saveEducation, getUserResume } from "../../services/resumeService";
 
 // Progress Steps Component
 const ProgressSteps = ({ currentStep = 3 }) => {

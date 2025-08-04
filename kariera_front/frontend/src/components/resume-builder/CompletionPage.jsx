@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUserResume, enhanceWithAI } from "./services/resumeService";
+import { getUserResume, enhanceWithAI } from "../../services/resumeService";
 
 // Template Preview Component
 const TemplatePreview = ({ onChangeTemplate }) => {
