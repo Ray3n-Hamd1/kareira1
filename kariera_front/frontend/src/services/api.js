@@ -1,44 +1,62 @@
 import axios from 'axios';
 
-// Create an instance of axios with default config
+const API_URL = process.env.REACT_APP_API_URL || 'https://api.kareira.app';
+
+// Create an axios instance with default config
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
 });
 
-// Request interceptor for adding auth token
+// Add a request interceptor to include auth token in requests
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers['x-auth-token'] = token;
-      config.headers['Authorization'] = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
-// Response interceptor for handling errors
+// Add a response interceptor to handle common errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
   (error) => {
-    // Handle specific error codes
-    if (error.response) {
-      const { status } = error.response;
-      
-      // Handle authentication errors
-      if (status === 401) {
-        localStorage.removeItem('token');
-        // Optionally redirect to login
-      }
-      
-      // You can handle other status codes here
+    // Handle authentication errors
+    if (error.response && error.response.status === 401) {
+      // Logout the user or refresh token
+      localStorage.removeItem('token');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
 );
+
+// Add a method to check if backend is available
+api.isBackendAvailable = true; // Default to true
+
+// Function to ping the backend and update availability status
+api.checkBackendAvailability = async () => {
+  try {
+    await axios.get(`${API_URL}/health`, { timeout: 3000 });
+    api.isBackendAvailable = true;
+    return true;
+  } catch (error) {
+    api.isBackendAvailable = false;
+    console.warn('Backend API is not available, using localStorage fallback');
+    return false;
+  }
+};
+
+// Check backend availability on init
+api.checkBackendAvailability();
 
 export default api;
