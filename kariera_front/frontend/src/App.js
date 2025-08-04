@@ -16,7 +16,6 @@ import ProjectDetails from "./ProjectDetails";
 import JobSearchDashboard from "./JobSearchDashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import PersonalInfoPage from "./components/resume-builder/PersonalInfoPage";
 import WorkHistoryPage from "./components/resume-builder/WorkHistoryPage";
 import JobDescriptionPage from "./components/resume-builder/JobDescriptionPage";
 import WorkHistorySummaryPage from "./components/resume-builder/WorkHistorySummaryPage";
@@ -62,7 +61,7 @@ function App() {
                 <PrivateRoute>
                   <>
                     <Navbar />
-                    <PersonalInfoPage />
+                    <ResumeBuilderPage1 />
                   </>
                 </PrivateRoute>
               }
