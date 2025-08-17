@@ -1,0 +1,3749 @@
+import React, { useState, useEffect } from "react";
+
+// Mock Auth Context for demonstration
+const useAuth = () => ({
+  isAuthenticated: true,
+  loading: false,
+});
+
+// Mock Navigate for demonstration
+const useNavigate = () => (path) => console.log("Navigate to:", path);
+
+// Progress Steps Component
+const ProgressSteps = ({ currentStep = 1 }) => {
+  const steps = [
+    { id: 1, name: "Personal Info" },
+    { id: 2, name: "Work History" },
+    { id: 3, name: "Education" },
+    { id: 4, name: "Skills" },
+    { id: 5, name: "Certifications" },
+    { id: 6, name: "Projects" },
+    { id: 7, name: "Finalize" },
+  ];
+
+  const progressPercentage = Math.round((currentStep / steps.length) * 100);
+
+  return (
+    <div className="mb-8">
+      <div className="flex items-center justify-between mb-4 w-full">
+        <div className="flex items-center justify-between flex-1 mr-6 bg-gray-900/80 rounded-full px-2 py-2 overflow-x-auto">
+          {steps.map((step) => (
+            <div
+              key={step.id}
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+                step.id === currentStep
+                  ? "bg-purple-600 text-white"
+                  : step.id < currentStep
+                  ? "text-green-400"
+                  : "text-gray-400"
+              }`}
+            >
+              {step.id}. {step.name}
+            </div>
+          ))}
+        </div>
+        <div className="bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+          {progressPercentage}%
+        </div>
+      </div>
+      <div className="w-full bg-gray-800 rounded-full h-1">
+        <div
+          className="bg-purple-600 h-1 rounded-full transition-all duration-300"
+          style={{ width: `${progressPercentage}%` }}
+        ></div>
+      </div>
+    </div>
+  );
+};
+
+// Template Preview Component
+const TemplatePreview = ({ formData }) => {
+  return (
+    <div className="bg-gray-900/80 rounded-lg p-6">
+      <h3 className="text-lg font-semibold text-white mb-2">Resume Preview</h3>
+      <p className="text-gray-400 text-sm mb-6">Live preview of your resume</p>
+
+      <div className="bg-white text-black rounded-lg p-4 mb-6 h-96 overflow-y-auto text-xs">
+        <div className="border-b-2 border-purple-500 pb-2 mb-4">
+          <h1 className="text-lg font-bold text-gray-800">
+            {formData.firstName && formData.lastName
+              ? `${formData.firstName} ${formData.lastName}`
+              : "Your Name"}
+          </h1>
+          <p className="text-sm text-purple-600">
+            {formData.jobTitle || "Your Job Title"}
+          </p>
+          <div className="text-xs text-gray-600 mt-1">
+            {formData.email && <span>{formData.email}</span>}
+            {formData.phone && formData.email && <span> • </span>}
+            {formData.phone && <span>{formData.phone}</span>}
+            {(formData.email || formData.phone) && formData.cityCountry && (
+              <span> • </span>
+            )}
+            {formData.cityCountry && <span>{formData.cityCountry}</span>}
+          </div>
+          {(formData.website ||
+            formData.linkedin ||
+            (formData.additionalLinks &&
+              formData.additionalLinks.length > 0)) && (
+            <div className="text-xs text-gray-600 mt-1">
+              {formData.website && (
+                <span>
+                  <a
+                    href={formData.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-purple-600"
+                  >
+                    Website
+                  </a>
+                </span>
+              )}
+              {formData.linkedin && (
+                <span>
+                  {formData.website && " • "}
+                  <a
+                    href={formData.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-purple-600"
+                  >
+                    LinkedIn
+                  </a>
+                </span>
+              )}
+              {formData.additionalLinks &&
+                formData.additionalLinks.map((link, index) =>
+                  link.url && link.label ? (
+                    <span key={index}>
+                      {(formData.website || formData.linkedin || index > 0) &&
+                        " • "}
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600"
+                      >
+                        {link.label}
+                      </a>
+                    </span>
+                  ) : null
+                )}
+            </div>
+          )}
+        </div>
+
+        {formData.summary && formData.summary.trim() !== "" && (
+          <div className="mb-4">
+            <h2 className="text-sm font-bold text-gray-800 mb-2">Summary</h2>
+            <p className="text-xs text-gray-600">{formData.summary}</p>
+          </div>
+        )}
+
+        {formData.workExperiences &&
+          formData.workExperiences.length > 0 &&
+          formData.workExperiences[0].workJobTitle && (
+            <div className="mb-4">
+              <h2 className="text-sm font-bold text-gray-800 mb-2">
+                Experience
+              </h2>
+              {formData.workExperiences.slice(0, 2).map((work, index) => (
+                <div
+                  key={index}
+                  className={`border-l-2 border-purple-500 pl-2 ${
+                    index > 0 ? "mt-3" : ""
+                  }`}
+                >
+                  <h3 className="text-sm font-semibold">{work.workJobTitle}</h3>
+                  <p className="text-xs text-gray-700">{work.employer}</p>
+                  <p className="text-xs text-gray-600">{work.workLocation}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+        {formData.educationExperiences &&
+          formData.educationExperiences.length > 0 &&
+          formData.educationExperiences[0].schoolName && (
+            <div className="mb-4">
+              <h2 className="text-sm font-bold text-gray-800 mb-2">
+                Education
+              </h2>
+              {formData.educationExperiences.slice(0, 2).map((edu, index) => (
+                <div
+                  key={index}
+                  className={`border-l-2 border-purple-500 pl-2 ${
+                    index > 0 ? "mt-3" : ""
+                  }`}
+                >
+                  <h3 className="text-sm font-semibold">{edu.degree}</h3>
+                  <p className="text-xs text-gray-700">{edu.schoolName}</p>
+                  <p className="text-xs text-gray-600">{edu.fieldOfStudy}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+        {formData.skills &&
+          formData.skills.length > 0 &&
+          formData.skills[0] && (
+            <div className="mb-4">
+              <h2 className="text-sm font-bold text-gray-800 mb-2">Skills</h2>
+              <div className="flex flex-wrap gap-1">
+                {formData.skills
+                  .filter((skill) => skill.trim())
+                  .map((skill, index) => (
+                    <span
+                      key={index}
+                      className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+              </div>
+            </div>
+          )}
+
+        {formData.interests &&
+          formData.interests.length > 0 &&
+          formData.interests[0] && (
+            <div className="mb-4">
+              <h2 className="text-sm font-bold text-gray-800 mb-2">
+                Interests/Hobbies
+              </h2>
+              <div className="flex flex-wrap gap-1">
+                {formData.interests
+                  .filter((interest) => interest.trim())
+                  .map((interest, index) => (
+                    <span
+                      key={index}
+                      className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs"
+                    >
+                      {interest}
+                    </span>
+                  ))}
+              </div>
+            </div>
+          )}
+
+        {formData.references &&
+          formData.references.length > 0 &&
+          formData.references[0].name && (
+            <div className="mb-4">
+              <h2 className="text-sm font-bold text-gray-800 mb-2">
+                References
+              </h2>
+              {formData.references.slice(0, 2).map((ref, index) => (
+                <div
+                  key={index}
+                  className={`border-l-2 border-purple-500 pl-2 ${
+                    index > 0 ? "mt-3" : ""
+                  }`}
+                >
+                  <h3 className="text-sm font-semibold">{ref.name}</h3>
+                  <p className="text-xs text-gray-700">{ref.relationship}</p>
+                  <p className="text-xs text-gray-600">{ref.contact}</p>
+                </div>
+              ))}
+            </div>
+          )}
+      </div>
+
+      <button className="w-full py-2 px-4 border-2 border-purple-600 text-purple-400 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">
+        Change Template
+      </button>
+    </div>
+  );
+};
+
+// Rich Text Editor Component
+const RichTextEditor = ({
+  value,
+  onChange,
+  placeholder = "Enter description",
+}) => {
+  const [content, setContent] = useState(value || "");
+
+  useEffect(() => {
+    setContent(value || "");
+  }, [value]);
+
+  const handleChange = (e) => {
+    const newContent = e.target.value;
+    setContent(newContent);
+    onChange(newContent);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const start = e.target.selectionStart;
+      const end = e.target.selectionEnd;
+      const newValue =
+        content.substring(0, start) + "  " + content.substring(end);
+      setContent(newValue);
+      onChange(newValue);
+      setTimeout(() => {
+        e.target.selectionStart = e.target.selectionEnd = start + 2;
+      }, 0);
+    }
+  };
+
+  return (
+    <div className="bg-gray-900/80 border border-gray-700 rounded-lg">
+      <textarea
+        value={content}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        rows={6}
+        className="w-full p-4 text-white bg-transparent focus:outline-none resize-none"
+        style={{ minHeight: "150px" }}
+      />
+      <div className="flex items-center justify-between px-4 py-3 border-t border-gray-700">
+        <div className="text-xs text-gray-400">
+          Use bullet points and action verbs for better impact
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Step 1: Personal Information
+const PersonalInfoStep = ({ formData, handleChange, error }) => {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <div>
+        <h1 className="text-3xl font-bold text-white mb-2">
+          What's the best way for employers to contact you?
+        </h1>
+        <p className="text-gray-400 mb-8">
+          Including an email and phone number is advisable
+        </p>
+
+        {error && (
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="firstName"
+                className="block text-sm font-medium text-gray-300 mb-1"
+              >
+                First Name <span className="text-red-400">*</span>
+              </label>
+              <input
+                id="firstName"
+                type="text"
+                value={formData.firstName || ""}
+                onChange={handleChange}
+                placeholder="Enter first name"
+                required
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="lastName"
+                className="block text-sm font-medium text-gray-300 mb-1"
+              >
+                Last Name <span className="text-red-400">*</span>
+              </label>
+              <input
+                id="lastName"
+                type="text"
+                value={formData.lastName || ""}
+                onChange={handleChange}
+                placeholder="Enter last name"
+                required
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="jobTitle"
+              className="block text-sm font-medium text-gray-300 mb-1"
+            >
+              Professional (job title) <span className="text-red-400">*</span>
+            </label>
+            <input
+              id="jobTitle"
+              type="text"
+              value={formData.jobTitle || ""}
+              onChange={handleChange}
+              placeholder="e.g UI/UX Designer"
+              required
+              className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="languages"
+              className="block text-sm font-medium text-gray-300 mb-1"
+            >
+              Languages
+            </label>
+            <input
+              id="languages"
+              type="text"
+              value={formData.languages || ""}
+              onChange={handleChange}
+              placeholder="e.g English, French"
+              className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label
+                htmlFor="district"
+                className="block text-sm font-medium text-gray-300 mb-1"
+              >
+                District
+              </label>
+              <input
+                id="district"
+                type="text"
+                value={formData.district || ""}
+                onChange={handleChange}
+                placeholder="Enter district name"
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="cityCountry"
+                className="block text-sm font-medium text-gray-300 mb-1"
+              >
+                City-country
+              </label>
+              <input
+                id="cityCountry"
+                type="text"
+                value={formData.cityCountry || ""}
+                onChange={handleChange}
+                placeholder="e.g Lagos, Nigeria"
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="postalCode"
+                className="block text-sm font-medium text-gray-300 mb-1"
+              >
+                Postal code
+              </label>
+              <input
+                id="postalCode"
+                type="text"
+                value={formData.postalCode || ""}
+                onChange={handleChange}
+                placeholder="Enter postal code"
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-300 mb-1"
+              >
+                Phone
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                value={formData.phone || ""}
+                onChange={handleChange}
+                placeholder="Enter phone number"
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-300 mb-1"
+              >
+                Email <span className="text-red-400">*</span>
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={formData.email || ""}
+                onChange={handleChange}
+                placeholder="Enter email address"
+                required
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <TemplatePreview formData={formData} />
+      </div>
+    </div>
+  );
+};
+
+// Step 2: Work History (Multi-step)
+const WorkHistoryStep = ({ formData, handleChange, error }) => {
+  const [workSubStep, setWorkSubStep] = useState(3); // Start at summary
+  const [currentWorkIndex, setCurrentWorkIndex] = useState(0);
+  const [workError, setWorkError] = useState(""); // Local error state for work history
+
+  // Initialize work experiences array if it doesn't exist
+  const workExperiences = formData.workExperiences || [
+    {
+      workJobTitle: "",
+      employer: "",
+      workLocation: "",
+      jobType: "Full time",
+      workMode: "Remote",
+      workStartMonth: "",
+      workStartYear: "",
+      workEndMonth: "",
+      workEndYear: "",
+      currentlyWorking: false,
+      jobDescription: "",
+    },
+  ];
+
+  // If there's no data in the first work experience, start at step 1
+  useEffect(() => {
+    const firstWork = workExperiences[0];
+    if (!firstWork.workJobTitle && !firstWork.employer) {
+      setWorkSubStep(1);
+    }
+  }, []);
+
+  const currentWork = workExperiences[currentWorkIndex] || workExperiences[0];
+
+  const handleWorkModeChange = (mode) => {
+    updateCurrentWork("workMode", mode);
+  };
+
+  const updateCurrentWork = (field, value) => {
+    const updatedExperiences = [...workExperiences];
+    updatedExperiences[currentWorkIndex] = {
+      ...updatedExperiences[currentWorkIndex],
+      [field]: value,
+    };
+    handleChange({
+      target: { id: "workExperiences", value: updatedExperiences },
+    });
+    // Clear work error when user starts typing
+    if (workError) setWorkError("");
+  };
+
+  const handleWorkFieldChange = (e) => {
+    const { id, value, type, checked } = e.target;
+    updateCurrentWork(id, type === "checkbox" ? checked : value);
+  };
+
+  const addNewWorkExperience = () => {
+    const newWork = {
+      workJobTitle: "",
+      employer: "",
+      workLocation: "",
+      jobType: "Full time",
+      workMode: "Remote",
+      workStartMonth: "",
+      workStartYear: "",
+      workEndMonth: "",
+      workEndYear: "",
+      currentlyWorking: false,
+      jobDescription: "",
+    };
+    const updatedExperiences = [...workExperiences, newWork];
+    handleChange({
+      target: { id: "workExperiences", value: updatedExperiences },
+    });
+    setCurrentWorkIndex(updatedExperiences.length - 1);
+    setWorkSubStep(1); // Start from beginning for new work experience
+    setWorkError(""); // Clear any errors
+  };
+
+  const deleteWorkExperience = (index) => {
+    if (workExperiences.length > 1) {
+      const updatedExperiences = workExperiences.filter((_, i) => i !== index);
+      handleChange({
+        target: { id: "workExperiences", value: updatedExperiences },
+      });
+
+      // Adjust current index if necessary
+      if (currentWorkIndex >= updatedExperiences.length) {
+        setCurrentWorkIndex(updatedExperiences.length - 1);
+      }
+
+      // Go back to summary if we deleted current work
+      if (currentWorkIndex === index) {
+        setWorkSubStep(3);
+      }
+    }
+  };
+
+  const editWorkExperience = (index) => {
+    setCurrentWorkIndex(index);
+    setWorkSubStep(1);
+    setWorkError(""); // Clear any errors
+  };
+
+  const validateCurrentWorkStep = (step) => {
+    // Step 1: Basic Info - require job title and employer
+    if (step === 1) {
+      if (!currentWork.workJobTitle || currentWork.workJobTitle.trim() === "") {
+        return "Please fill out the job title field";
+      }
+      if (!currentWork.employer || currentWork.employer.trim() === "") {
+        return "Please fill out the employer/company field";
+      }
+    }
+
+    // Step 2: Job Description - require job description
+    if (step === 2) {
+      if (
+        !currentWork.jobDescription ||
+        currentWork.jobDescription.trim() === ""
+      ) {
+        return "Please fill out the job description field";
+      }
+    }
+
+    return null;
+  };
+
+  const handleWorkNext = (fromStep) => {
+    const validationError = validateCurrentWorkStep(fromStep);
+    if (validationError) {
+      setWorkError(validationError);
+      return false;
+    }
+
+    setWorkError("");
+    if (fromStep === 1) {
+      setWorkSubStep(2);
+    } else if (fromStep === 2) {
+      setWorkSubStep(3);
+    }
+    return true;
+  };
+
+  const handleWorkBack = () => {
+    setWorkError(""); // Clear errors when going back
+    if (workSubStep > 1) {
+      setWorkSubStep(workSubStep - 1);
+    } else {
+      // Go back to summary if at step 1
+      setWorkSubStep(3);
+    }
+  };
+
+  // Sub-step 1: Basic Job Information
+  if (workSubStep === 1) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              {currentWorkIndex === 0
+                ? "Tell us about your most recent job"
+                : `Edit work experience #${currentWorkIndex + 1}`}
+            </h1>
+            <p className="text-gray-400">
+              You can include any work experience, internships, scholarships,
+              <br />
+              relevant coursework and academic achievements.
+            </p>
+          </div>
+          <div className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
+            1/3
+          </div>
+        </div>
+
+        {workError && (
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+            {workError}
+          </div>
+        )}
+
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Job Title <span className="text-red-400">*</span>
+              </label>
+              <input
+                id="workJobTitle"
+                type="text"
+                value={currentWork.workJobTitle || ""}
+                onChange={handleWorkFieldChange}
+                placeholder="e.g UI/UX Designer"
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Employer/Company <span className="text-red-400">*</span>
+              </label>
+              <input
+                id="employer"
+                type="text"
+                value={currentWork.employer || ""}
+                onChange={handleWorkFieldChange}
+                placeholder="e.g Grey finance"
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Location
+              </label>
+              <input
+                id="workLocation"
+                type="text"
+                value={currentWork.workLocation || ""}
+                onChange={handleWorkFieldChange}
+                placeholder="e.g lagos, Nigeria"
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Job type
+              </label>
+              <select
+                id="jobType"
+                value={currentWork.jobType || "Full time"}
+                onChange={handleWorkFieldChange}
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+              >
+                <option value="Full time">Full time</option>
+                <option value="Part time">Part time</option>
+                <option value="Contract">Contract</option>
+                <option value="Freelance">Freelance</option>
+                <option value="Internship">Internship</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Work Mode
+            </label>
+            <div className="flex items-center space-x-4">
+              {["Remote", "Onsite", "Hybrid"].map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => handleWorkModeChange(mode)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2 ${
+                    currentWork.workMode === mode
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                  }`}
+                >
+                  {currentWork.workMode === mode && <span>✓</span>}
+                  <span>{mode}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Start Date
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <select
+                  id="workStartMonth"
+                  value={currentWork.workStartMonth || ""}
+                  onChange={handleWorkFieldChange}
+                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                >
+                  <option value="">Month</option>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {new Date(2024, i).toLocaleString("default", {
+                        month: "long",
+                      })}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  id="workStartYear"
+                  value={currentWork.workStartYear || ""}
+                  onChange={handleWorkFieldChange}
+                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                >
+                  <option value="">Year</option>
+                  {Array.from({ length: 30 }, (_, i) => (
+                    <option key={2024 - i} value={2024 - i}>
+                      {2024 - i}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                End Date
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <select
+                  id="workEndMonth"
+                  value={currentWork.workEndMonth || ""}
+                  onChange={handleWorkFieldChange}
+                  disabled={currentWork.currentlyWorking}
+                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600 disabled:opacity-50"
+                >
+                  <option value="">Month</option>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {new Date(2024, i).toLocaleString("default", {
+                        month: "long",
+                      })}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  id="workEndYear"
+                  value={currentWork.workEndYear || ""}
+                  onChange={handleWorkFieldChange}
+                  disabled={currentWork.currentlyWorking}
+                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600 disabled:opacity-50"
+                >
+                  <option value="">Year</option>
+                  {Array.from({ length: 30 }, (_, i) => (
+                    <option key={2024 - i} value={2024 - i}>
+                      {2024 - i}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              id="currentlyWorking"
+              type="checkbox"
+              checked={currentWork.currentlyWorking || false}
+              onChange={handleWorkFieldChange}
+              className="w-4 h-4 text-purple-600 bg-gray-800 border-gray-600 rounded focus:ring-purple-600"
+            />
+            <label className="ml-2 text-sm text-gray-300">
+              I currently work here
+            </label>
+          </div>
+        </div>
+
+        <div className="flex justify-between mt-8">
+          <button
+            type="button"
+            onClick={handleWorkBack}
+            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            {workExperiences.length === 1 && currentWorkIndex === 0
+              ? "Cancel"
+              : "Back to Summary"}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleWorkNext(1)}
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Sub-step 2: Job Description
+  if (workSubStep === 2) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-4">
+              Describe what you did
+            </h1>
+            <p className="text-gray-400">Describe your role in the job</p>
+          </div>
+          <div className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
+            2/3
+          </div>
+        </div>
+
+        {workError && (
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+            {workError}
+          </div>
+        )}
+
+        <div className="mb-8">
+          <div className="text-white font-semibold text-lg mb-2">
+            {currentWork.workJobTitle || "UI/UX Designer"} •{" "}
+            {currentWork.employer || "Grey Finance"}
+          </div>
+          <div className="text-gray-400 text-sm">
+            {currentWork.workLocation || "Lagos, Nigeria"} (
+            {currentWork.workMode || "Remote"}) •{" "}
+            {currentWork.workStartMonth && currentWork.workStartYear
+              ? `${new Date(
+                  2024,
+                  parseInt(currentWork.workStartMonth) - 1
+                ).toLocaleString("default", { month: "long" })} ${
+                  currentWork.workStartYear
+                }`
+              : "September 2023"}{" "}
+            -{" "}
+            {currentWork.currentlyWorking
+              ? "Present"
+              : currentWork.workEndMonth && currentWork.workEndYear
+              ? `${new Date(
+                  2024,
+                  parseInt(currentWork.workEndMonth) - 1
+                ).toLocaleString("default", { month: "long" })} ${
+                  currentWork.workEndYear
+                }`
+              : "August 2024"}
+          </div>
+        </div>
+
+        <div className="mb-8">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Job Description <span className="text-red-400">*</span>
+          </label>
+
+          <div className="bg-gray-900/80 border border-gray-700 rounded-lg p-4 mb-4">
+            <div className="space-y-3 mb-4">
+              {currentWork.jobDescription ? (
+                currentWork.jobDescription
+                  .split("\n")
+                  .filter((line) => line.trim())
+                  .map((line, index) => (
+                    <div key={index} className="flex items-start space-x-3">
+                      <div className="w-2 h-2 bg-purple-400 rounded-full mt-2 flex-shrink-0"></div>
+                      <div className="text-white text-sm">{line.trim()}</div>
+                    </div>
+                  ))
+              ) : (
+                <>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full mt-2 flex-shrink-0"></div>
+                    <div className="text-white text-sm">
+                      Worked closely with marketing teams to align branding
+                      elements within the UI/UX design.
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full mt-2 flex-shrink-0"></div>
+                    <div className="text-white text-sm">
+                      Developed interactive mockups using prototyping tools such
+                      as Sketch or Adobe XD for validation purposes before
+                      implementation phases began.
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full mt-2 flex-shrink-0"></div>
+                    <div className="text-white text-sm">
+                      Created style guides and design systems to maintain
+                      consistency across all platforms and products.
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="border-t border-gray-700 pt-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <button className="p-2 text-gray-400 hover:text-white">
+                    <svg
+                      className="w-4 h-4 font-bold"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+                    </svg>
+                  </button>
+                  <button className="p-2 text-gray-400 hover:text-white italic">
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M4 4a1 1 0 012 0v1h8V4a1 1 0 112 0v1h1a2 2 0 012 2v10a2 2 0 01-2 2H3a2 2 0 01-2-2V7a2 2 0 012-2h1V4z" />
+                    </svg>
+                  </button>
+                  <button className="p-2 text-gray-400 hover:text-white">
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                      />
+                    </svg>
+                  </button>
+                  <button className="p-2 text-gray-400 hover:text-white">
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button className="p-2 text-gray-400 hover:text-white">
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                      />
+                    </svg>
+                  </button>
+                  <button className="p-2 text-gray-400 hover:text-white">
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 9.5H17a1 1 0 110 2h-5.586l4.293 4.293a1 1 0 010 1.414z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <RichTextEditor
+            value={currentWork.jobDescription || ""}
+            onChange={(value) => updateCurrentWork("jobDescription", value)}
+            placeholder="Describe your role and responsibilities..."
+          />
+        </div>
+
+        <div className="flex justify-between">
+          <button
+            type="button"
+            onClick={handleWorkBack}
+            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            Go back
+          </button>
+          <button
+            type="button"
+            onClick={() => handleWorkNext(2)}
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Sub-step 3: Work History Summary
+  if (workSubStep === 3) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-4">
+              Work history summary
+            </h1>
+            <p className="text-gray-400 max-w-lg">
+              A brief overview of your past roles, key achievements, and skills
+              gained. This summary highlights your career progression and impact
+              in previous positions.
+            </p>
+          </div>
+          <div className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
+            3/3
+          </div>
+        </div>
+
+        <div className="space-y-6 mb-8">
+          {workExperiences.map((work, index) => (
+            <div
+              key={index}
+              className="bg-gray-900/80 border border-gray-700 rounded-lg p-6"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-purple-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-semibold">
+                    {index + 1}
+                  </div>
+                  <div>
+                    <h3 className="text-white text-lg font-semibold">
+                      {work.workJobTitle || "Job Title"},{" "}
+                      {work.employer || "Company Name"}
+                    </h3>
+                    <p className="text-gray-400 text-sm">
+                      {work.workLocation || "Location"} (
+                      {work.workMode || "Remote"}) •{" "}
+                      {work.workStartMonth && work.workStartYear
+                        ? `${new Date(
+                            2024,
+                            parseInt(work.workStartMonth) - 1
+                          ).toLocaleString("default", { month: "long" })} ${
+                            work.workStartYear
+                          }`
+                        : "Start Date"}{" "}
+                      -{" "}
+                      {work.currentlyWorking
+                        ? "Present"
+                        : work.workEndMonth && work.workEndYear
+                        ? `${new Date(
+                            2024,
+                            parseInt(work.workEndMonth) - 1
+                          ).toLocaleString("default", { month: "long" })} ${
+                            work.workEndYear
+                          }`
+                        : "End Date"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => editWorkExperience(index)}
+                    className="p-2 text-gray-400 hover:text-purple-400 transition-colors"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                  </button>
+                  {workExperiences.length > 1 && (
+                    <button
+                      onClick={() => deleteWorkExperience(index)}
+                      className="p-2 text-gray-400 hover:text-red-400 transition-colors"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2 mb-4">
+                {work.jobDescription ? (
+                  work.jobDescription
+                    .split("\n")
+                    .filter((line) => line.trim())
+                    .slice(0, 3)
+                    .map((line, lineIndex) => (
+                      <div key={lineIndex} className="text-gray-300 text-sm">
+                        {line.trim()}
+                      </div>
+                    ))
+                ) : (
+                  <div className="text-gray-500 text-sm italic">
+                    No job description added yet
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => editWorkExperience(index)}
+                  className="text-purple-400 text-sm hover:text-purple-300 flex items-center space-x-1"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  </svg>
+                  <span>Edit description</span>
+                </button>
+                {work.jobDescription &&
+                  work.jobDescription.split("\n").filter((line) => line.trim())
+                    .length > 3 && (
+                    <button className="text-purple-400 text-sm hover:text-purple-300 flex items-center space-x-1">
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        />
+                      </svg>
+                      <span>Show more details</span>
+                    </button>
+                  )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={addNewWorkExperience}
+          className="w-full border-2 border-dashed border-gray-700 rounded-lg py-6 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors mb-8"
+        >
+          <div className="flex items-center justify-center space-x-2">
+            <span className="text-purple-400 text-lg">+</span>
+            <span className="text-purple-400 font-medium">Add position</span>
+          </div>
+        </button>
+
+        {/* This step uses main navigation buttons */}
+      </div>
+    );
+  }
+
+  // Step 3: Education (Multi-step)
+  const EducationStep = ({ formData, handleChange, error }) => {
+    const [eduSubStep, setEduSubStep] = useState(3); // Start at summary
+    const [currentEduIndex, setCurrentEduIndex] = useState(0);
+    const [eduError, setEduError] = useState(""); // Local error state
+
+    // Initialize education array if it doesn't exist
+    const educationExperiences = formData.educationExperiences || [
+      {
+        educationLevel: "Bachelors",
+        schoolName: "",
+        schoolLocation: "",
+        degree: "",
+        fieldOfStudy: "",
+        graduationMonth: "",
+        graduationYear: "",
+        currentlyStudying: false,
+        // Additional info
+        awards: false,
+        awardName: "",
+        awardYear: "",
+        academicScholarships: false,
+        academicScholarshipName: "",
+        academicScholarshipYear: "",
+        academicScholarshipBody: "",
+        sportsScholarships: false,
+        sportsScholarshipName: "",
+        sportsScholarshipYear: "",
+        sportsScholarshipBody: "",
+        gpa: false,
+        gpaValue: "",
+        club: false,
+        clubName: "",
+        clubStartYear: "",
+        clubEndYear: "",
+      },
+    ];
+
+    // If there's no data in the first education, start at step 1
+    useEffect(() => {
+      const firstEdu = educationExperiences[0];
+      if (!firstEdu.schoolName && !firstEdu.degree) {
+        setEduSubStep(1);
+      }
+    }, []);
+
+    const currentEdu =
+      educationExperiences[currentEduIndex] || educationExperiences[0];
+
+    const updateCurrentEducation = (field, value) => {
+      const updatedExperiences = [...educationExperiences];
+      updatedExperiences[currentEduIndex] = {
+        ...updatedExperiences[currentEduIndex],
+        [field]: value,
+      };
+      handleChange({
+        target: { id: "educationExperiences", value: updatedExperiences },
+      });
+      // Clear error when user starts typing
+      if (eduError) setEduError("");
+    };
+
+    const handleEduFieldChange = (e) => {
+      const { id, value, type, checked } = e.target;
+      updateCurrentEducation(id, type === "checkbox" ? checked : value);
+    };
+
+    const addNewEducation = () => {
+      const newEdu = {
+        educationLevel: "Bachelors",
+        schoolName: "",
+        schoolLocation: "",
+        degree: "",
+        fieldOfStudy: "",
+        graduationMonth: "",
+        graduationYear: "",
+        currentlyStudying: false,
+        // Additional info
+        awards: false,
+        awardName: "",
+        awardYear: "",
+        academicScholarships: false,
+        academicScholarshipName: "",
+        academicScholarshipYear: "",
+        academicScholarshipBody: "",
+        sportsScholarships: false,
+        sportsScholarshipName: "",
+        sportsScholarshipYear: "",
+        sportsScholarshipBody: "",
+        gpa: false,
+        gpaValue: "",
+        club: false,
+        clubName: "",
+        clubStartYear: "",
+        clubEndYear: "",
+      };
+      const updatedExperiences = [...educationExperiences, newEdu];
+      handleChange({
+        target: { id: "educationExperiences", value: updatedExperiences },
+      });
+      setCurrentEduIndex(updatedExperiences.length - 1);
+      setEduSubStep(1);
+      setEduError("");
+    };
+
+    const deleteEducation = (index) => {
+      if (educationExperiences.length > 1) {
+        const updatedExperiences = educationExperiences.filter(
+          (_, i) => i !== index
+        );
+        handleChange({
+          target: { id: "educationExperiences", value: updatedExperiences },
+        });
+
+        if (currentEduIndex >= updatedExperiences.length) {
+          setCurrentEduIndex(updatedExperiences.length - 1);
+        }
+
+        if (currentEduIndex === index) {
+          setEduSubStep(3);
+        }
+      }
+    };
+
+    const editEducation = (index) => {
+      setCurrentEduIndex(index);
+      setEduSubStep(1);
+      setEduError("");
+    };
+
+    const validateCurrentEduStep = (step) => {
+      // Step 1: Basic Info - require school name, degree, field of study
+      if (step === 1) {
+        if (!currentEdu.schoolName || currentEdu.schoolName.trim() === "") {
+          return "Please fill out the school name field";
+        }
+        if (!currentEdu.degree || currentEdu.degree.trim() === "") {
+          return "Please fill out the degree field";
+        }
+        if (!currentEdu.fieldOfStudy || currentEdu.fieldOfStudy.trim() === "") {
+          return "Please fill out the field of study";
+        }
+      }
+
+      // Step 2: Additional info validation (if any fields are enabled, validate them)
+      if (step === 2) {
+        if (
+          currentEdu.awards &&
+          (!currentEdu.awardName || currentEdu.awardName.trim() === "")
+        ) {
+          return "Please fill out the award name";
+        }
+        if (
+          currentEdu.academicScholarships &&
+          (!currentEdu.academicScholarshipName ||
+            currentEdu.academicScholarshipName.trim() === "")
+        ) {
+          return "Please fill out the academic scholarship name";
+        }
+        if (
+          currentEdu.sportsScholarships &&
+          (!currentEdu.sportsScholarshipName ||
+            currentEdu.sportsScholarshipName.trim() === "")
+        ) {
+          return "Please fill out the sports scholarship name";
+        }
+        if (
+          currentEdu.club &&
+          (!currentEdu.clubName || currentEdu.clubName.trim() === "")
+        ) {
+          return "Please fill out the club name";
+        }
+      }
+
+      return null;
+    };
+
+    const handleEduNext = (fromStep) => {
+      const validationError = validateCurrentEduStep(fromStep);
+      if (validationError) {
+        setEduError(validationError);
+        return false;
+      }
+
+      setEduError("");
+      if (fromStep === 1) {
+        setEduSubStep(2);
+      } else if (fromStep === 2) {
+        setEduSubStep(3);
+      }
+      return true;
+    };
+
+    const handleEduBack = () => {
+      setEduError("");
+      if (eduSubStep > 1) {
+        setEduSubStep(eduSubStep - 1);
+      } else {
+        setEduSubStep(3);
+      }
+    };
+
+    // Sub-step 1: Basic Education Information
+    if (eduSubStep === 1) {
+      const educationLevels = [
+        "High School",
+        "Associates",
+        "Bachelors",
+        "Masters",
+        "PhD",
+        "Professional",
+        "Other",
+      ];
+
+      return (
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Tell us about your Education
+              </h1>
+              <p className="text-gray-400">
+                Enter your education experience so far, even if you are
+                currently a
+                <br />
+                student or did not graduate
+              </p>
+            </div>
+            <div className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
+              1/3
+            </div>
+          </div>
+
+          {eduError && (
+            <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+              {eduError}
+            </div>
+          )}
+
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Highest education level{" "}
+                  <span className="text-red-400">*</span>
+                </label>
+                <select
+                  id="educationLevel"
+                  value={currentEdu.educationLevel || "Bachelors"}
+                  onChange={handleEduFieldChange}
+                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  required
+                >
+                  {educationLevels.map((level) => (
+                    <option key={level} value={level}>
+                      {level}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  School name <span className="text-red-400">*</span>
+                </label>
+                <input
+                  id="schoolName"
+                  type="text"
+                  value={currentEdu.schoolName || ""}
+                  onChange={handleEduFieldChange}
+                  placeholder="Enter school name"
+                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  School location
+                </label>
+                <input
+                  id="schoolLocation"
+                  type="text"
+                  value={currentEdu.schoolLocation || ""}
+                  onChange={handleEduFieldChange}
+                  placeholder="e.g Lagos, Nigeria"
+                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Degree <span className="text-red-400">*</span>
+                </label>
+                <select
+                  id="degree"
+                  value={currentEdu.degree || ""}
+                  onChange={handleEduFieldChange}
+                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  required
+                >
+                  <option value="">Select</option>
+                  <option value="Bachelor of Science">
+                    Bachelor of Science
+                  </option>
+                  <option value="Bachelor of Arts">Bachelor of Arts</option>
+                  <option value="Bachelor of Engineering">
+                    Bachelor of Engineering
+                  </option>
+                  <option value="Master of Science">Master of Science</option>
+                  <option value="Master of Arts">Master of Arts</option>
+                  <option value="Master of Engineering">
+                    Master of Engineering
+                  </option>
+                  <option value="Doctor of Philosophy">
+                    Doctor of Philosophy
+                  </option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Field of Study <span className="text-red-400">*</span>
+              </label>
+              <input
+                id="fieldOfStudy"
+                type="text"
+                value={currentEdu.fieldOfStudy || ""}
+                onChange={handleEduFieldChange}
+                placeholder="e.g Architecture"
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Graduation Date (Or Expected Graduation Date)
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <select
+                  id="graduationMonth"
+                  value={currentEdu.graduationMonth || ""}
+                  onChange={handleEduFieldChange}
+                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                >
+                  <option value="">Month</option>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {new Date(2024, i).toLocaleString("default", {
+                        month: "long",
+                      })}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  id="graduationYear"
+                  value={currentEdu.graduationYear || ""}
+                  onChange={handleEduFieldChange}
+                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                >
+                  <option value="">Year</option>
+                  {Array.from({ length: 20 }, (_, i) => (
+                    <option key={2030 - i} value={2030 - i}>
+                      {2030 - i}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center">
+              <input
+                id="currentlyStudying"
+                type="checkbox"
+                checked={currentEdu.currentlyStudying || false}
+                onChange={handleEduFieldChange}
+                className="w-4 h-4 text-purple-600 bg-gray-800 border-gray-600 rounded focus:ring-purple-600"
+              />
+              <label className="ml-2 text-sm text-gray-300">
+                I am currently studying here
+              </label>
+            </div>
+          </div>
+
+          <div className="flex justify-between mt-8">
+            <button
+              type="button"
+              onClick={handleEduBack}
+              className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              {educationExperiences.length === 1 && currentEduIndex === 0
+                ? "Cancel"
+                : "Back to Summary"}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleEduNext(1)}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Sub-step 2: Additional Educational Information
+    if (eduSubStep === 2) {
+      return (
+        <>
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-2">
+                  Additional educational information
+                </h1>
+                <p className="text-gray-400">
+                  Not enough work experience? This section can help you stand
+                  out. If your bachelor's degree is in progress, you may
+                  <br />
+                  include educational achievements or any other certification
+                  that corresponds to the job you want
+                </p>
+              </div>
+              <div className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
+                2/3
+              </div>
+            </div>
+
+            {eduError && (
+              <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+                {eduError}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left side - Checkboxes */}
+              <div>
+                <h3 className="text-lg font-medium text-white mb-4">
+                  Choose all that apply
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      id="awards"
+                      type="checkbox"
+                      checked={currentEdu.awards || false}
+                      onChange={handleEduFieldChange}
+                      className="w-5 h-5 text-purple-600 bg-gray-800 border-gray-600 rounded focus:ring-purple-600"
+                    />
+                    <label className="text-white">Awards</label>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <input
+                      id="academicScholarships"
+                      type="checkbox"
+                      checked={currentEdu.academicScholarships || false}
+                      onChange={handleEduFieldChange}
+                      className="w-5 h-5 text-purple-600 bg-gray-800 border-gray-600 rounded focus:ring-purple-600"
+                    />
+                    <label className="text-white">Academic Scholarships</label>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <input
+                      id="sportsScholarships"
+                      type="checkbox"
+                      checked={currentEdu.sportsScholarships || false}
+                      onChange={handleEduFieldChange}
+                      className="w-5 h-5 text-purple-600 bg-gray-800 border-gray-600 rounded focus:ring-purple-600"
+                    />
+                    <label className="text-white">Sports Scholarships</label>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <input
+                      id="gpa"
+                      type="checkbox"
+                      checked={currentEdu.gpa || false}
+                      onChange={handleEduFieldChange}
+                      className="w-5 h-5 text-purple-600 bg-gray-800 border-gray-600 rounded focus:ring-purple-600"
+                    />
+                    <label className="text-white">GPA</label>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <input
+                      id="club"
+                      type="checkbox"
+                      checked={currentEdu.club || false}
+                      onChange={handleEduFieldChange}
+                      className="w-5 h-5 text-purple-600 bg-gray-800 border-gray-600 rounded focus:ring-purple-600"
+                    />
+                    <label className="text-white">Club</label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right side - Form fields */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-white">
+                    Education Description
+                  </h3>
+                  <button className="px-3 py-1 bg-purple-600 text-white text-sm rounded">
+                    Save
+                  </button>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Awards */}
+                  {currentEdu.awards && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Award
+                        </label>
+                        <input
+                          id="awardName"
+                          type="text"
+                          value={currentEdu.awardName || ""}
+                          onChange={handleEduFieldChange}
+                          placeholder="Award name"
+                          className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          School year
+                        </label>
+                        <input
+                          id="awardYear"
+                          type="text"
+                          value={currentEdu.awardYear || ""}
+                          onChange={handleEduFieldChange}
+                          placeholder="School year award was received"
+                          className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Academic Scholarships */}
+                  {currentEdu.academicScholarships && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Academic scholarship
+                          </label>
+                          <input
+                            id="academicScholarshipName"
+                            type="text"
+                            value={currentEdu.academicScholarshipName || ""}
+                            onChange={handleEduFieldChange}
+                            placeholder="Scholarship name"
+                            className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Year awarded
+                          </label>
+                          <select
+                            id="academicScholarshipYear"
+                            value={currentEdu.academicScholarshipYear || ""}
+                            onChange={handleEduFieldChange}
+                            className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                          >
+                            <option value="">Year</option>
+                            {Array.from({ length: 20 }, (_, i) => (
+                              <option key={2024 - i} value={2024 - i}>
+                                {2024 - i}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Awarding body
+                        </label>
+                        <input
+                          id="academicScholarshipBody"
+                          type="text"
+                          value={currentEdu.academicScholarshipBody || ""}
+                          onChange={handleEduFieldChange}
+                          placeholder="Enter here"
+                          className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sports Scholarships */}
+                  {currentEdu.sportsScholarships && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Sports scholarship
+                          </label>
+                          <input
+                            id="sportsScholarshipName"
+                            type="text"
+                            value={currentEdu.sportsScholarshipName || ""}
+                            onChange={handleEduFieldChange}
+                            placeholder="Scholarship name"
+                            className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Year awarded
+                          </label>
+                          <select
+                            id="sportsScholarshipYear"
+                            value={currentEdu.sportsScholarshipYear || ""}
+                            onChange={handleEduFieldChange}
+                            className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                          >
+                            <option value="">Year</option>
+                            {Array.from({ length: 20 }, (_, i) => (
+                              <option key={2024 - i} value={2024 - i}>
+                                {2024 - i}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Awarding body
+                        </label>
+                        <input
+                          id="sportsScholarshipBody"
+                          type="text"
+                          value={currentEdu.sportsScholarshipBody || ""}
+                          onChange={handleEduFieldChange}
+                          placeholder="Enter here"
+                          className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* GPA */}
+                  {currentEdu.gpa && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        GPA
+                      </label>
+                      <input
+                        id="gpaValue"
+                        type="text"
+                        value={currentEdu.gpaValue || ""}
+                        onChange={handleEduFieldChange}
+                        placeholder="Enter number"
+                        className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      />
+                    </div>
+                  )}
+
+                  {/* Club */}
+                  {currentEdu.club && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Club
+                        </label>
+                        <input
+                          id="clubName"
+                          type="text"
+                          value={currentEdu.clubName || ""}
+                          onChange={handleEduFieldChange}
+                          placeholder="Club name"
+                          className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Start year
+                          </label>
+                          <select
+                            id="clubStartYear"
+                            value={currentEdu.clubStartYear || ""}
+                            onChange={handleEduFieldChange}
+                            className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                          >
+                            <option value="">Year</option>
+                            {Array.from({ length: 20 }, (_, i) => (
+                              <option key={2024 - i} value={2024 - i}>
+                                {2024 - i}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            End year
+                          </label>
+                          <select
+                            id="clubEndYear"
+                            value={currentEdu.clubEndYear || ""}
+                            onChange={handleEduFieldChange}
+                            className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                          >
+                            <option value="">Year</option>
+                            {Array.from({ length: 20 }, (_, i) => (
+                              <option key={2024 - i} value={2024 - i}>
+                                {2024 - i}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-between mt-8">
+            <button
+              type="button"
+              onClick={handleEduBack}
+              className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Go back
+            </button>
+            <button
+              type="button"
+              onClick={() => handleEduNext(2)}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </>
+      );
+    }
+
+    // Sub-step 3: Education Summary
+    if (eduSubStep === 3) {
+      return (
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-4">
+                Education summary
+              </h1>
+              <p className="text-gray-400 max-w-lg">
+                An overview of your academic background, including degrees
+                earned, institutions attended, and notable achievements. This
+                summary highlights your educational qualifications and areas of
+                expertise.
+              </p>
+            </div>
+            <div className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
+              3/3
+            </div>
+          </div>
+
+          <div className="space-y-6 mb-8">
+            {educationExperiences.map((edu, index) => (
+              <div
+                key={index}
+                className="bg-gray-900/80 border border-gray-700 rounded-lg p-6"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-purple-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-semibold">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <h3 className="text-white text-lg font-semibold">
+                        {edu.degree || "Degree"} -{" "}
+                        {edu.schoolName || "University Name"}
+                      </h3>
+                      <p className="text-gray-400 text-sm">
+                        {edu.fieldOfStudy || "Field of Study"}
+                      </p>
+                      <p className="text-gray-500 text-xs">
+                        {edu.schoolLocation && `${edu.schoolLocation} • `}
+                        Graduated in{" "}
+                        {edu.graduationMonth && edu.graduationYear
+                          ? `${new Date(
+                              2024,
+                              parseInt(edu.graduationMonth) - 1
+                            ).toLocaleString("default", { month: "long" })} ${
+                              edu.graduationYear
+                            }`
+                          : "November 2023"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => editEducation(index)}
+                      className="p-2 text-gray-400 hover:text-purple-400 transition-colors"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
+                    </button>
+                    {educationExperiences.length > 1 && (
+                      <button
+                        onClick={() => deleteEducation(index)}
+                        className="p-2 text-gray-400 hover:text-red-400 transition-colors"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2 mb-4">
+                  {/* Show achievements if any */}
+                  {edu.awards ||
+                  edu.academicScholarships ||
+                  edu.sportsScholarships ||
+                  edu.gpa ||
+                  edu.club ? (
+                    <div className="text-gray-300 text-sm space-y-1">
+                      {edu.awards && edu.awardName && (
+                        <div>Won the gold award in my 3rd year in school</div>
+                      )}
+                      {edu.academicScholarships &&
+                        edu.academicScholarshipName && (
+                          <div>
+                            Was given a Academic scholarship by{" "}
+                            {edu.academicScholarshipBody || "MTN"} in{" "}
+                            {edu.academicScholarshipYear || "2020"}
+                          </div>
+                        )}
+                      {edu.sportsScholarships && edu.sportsScholarshipName && (
+                        <div>
+                          Was given a Sports scholarship by{" "}
+                          {edu.sportsScholarshipBody || "NFL"} in{" "}
+                          {edu.sportsScholarshipYear || "2022"}
+                        </div>
+                      )}
+                      {edu.club && edu.clubName && (
+                        <div>
+                          Was in the chess club from{" "}
+                          {edu.clubStartYear || "2021"} to{" "}
+                          {edu.clubEndYear || "2023"}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-gray-500 text-sm italic">
+                      No additional achievements added yet
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => editEducation(index)}
+                    className="text-purple-400 text-sm hover:text-purple-300 flex items-center space-x-1"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                    <span>Edit details</span>
+                  </button>
+                  <button className="text-purple-400 text-sm hover:text-purple-300 flex items-center space-x-1">
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      />
+                    </svg>
+                    <span>Show more details</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={addNewEducation}
+            className="w-full border-2 border-dashed border-gray-700 rounded-lg py-6 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors mb-8"
+          >
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-purple-400 text-lg">+</span>
+              <span className="text-purple-400 font-medium">
+                Add another degree
+              </span>
+            </div>
+          </button>
+
+          {/* This step uses main navigation buttons */}
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  // Step 4: Skills
+  const SkillsStep = ({ formData, handleChange, error }) => {
+    const skills = formData.skills || [""];
+
+    const updateSkill = (index, value) => {
+      const newSkills = [...skills];
+      newSkills[index] = value;
+      handleChange({ target: { id: "skills", value: newSkills } });
+    };
+
+    const removeSkill = (index) => {
+      const newSkills = skills.filter((_, i) => i !== index);
+      handleChange({ target: { id: "skills", value: newSkills } });
+    };
+
+    const addSkill = () => {
+      handleChange({ target: { id: "skills", value: [...skills, ""] } });
+    };
+
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-4">
+            What interests/Hobbies do you have
+          </h1>
+          <p className="text-gray-400 mb-2">
+            List the software tools and programs you're proficient in, from
+            productivity suites to
+            <br />
+            specialized software relevant to your field.
+          </p>
+          <p className="text-gray-300 text-sm">We recommend 6 to 12 skills</p>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {skills.map((skill, index) => (
+              <div key={index} className="flex items-center space-x-3">
+                <input
+                  type="text"
+                  value={skill}
+                  onChange={(e) => updateSkill(index, e.target.value)}
+                  placeholder={index === 0 ? "Chess" : "Enter here"}
+                  className="flex-1 px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                />
+                {skills.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeSkill(index)}
+                    className="p-3 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-lg transition-colors"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={addSkill}
+            className="w-full border-2 border-dashed border-gray-700 rounded-lg py-4 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors"
+          >
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-purple-400 text-lg">+</span>
+              <span className="text-purple-400 font-medium">
+                Add another interest
+              </span>
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Step 5: Certifications
+  const CertificationsStep = ({ formData, handleChange, error }) => {
+    const certificates = formData.certificates || [{ title: "", link: "" }];
+
+    const updateCertificate = (index, field, value) => {
+      const newCertificates = [...certificates];
+      newCertificates[index] = { ...newCertificates[index], [field]: value };
+      handleChange({ target: { id: "certificates", value: newCertificates } });
+    };
+
+    const removeCertificate = (index) => {
+      const newCertificates = certificates.filter((_, i) => i !== index);
+      handleChange({ target: { id: "certificates", value: newCertificates } });
+    };
+
+    const addCertificate = () => {
+      handleChange({
+        target: {
+          id: "certificates",
+          value: [...certificates, { title: "", link: "" }],
+        },
+      });
+    };
+
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Do you have any certificates?
+            </h1>
+            <p className="text-gray-400">
+              Upload any online certificates you might have been given (i.e
+              bootcamps, internships, udemy, coursera etc)
+            </p>
+          </div>
+          <div className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
+            1/2
+          </div>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-6">
+          {certificates.map((certificate, index) => (
+            <div
+              key={index}
+              className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-900/80 rounded-lg"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  value={certificate.title}
+                  onChange={(e) =>
+                    updateCertificate(index, "title", e.target.value)
+                  }
+                  placeholder="Title of certificate"
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Add Link
+                </label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="url"
+                    value={certificate.link}
+                    onChange={(e) =>
+                      updateCertificate(index, "link", e.target.value)
+                    }
+                    placeholder="Paste link"
+                    className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  />
+                  {certificates.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeCertificate(index)}
+                      className="p-3 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-lg transition-colors"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={addCertificate}
+            className="w-full border-2 border-dashed border-gray-700 rounded-lg py-4 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors"
+          >
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-purple-400 text-lg">+</span>
+              <span className="text-purple-400 font-medium">
+                Add another certificate
+              </span>
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Step 6: Projects (Multi-step)
+  const ProjectsStep = ({ formData, handleChange, error }) => {
+    const [projectSubStep, setProjectSubStep] = useState(2); // Start at summary
+    const [currentProjectIndex, setCurrentProjectIndex] = useState(0);
+    const [projectError, setProjectError] = useState(""); // Local error state
+
+    // Initialize projects array if it doesn't exist
+    const projects = formData.projects || [
+      {
+        projectTitle: "",
+        projectType: "",
+        projectLink: "",
+        projectDescription: "",
+      },
+    ];
+
+    // If there's no data in the first project, start at step 1
+    useEffect(() => {
+      const firstProject = projects[0];
+      if (!firstProject.projectTitle && !firstProject.projectDescription) {
+        setProjectSubStep(1);
+      }
+    }, []);
+
+    const currentProject = projects[currentProjectIndex] || projects[0];
+
+    const updateCurrentProject = (field, value) => {
+      const updatedProjects = [...projects];
+      updatedProjects[currentProjectIndex] = {
+        ...updatedProjects[currentProjectIndex],
+        [field]: value,
+      };
+      handleChange({ target: { id: "projects", value: updatedProjects } });
+      // Clear error when user starts typing
+      if (projectError) setProjectError("");
+    };
+
+    const handleProjectFieldChange = (e) => {
+      const { id, value, type, checked } = e.target;
+      updateCurrentProject(id, type === "checkbox" ? checked : value);
+    };
+
+    const addNewProject = () => {
+      const newProject = {
+        projectTitle: "",
+        projectType: "",
+        projectLink: "",
+        projectDescription: "",
+      };
+      const updatedProjects = [...projects, newProject];
+      handleChange({ target: { id: "projects", value: updatedProjects } });
+      setCurrentProjectIndex(updatedProjects.length - 1);
+      setProjectSubStep(1);
+      setProjectError("");
+    };
+
+    const deleteProject = (index) => {
+      if (projects.length > 1) {
+        const updatedProjects = projects.filter((_, i) => i !== index);
+        handleChange({ target: { id: "projects", value: updatedProjects } });
+
+        if (currentProjectIndex >= updatedProjects.length) {
+          setCurrentProjectIndex(updatedProjects.length - 1);
+        }
+
+        if (currentProjectIndex === index) {
+          setProjectSubStep(2);
+        }
+      }
+    };
+
+    const editProject = (index) => {
+      setCurrentProjectIndex(index);
+      setProjectSubStep(1);
+      setProjectError("");
+    };
+
+    const validateCurrentProject = () => {
+      if (
+        !currentProject.projectTitle ||
+        currentProject.projectTitle.trim() === ""
+      ) {
+        return "Please fill out the project title field";
+      }
+      if (
+        !currentProject.projectDescription ||
+        currentProject.projectDescription.trim() === ""
+      ) {
+        return "Please fill out the project description field";
+      }
+      return null;
+    };
+
+    const handleProjectNext = () => {
+      const validationError = validateCurrentProject();
+      if (validationError) {
+        setProjectError(validationError);
+        return false;
+      }
+
+      setProjectError("");
+      setProjectSubStep(2);
+      return true;
+    };
+
+    const handleProjectBack = () => {
+      setProjectError("");
+      setProjectSubStep(2);
+    };
+
+    // Sub-step 1: Project Form
+    if (projectSubStep === 1) {
+      return (
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Tell us about the Projects you've worked on
+              </h1>
+              <p className="text-gray-400">
+                You can include any personal projects, contract, volunteer or
+                freelance projects
+              </p>
+            </div>
+            <div className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
+              1/2
+            </div>
+          </div>
+
+          {projectError && (
+            <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+              {projectError}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left side - Form fields */}
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Project title <span className="text-red-400">*</span>
+                </label>
+                <input
+                  id="projectTitle"
+                  type="text"
+                  value={currentProject.projectTitle || ""}
+                  onChange={handleProjectFieldChange}
+                  placeholder="e.g Fitness app"
+                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Project type
+                </label>
+                <input
+                  id="projectType"
+                  type="text"
+                  value={currentProject.projectType || ""}
+                  onChange={handleProjectFieldChange}
+                  placeholder="e.g Freelance"
+                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Project link
+                </label>
+                <input
+                  id="projectLink"
+                  type="url"
+                  value={currentProject.projectLink || ""}
+                  onChange={handleProjectFieldChange}
+                  placeholder="Paste project link"
+                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Project link
+                </label>
+                <input
+                  id="projectLink"
+                  type="url"
+                  value={currentProject.projectLink || ""}
+                  onChange={handleProjectFieldChange}
+                  placeholder="Paste project link"
+                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                />
+              </div>
+            </div>
+
+            {/* Right side - Project description */}
+            <div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Project description <span className="text-red-400">*</span>
+                </label>
+                <RichTextEditor
+                  value={currentProject.projectDescription || ""}
+                  onChange={(value) =>
+                    updateCurrentProject("projectDescription", value)
+                  }
+                  placeholder="Tell us about the project"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-between mt-8">
+            <button
+              type="button"
+              onClick={handleProjectBack}
+              className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              {projects.length === 1 && currentProjectIndex === 0
+                ? "Cancel"
+                : "Back to Summary"}
+            </button>
+            <button
+              type="button"
+              onClick={handleProjectNext}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Sub-step 2: Projects Summary
+    if (projectSubStep === 2) {
+      return (
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Tell us about Projects you've worked on
+              </h1>
+              <p className="text-gray-400">
+                You can include any personal projects, contract, volunteer or
+                freelance projects
+              </p>
+            </div>
+            <div className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
+              2/2
+            </div>
+          </div>
+
+          <div className="space-y-6 mb-8">
+            {projects.map((project, index) => (
+              <div
+                key={index}
+                className="bg-gray-900/80 border border-gray-700 rounded-lg p-6"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-purple-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-semibold">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="text-white text-lg font-semibold">
+                          {project.projectTitle || "Project Title"}
+                        </h3>
+                        {project.projectType && (
+                          <>
+                            <span className="text-gray-400">•</span>
+                            <span className="text-gray-400 text-sm">
+                              {project.projectType}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      {project.projectLink && (
+                        <div className="mt-1">
+                          <span className="text-gray-500 text-xs">
+                            Project link:{" "}
+                          </span>
+                          <a
+                            href={project.projectLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-purple-400 text-xs hover:text-purple-300 underline"
+                          >
+                            {project.projectLink}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => editProject(index)}
+                      className="p-2 text-gray-400 hover:text-purple-400 transition-colors"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
+                    </button>
+                    {projects.length > 1 && (
+                      <button
+                        onClick={() => deleteProject(index)}
+                        className="p-2 text-gray-400 hover:text-red-400 transition-colors"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  {project.projectDescription ? (
+                    <div className="text-gray-300 text-sm">
+                      {project.projectDescription.length > 200
+                        ? `${project.projectDescription.substring(0, 200)}...`
+                        : project.projectDescription}
+                    </div>
+                  ) : (
+                    <div className="text-gray-500 text-sm italic">
+                      No project description added yet
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => editProject(index)}
+                    className="text-purple-400 text-sm hover:text-purple-300 flex items-center space-x-1"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                    <span>Edit project</span>
+                  </button>
+                  {project.projectDescription &&
+                    project.projectDescription.length > 200 && (
+                      <button className="text-purple-400 text-sm hover:text-purple-300 flex items-center space-x-1">
+                        <svg
+                          className="w-4 h-4"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          />
+                        </svg>
+                        <span>Show more details</span>
+                      </button>
+                    )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={addNewProject}
+            className="w-full border-2 border-dashed border-gray-700 rounded-lg py-6 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors mb-8"
+          >
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-purple-400 text-lg">+</span>
+              <span className="text-purple-400 font-medium">
+                Add another Project
+              </span>
+            </div>
+          </button>
+
+          {/* This step uses main navigation buttons */}
+        </div>
+      );
+    }
+  };
+
+  // Move FinalizeStep component outside and define at top level
+  const FinalizeStep = ({ formData, handleChange, error }) => {
+    const [interests, setInterests] = useState(formData.interests || [""]);
+    const [references, setReferences] = useState(
+      formData.references || [{ name: "", relationship: "", contact: "" }]
+    );
+    const [additionalLinks, setAdditionalLinks] = useState(
+      formData.additionalLinks || [{ label: "", url: "" }]
+    );
+
+    // Sync local state with formData
+    useEffect(() => {
+      setInterests(formData.interests || [""]);
+      setReferences(
+        formData.references || [{ name: "", relationship: "", contact: "" }]
+      );
+      setAdditionalLinks(formData.additionalLinks || [{ label: "", url: "" }]);
+    }, [formData.interests, formData.references, formData.additionalLinks]);
+
+    const updateInterest = (index, value) => {
+      const newInterests = [...interests];
+      newInterests[index] = value;
+      setInterests(newInterests);
+      handleChange({ target: { id: "interests", value: newInterests } });
+    };
+
+    const addInterest = () => {
+      setInterests([...interests, ""]);
+    };
+
+    const removeInterest = (index) => {
+      const newInterests = interests.filter((_, i) => i !== index);
+      setInterests(newInterests);
+      handleChange({ target: { id: "interests", value: newInterests } });
+    };
+
+    const updateReference = (index, field, value) => {
+      const newReferences = [...references];
+      newReferences[index] = { ...newReferences[index], [field]: value };
+      setReferences(newReferences);
+      handleChange({ target: { id: "references", value: newReferences } });
+    };
+
+    const addReference = () => {
+      setReferences([
+        ...references,
+        { name: "", relationship: "", contact: "" },
+      ]);
+    };
+
+    const removeReference = (index) => {
+      const newReferences = references.filter((_, i) => i !== index);
+      setReferences(newReferences);
+      handleChange({ target: { id: "references", value: newReferences } });
+    };
+
+    const updateAdditionalLink = (index, field, value) => {
+      const newLinks = [...additionalLinks];
+      newLinks[index] = { ...newLinks[index], [field]: value };
+      setAdditionalLinks(newLinks);
+      handleChange({ target: { id: "additionalLinks", value: newLinks } });
+    };
+
+    const addAdditionalLink = () => {
+      setAdditionalLinks([...additionalLinks, { label: "", url: "" }]);
+    };
+
+    const removeAdditionalLink = (index) => {
+      const newLinks = additionalLinks.filter((_, i) => i !== index);
+      setAdditionalLinks(newLinks);
+      handleChange({ target: { id: "additionalLinks", value: newLinks } });
+    };
+
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="flex flex-col justify-center">
+            <div className="max-w-md">
+              <h1 className="text-4xl font-bold text-white mb-4">
+                Your resume has been completed
+              </h1>
+              <p className="text-gray-400 mb-8">
+                Would you like to enhance it with AI or add more details?
+              </p>
+
+              <button className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors mb-6 flex items-center justify-center space-x-2">
+                <span>✨</span>
+                <span>Enhance with AI</span>
+              </button>
+
+              {error && (
+                <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+                  {error}
+                </div>
+              )}
+
+              <div className="space-y-6">
+                {/* Professional Summary */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Professional Summary
+                  </label>
+                  <textarea
+                    id="summary"
+                    value={formData.summary || ""}
+                    onChange={handleChange}
+                    placeholder="Write a brief summary of your professional background..."
+                    className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    rows={4}
+                  />
+                </div>
+
+                {/* Interests/Hobbies */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Interests/Hobbies
+                  </label>
+                  {interests.map((interest, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center space-x-3 mb-2"
+                    >
+                      <input
+                        type="text"
+                        value={interest}
+                        onChange={(e) => updateInterest(index, e.target.value)}
+                        placeholder="e.g., Photography"
+                        className="flex-1 px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      />
+                      {interests.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeInterest(index)}
+                          className="p-3 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-lg transition-colors"
+                        >
+                          <svg
+                            className="w-5 h-5"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addInterest}
+                    className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Add Interest
+                  </button>
+                </div>
+
+                {/* References */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    References
+                  </label>
+                  {references.map((ref, index) => (
+                    <div key={index} className="space-y-2 mb-4">
+                      <input
+                        type="text"
+                        value={ref.name}
+                        onChange={(e) =>
+                          updateReference(index, "name", e.target.value)
+                        }
+                        placeholder="Name"
+                        className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      />
+                      <input
+                        type="text"
+                        value={ref.relationship}
+                        onChange={(e) =>
+                          updateReference(index, "relationship", e.target.value)
+                        }
+                        placeholder="Relationship (e.g., Former Manager)"
+                        className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      />
+                      <input
+                        type="text"
+                        value={ref.contact}
+                        onChange={(e) =>
+                          updateReference(index, "contact", e.target.value)
+                        }
+                        placeholder="Contact Information"
+                        className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      />
+                      {references.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeReference(index)}
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addReference}
+                    className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Add Reference
+                  </button>
+                </div>
+
+                {/* Additional Links */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Additional Links
+                  </label>
+                  {additionalLinks.map((link, index) => (
+                    <div
+                      key={index}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2"
+                    >
+                      <input
+                        type="text"
+                        value={link.label}
+                        onChange={(e) =>
+                          updateAdditionalLink(index, "label", e.target.value)
+                        }
+                        placeholder="Label (e.g., GitHub)"
+                        className="px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      />
+                      <input
+                        type="url"
+                        value={link.url}
+                        onChange={(e) =>
+                          updateAdditionalLink(index, "url", e.target.value)
+                        }
+                        placeholder="URL"
+                        className="px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      />
+                      {additionalLinks.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeAdditionalLink(index)}
+                          className="col-span-2 text-red-400 hover:text-red-300"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addAdditionalLink}
+                    className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Add Link
+                  </button>
+                </div>
+
+                {/* Existing Website and LinkedIn */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Website
+                    </label>
+                    <input
+                      id="website"
+                      type="url"
+                      value={formData.website || ""}
+                      onChange={handleChange}
+                      placeholder="Paste link"
+                      className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      LinkedIn
+                    </label>
+                    <input
+                      id="linkedin"
+                      type="url"
+                      value={formData.linkedin || ""}
+                      onChange={handleChange}
+                      placeholder="Paste link"
+                      className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <TemplatePreview formData={formData} />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Resume Preview Modal Component
+  const ResumePreviewModal = ({ isOpen, onClose, formData }) => {
+    if (!isOpen) return null;
+
+    const formatDate = (m, y) => {
+      if (!m && !y) return "";
+      if (!y) return "";
+      const month = m
+        ? new Date(2024, parseInt(m) - 1).toLocaleString("default", {
+            month: "short",
+          }) + " "
+        : "";
+      return (month || "") + y;
+    };
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/70" onClick={onClose}></div>
+
+        <div
+          className="relative w-full max-w-3xl bg-white text-black rounded shadow-lg overflow-auto"
+          style={{ maxHeight: "90vh" }}
+        >
+          <div className="flex items-center justify-between p-4 border-b">
+            <div className="text-sm text-gray-600">Resume Preview</div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => window.print()}
+                className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
+              >
+                Print / Save PDF
+              </button>
+              <button
+                onClick={onClose}
+                className="px-3 py-1 bg-gray-200 rounded text-sm"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+
+          {/* Resume content - styled simply to resemble the image */}
+          <div
+            className="p-6 resume-print-area"
+            style={{ fontFamily: "Georgia, serif", lineHeight: 1.35 }}
+          >
+            <header className="text-center mb-4">
+              <h1 style={{ fontSize: 28, margin: 0, fontWeight: 700 }}>
+                {formData.firstName || ""} {formData.lastName || ""}
+              </h1>
+              <div style={{ color: "#6b21a8", marginTop: 6, fontSize: 14 }}>
+                {formData.jobTitle || ""}
+              </div>
+              <div style={{ marginTop: 8, fontSize: 12, color: "#444" }}>
+                {[
+                  formData.email,
+                  formData.website,
+                  formData.linkedin,
+                  formData.phone,
+                  formData.cityCountry,
+                ]
+                  .filter(Boolean)
+                  .join(" • ")}
+              </div>
+            </header>
+
+            {formData.summary && (
+              <section style={{ marginBottom: 12 }}>
+                <h2
+                  style={{
+                    borderBottom: "1px solid #ddd",
+                    paddingBottom: 6,
+                    marginBottom: 8,
+                    fontSize: 14,
+                  }}
+                >
+                  Summary
+                </h2>
+                <p style={{ fontSize: 13, color: "#333" }}>
+                  {formData.summary}
+                </p>
+              </section>
+            )}
+
+            {formData.workExperiences &&
+              formData.workExperiences.length > 0 && (
+                <section style={{ marginBottom: 12 }}>
+                  <h2
+                    style={{
+                      borderBottom: "1px solid #ddd",
+                      paddingBottom: 6,
+                      marginBottom: 8,
+                      fontSize: 14,
+                    }}
+                  >
+                    Experience
+                  </h2>
+                  <div>
+                    {formData.workExperiences.map((w, i) => (
+                      <div key={i} style={{ marginBottom: 10 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "baseline",
+                          }}
+                        >
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: 13 }}>
+                              {w.workJobTitle || ""}
+                            </div>
+                            <div style={{ fontSize: 12, color: "#555" }}>
+                              {w.employer || ""}
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 12,
+                              color: "#666",
+                              textAlign: "right",
+                            }}
+                          >
+                            <div>{w.workLocation}</div>
+                            <div>
+                              {formatDate(w.workStartMonth, w.workStartYear)} -{" "}
+                              {w.currentlyWorking
+                                ? "Present"
+                                : formatDate(w.workEndMonth, w.workEndYear)}
+                            </div>
+                          </div>
+                        </div>
+                        {w.jobDescription && (
+                          <div
+                            style={{
+                              fontSize: 12,
+                              color: "#333",
+                              marginTop: 4,
+                            }}
+                          >
+                            {w.jobDescription}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+            {formData.educationExperiences &&
+              formData.educationExperiences.length > 0 && (
+                <section style={{ marginBottom: 12 }}>
+                  <h2
+                    style={{
+                      borderBottom: "1px solid #ddd",
+                      paddingBottom: 6,
+                      marginBottom: 8,
+                      fontSize: 14,
+                    }}
+                  >
+                    Education
+                  </h2>
+                  <div>
+                    {formData.educationExperiences.map((e, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: 8,
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: 13 }}>
+                            {e.schoolName || ""}
+                          </div>
+                          <div style={{ fontSize: 12, color: "#555" }}>
+                            {e.degree || ""} — {e.fieldOfStudy || ""}
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            color: "#666",
+                            textAlign: "right",
+                          }}
+                        >
+                          <div>{e.schoolLocation}</div>
+                          <div>
+                            {formatDate(e.graduationMonth, e.graduationYear)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+            {formData.skills && formData.skills.filter(Boolean).length > 0 && (
+              <section style={{ marginBottom: 12 }}>
+                <h2
+                  style={{
+                    borderBottom: "1px solid #ddd",
+                    paddingBottom: 6,
+                    marginBottom: 8,
+                    fontSize: 14,
+                  }}
+                >
+                  Skills
+                </h2>
+                <div style={{ fontSize: 12, color: "#333" }}>
+                  {formData.skills.filter((s) => s && s.trim()).join(" • ")}
+                </div>
+              </section>
+            )}
+
+            {formData.certificates &&
+              formData.certificates.filter((c) => c.title).length > 0 && (
+                <section style={{ marginBottom: 12 }}>
+                  <h2
+                    style={{
+                      borderBottom: "1px solid #ddd",
+                      paddingBottom: 6,
+                      marginBottom: 8,
+                      fontSize: 14,
+                    }}
+                  >
+                    Certifications
+                  </h2>
+                  <ul style={{ fontSize: 12, color: "#333", marginLeft: 16 }}>
+                    {formData.certificates.map((c, i) =>
+                      c.title ? (
+                        <li key={i}>
+                          {c.title}
+                          {c.link ? ` — ${c.link}` : ""}
+                        </li>
+                      ) : null
+                    )}
+                  </ul>
+                </section>
+              )}
+
+            {/* Footer small */}
+            <div
+              style={{
+                borderTop: "1px solid #eee",
+                marginTop: 16,
+                paddingTop: 8,
+                fontSize: 11,
+                color: "#666",
+                textAlign: "center",
+              }}
+            >
+              Generated with Kariera — preview
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  // ---------- End added component ----------
+
+  // Main Component
+  const ResumeBuilderPage = () => {
+    const navigate = useNavigate();
+    const { isAuthenticated, loading } = useAuth();
+    const [currentStep, setCurrentStep] = useState(1);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [isLoaded, setIsLoaded] = useState(true);
+    const [showPreview, setShowPreview] = useState(false); // New state for preview modal
+
+    // Consolidated form data state
+    const [formData, setFormData] = useState({
+      // Personal Info
+      firstName: "",
+      lastName: "",
+      jobTitle: "",
+      languages: "",
+      district: "",
+      cityCountry: "",
+      postalCode: "",
+      phone: "",
+      email: "",
+
+      // Work History - now uses an array of work experiences
+      workExperiences: [
+        {
+          workJobTitle: "",
+          employer: "",
+          workLocation: "",
+          jobType: "Full time",
+          workMode: "Remote",
+          workStartMonth: "",
+          workStartYear: "",
+          workEndMonth: "",
+          workEndYear: "",
+          currentlyWorking: false,
+          jobDescription: "",
+        },
+      ],
+
+      // Education - now uses an array of education experiences
+      educationExperiences: [
+        {
+          educationLevel: "Bachelors",
+          schoolName: "",
+          schoolLocation: "",
+          degree: "",
+          fieldOfStudy: "",
+          graduationMonth: "",
+          graduationYear: "",
+          currentlyStudying: false,
+          // Additional info
+          awards: false,
+          awardName: "",
+          awardYear: "",
+          academicScholarships: false,
+          academicScholarshipName: "",
+          academicScholarshipYear: "",
+          academicScholarshipBody: "",
+          sportsScholarships: false,
+          sportsScholarshipName: "",
+          sportsScholarshipYear: "",
+          sportsScholarshipBody: "",
+          gpa: false,
+          gpaValue: "",
+          club: false,
+          clubName: "",
+          clubStartYear: "",
+          clubEndYear: "",
+        },
+      ],
+
+      // Skills
+      skills: [""],
+
+      // Certifications
+      certificates: [{ title: "", link: "" }],
+
+      projects: [
+        {
+          projectTitle: "",
+          projectType: "",
+          projectLink: "",
+          projectDescription: "",
+        },
+      ],
+      // Finalize - expanded with new sections
+      summary: "",
+      interests: [""],
+      references: [{ name: "", relationship: "", contact: "" }],
+      additionalLinks: [{ label: "", url: "" }],
+      website: "",
+      linkedin: "",
+    });
+
+    const handleChange = (e) => {
+      const { id, value, type, checked } = e.target;
+      setFormData((prev) => ({
+        ...prev,
+        [id]: type === "checkbox" ? checked : value,
+      }));
+    };
+
+    const validateCurrentStep = () => {
+      switch (currentStep) {
+        case 1:
+          return validatePersonalInfo(formData);
+        case 2:
+          return validateWorkHistory(formData);
+        case 3:
+          return validateEducation(formData);
+        case 4:
+          return validateSkills(formData);
+        case 5:
+          return validateCertifications(formData);
+        case 6:
+          return validateProjects(formData);
+        case 7:
+          return null; // Finalize step is optional
+        default:
+          return null;
+      }
+    };
+
+    const handleNext = async () => {
+      setIsLoading(true);
+      setError("");
+
+      // Special handling for work history step
+      if (currentStep === 2) {
+        // Validate work history - ensure at least one complete work experience
+        const validationError = validateCurrentStep();
+        if (validationError) {
+          setError(validationError);
+          setIsLoading(false);
+          return;
+        }
+
+        // Work history validation passed, move to next step
+        setCurrentStep(3);
+        setIsLoading(false);
+        return;
+      }
+
+      // Special handling for education step
+      if (currentStep === 3) {
+        // Validate education - ensure at least one complete education experience
+        const validationError = validateCurrentStep();
+        if (validationError) {
+          setError(validationError);
+          setIsLoading(false);
+          return;
+        }
+
+        // Education validation passed, move to next step
+        setCurrentStep(4);
+        setIsLoading(false);
+        return;
+      }
+
+      // Validate current step for other steps
+      const validationError = validateCurrentStep();
+      if (validationError) {
+        setError(validationError);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        if (currentStep < 7) {
+          setCurrentStep(currentStep + 1);
+        } else {
+          // Completed - show completion message
+          alert("Resume completed successfully!");
+        }
+      } catch (err) {
+        console.error("Error saving data:", err);
+        setError("Failed to save your information. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const handleGoBack = () => {
+      if (currentStep > 1) {
+        setCurrentStep(currentStep - 1);
+      }
+    };
+
+    const handlePreview = () => setShowPreview(true); // Open preview modal
+
+    // Render current step
+    const renderCurrentStep = () => {
+      switch (currentStep) {
+        case 1:
+          return (
+            <PersonalInfoStep
+              formData={formData}
+              handleChange={handleChange}
+              error={error}
+            />
+          );
+        case 2:
+          return (
+            <WorkHistoryStep
+              formData={formData}
+              handleChange={handleChange}
+              error={error}
+            />
+          );
+        case 3:
+          return (
+            <EducationStep
+              formData={formData}
+              handleChange={handleChange}
+              error={error}
+            />
+          );
+        case 4:
+          return (
+            <SkillsStep
+              formData={formData}
+              handleChange={handleChange}
+              error={error}
+            />
+          );
+        case 5:
+          return (
+            <CertificationsStep
+              formData={formData}
+              handleChange={handleChange}
+              error={error}
+            />
+          );
+        case 6:
+          return (
+            <ProjectsStep
+              formData={formData}
+              handleChange={handleChange}
+              error={error}
+            />
+          );
+        case 7:
+          return (
+            <FinalizeStep
+              formData={formData}
+              handleChange={handleChange}
+              error={error}
+            />
+          );
+        default:
+          return (
+            <PersonalInfoStep
+              formData={formData}
+              handleChange={handleChange}
+              error={error}
+            />
+          );
+      }
+    };
+
+    if (loading || !isLoaded) {
+      return (
+        <div className="min-h-screen text-white flex items-center justify-center bg-black">
+          <div className="text-xl">Loading...</div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen text-white relative bg-black">
+        {/* Tiny purple accent at bottom center - just a bit more visible */}
+        <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-96 h-48 bg-purple-900/25 rounded-full blur-3xl"></div>
+
+        {/* Content - higher z-index to ensure it's above background */}
+        <div className="relative z-20">
+          <main className="container mx-auto px-6 py-8">
+            <ProgressSteps currentStep={currentStep} />
+
+            {renderCurrentStep()}
+
+            {/* Navigation Buttons - Show for all steps, but handle work history differently */}
+            <div className="flex justify-between items-center mt-12">
+              <button
+                type="button"
+                onClick={handleGoBack}
+                className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Go back
+              </button>
+
+              <div className="flex space-x-4">
+                <button
+                  type="button"
+                  onClick={handlePreview}
+                  className="px-6 py-3 border border-purple-600 text-purple-400 rounded-lg hover:bg-purple-600 hover:text-white transition-colors"
+                >
+                  Preview
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={isLoading}
+                  className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isLoading
+                    ? "Saving..."
+                    : currentStep === 7
+                    ? "Complete"
+                    : "Next"}
+                </button>
+              </div>
+            </div>
+
+            {/* Resume Preview Modal */}
+            <ResumePreviewModal
+              isOpen={showPreview}
+              onClose={() => setShowPreview(false)}
+              formData={formData}
+            />
+          </main>
+        </div>
+      </div>
+    );
+  };
+
+  // Step validation functions
+  const validatePersonalInfo = (formData) => {
+    if (!formData.firstName || formData.firstName.trim() === "") {
+      return "Please enter your first name";
+    }
+    if (!formData.lastName || formData.lastName.trim() === "") {
+      return "Please enter your last name";
+    }
+    if (!formData.jobTitle || formData.jobTitle.trim() === "") {
+      return "Please enter your job title";
+    }
+    if (!formData.email || formData.email.trim() === "") {
+      return "Please enter your email";
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      return "Please enter a valid email address";
+    }
+    return null;
+  };
+
+  const validateWorkHistory = (formData) => {
+    const workExperiences = formData.workExperiences || [];
+    if (workExperiences.length === 0) {
+      return "Please add at least one work experience";
+    }
+
+    const firstWork = workExperiences[0];
+    if (!firstWork.workJobTitle || firstWork.workJobTitle.trim() === "") {
+      return "Please fill out job title for your first work experience";
+    }
+    if (!firstWork.employer || firstWork.employer.trim() === "") {
+      return "Please fill out employer for your first work experience";
+    }
+    return null;
+  };
+
+  const validateEducation = (formData) => {
+    const educationExperiences = formData.educationExperiences || [];
+    if (educationExperiences.length === 0) {
+      return "Please add at least one education experience";
+    }
+
+    const firstEdu = educationExperiences[0];
+    if (!firstEdu.schoolName || firstEdu.schoolName.trim() === "") {
+      return "Please fill out school name for your first education experience";
+    }
+    if (!firstEdu.degree || firstEdu.degree.trim() === "") {
+      return "Please fill out degree for your first education experience";
+    }
+    if (!firstEdu.fieldOfStudy || firstEdu.fieldOfStudy.trim() === "") {
+      return "Please fill out field of study for your first education experience";
+    }
+    return null;
+  };
+
+  const validateSkills = (formData) => {
+    const skills = formData.skills || [];
+    if (skills.length === 0 || !skills.some((skill) => skill.trim() !== "")) {
+      return "Please add at least one skill";
+    }
+    return null;
+  };
+
+  const validateCertifications = (formData) => {
+    return null; // Certifications are optional
+  };
+
+  const validateProjects = (formData) => {
+    const projects = formData.projects || [];
+    if (projects.length > 0) {
+      const firstProject = projects[0];
+      if (firstProject.projectTitle && !firstProject.projectDescription) {
+        return "Please add a description for your first project";
+      }
+      if (!firstProject.projectTitle && firstProject.projectDescription) {
+        return "Please add a title for your first project";
+      }
+    }
+    return null;
+  };
+};
+export default ResumeBuilderPage;

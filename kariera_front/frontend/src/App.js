@@ -7,34 +7,98 @@ import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 
 // Page components
-import JobSearchLandingPage from "./template";
-import ResumeBuilderPage1 from "./resumeBuilderPage1";
-import EducationDetails from "./EducationDetails";
-import SkillsDetails from "./SkillsDetails";
-import ProfessionalExperience from "./ProfessionalExperience";
-import ProjectDetails from "./ProjectDetails";
+import ResumeBuilderPage from "./resumeBuilderPage";
 import JobSearchDashboard from "./JobSearchDashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import PersonalInfoPage from "./components/resume-builder/PersonalInfoPage";
-import WorkHistoryPage from "./components/resume-builder/WorkHistoryPage";
-import JobDescriptionPage from "./components/resume-builder/JobDescriptionPage";
-import WorkHistorySummaryPage from "./components/resume-builder/WorkHistorySummaryPage";
-import EducationPage from "./components/resume-builder/EducationPage";
-import EducationAdditionalPage from "./components/resume-builder/EducationAdditionalPage";
-import EducationSummaryPage from "./components/resume-builder/EducationSummaryPage";
-import SkillsPage from "./components/resume-builder/SkillsPage";
-import CertificationsPage from "./components/resume-builder/CertificationsPage";
-import ProjectsPage from "./components/resume-builder/ProjectsPage";
-import ProjectsSummaryPage from "./components/resume-builder/ProjectsSummaryPage";
-import LinksPage from "./components/resume-builder/LinksPage";
-import BackgroundSummaryPage from "./components/resume-builder/BackgroundSummaryPage";
-import SoftwareSkillsPage from "./components/resume-builder/SoftwareSkillsPage";
-import InterestsHobbiesPage from "./components/resume-builder/InterestsHobbiesPage";
-import CompletionPage from "./components/resume-builder/CompletionPage";
 
 // Layout components
 import Navbar from "./components/Navbar";
+
+// Simple Landing Page Component (embedded to avoid import issues)
+const JobSearchLandingPage = () => {
+  return (
+    <div className="bg-black text-white min-h-screen">
+      <main className="container mx-auto px-4 py-16 text-center">
+        <h1 className="text-6xl font-bold mb-4">
+          Land your next <br />
+          <span className="bg-gradient-to-r from-purple-500 to-purple-300 text-transparent bg-clip-text">
+            line of work
+          </span>
+        </h1>
+        <p className="text-xl text-gray-400 mb-8 max-w-3xl mx-auto">
+          Kariera automates your job search—matching you with top jobs, crafting
+          custom resumes, and writing tailored cover letters, so you can focus
+          on landing your next role.
+        </p>
+
+        <div className="flex max-w-xl mx-auto mb-16">
+          <div className="relative w-full">
+            <input
+              type="email"
+              placeholder="Enter Email address"
+              className="w-full px-6 py-4 pr-36 rounded-full border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-purple-600"
+            />
+            <a
+              href="/resume"
+              className="absolute right-1 top-1 px-8 py-3 rounded-full bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              Get started
+            </a>
+          </div>
+        </div>
+
+        <div className="flex justify-center space-x-8 text-sm text-gray-400 mb-16">
+          {[
+            "Automated applications",
+            "Personalized content generation",
+            "Accurate job matching",
+          ].map((feature, index) => (
+            <div key={index} className="flex items-center">
+              <span className="w-5 h-5 mr-2 text-green-500">✓</span>
+              <span>{feature}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            {
+              title: "Resume generation using AI",
+              description:
+                "Create a professional, tailored resume in seconds with our AI-powered resume builder, designed to meet the requirements of every job and location.",
+            },
+            {
+              title: "Advanced job matching",
+              description:
+                "Our smart algorithm finds the best job opportunities for you, ensuring you apply to positions that match your skills and experience.",
+            },
+            {
+              title: "Cover letter generation using AI",
+              description:
+                "Generate personalized, ATS-friendly cover letters that highlight your strengths and resonate with hiring managers, tailored to each job application.",
+            },
+            {
+              title: "Automated Application",
+              description:
+                "Streamline your job hunt by automatically sending customized applications to top employers, saving you time and effort.",
+            },
+          ].map((feature, index) => (
+            <div
+              key={index}
+              className="bg-gray-900 p-8 rounded-3xl border border-gray-800"
+            >
+              <h3 className="text-2xl font-bold mb-4 text-left">
+                {feature.title}
+              </h3>
+              <p className="text-gray-400 text-left">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+};
 
 function App() {
   return (
@@ -54,184 +118,20 @@ function App() {
             />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            // Replace your resume routes section with:
-            {/* Resume builder flow - protected */}
+
+            {/* Resume builder - protected */}
             <Route
               path="/resume"
               element={
                 <PrivateRoute>
                   <>
                     <Navbar />
-                    <PersonalInfoPage />
+                    <ResumeBuilderPage />
                   </>
                 </PrivateRoute>
               }
             />
-            <Route
-              path="/resume/work-history"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <WorkHistoryPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/resume/job-description"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <JobDescriptionPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/resume/work-history-summary"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <WorkHistorySummaryPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/resume/education"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <EducationPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/resume/education-additional"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <EducationAdditionalPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/resume/education-summary"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <EducationSummaryPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/resume/skills"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <SkillsPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/resume/certifications"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <CertificationsPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/resume/projects"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <ProjectsPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/resume/projects-summary"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <ProjectsSummaryPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/resume/links"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <LinksPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/resume/background-summary"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <BackgroundSummaryPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/resume/software-skills"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <SoftwareSkillsPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/resume/interests-hobbies"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <InterestsHobbiesPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/resume/completion"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <CompletionPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
+
             {/* Dashboard - protected */}
             <Route
               path="/dashboard"
