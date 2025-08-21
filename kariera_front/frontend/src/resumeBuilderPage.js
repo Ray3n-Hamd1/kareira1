@@ -11,107 +11,162 @@ const useNavigate = () => (path) => console.log("Navigate to:", path);
 const ProfessionalResumePreview = ({ formData }) => {
   return (
     <>
-      {/* Print-specific styles */}
+      {/* Print styles - keep same design as preview, just hide UI elements */}
       <style>{`
-        @media print {
-          @page {
-            size: A4;
-            margin: 0.5in;
-          }
-          
-          .resume-container {
-            font-size: 12px !important;
-            line-height: 1.3 !important;
-            max-width: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            box-shadow: none !important;
-            border-radius: 0 !important;
-          }
-          
-          .resume-header {
-            padding-bottom: 12px !important;
-            margin-bottom: 16px !important;
-          }
-          
-          .resume-header h1 {
-            font-size: 24px !important;
-            margin-bottom: 4px !important;
-          }
-          
-          .resume-header p {
-            font-size: 14px !important;
-            margin-bottom: 4px !important;
-          }
-          
-          .resume-section {
-            margin-bottom: 16px !important;
-            page-break-inside: avoid;
-          }
-          
-          .resume-section h2 {
-            font-size: 16px !important;
-            margin-bottom: 8px !important;
-            padding-bottom: 2px !important;
-          }
-          
-          .resume-item {
-            margin-bottom: 12px !important;
-            page-break-inside: avoid;
-          }
-          
-          .resume-item h3 {
-            font-size: 14px !important;
-            margin-bottom: 2px !important;
-          }
-          
-          .resume-item p {
-            font-size: 12px !important;
-            margin-bottom: 2px !important;
-          }
-          
-          .resume-item ul {
-            margin-left: 16px !important;
-          }
-          
-          .resume-item li {
-            font-size: 12px !important;
-            margin-bottom: 2px !important;
-          }
-          
-          .skill-tags {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            gap: 4px !important;
-          }
-          
-          .skill-tag {
-            font-size: 10px !important;
-            padding: 2px 6px !important;
-            margin: 0 !important;
-          }
-          
-          /* Prevent orphans and widows */
-          .resume-container * {
-            orphans: 2;
-            widows: 2;
-          }
-          
-          /* Force content to try to fit on one page first */
-          .resume-container {
-            page-break-after: auto;
-          }
-        }
-        
-        @media screen {
-          .resume-container {
-            min-height: auto;
-          }
-        }
-      `}</style>
+  @media print {
+    @page {
+      size: A4;
+      margin: 0.5in;
+    }
+    
+    /* Hide UI elements only */
+    button,
+    .sticky,
+    [class*="button"],
+    [class*="btn"],
+    .bg-purple-600,
+    .bg-gray-600,
+    .fixed {
+      display: none !important;
+    }
+    
+    /* Keep the same container styling as preview */
+    .resume-print-container {
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 24px !important;
+      font-family: Arial, sans-serif !important;
+      background: white !important;
+    }
+    
+    /* Keep all the same typography and spacing */
+    .resume-print-container h1 {
+      font-size: 36px !important;
+      font-weight: bold !important;
+      color: #111827 !important;
+    }
+    
+    .resume-print-container h2 {
+      font-size: 20px !important;
+      font-weight: 600 !important;
+      color: #111827 !important;
+      border-bottom: 1px solid #e5e7eb !important;
+      padding-bottom: 4px !important;
+      margin-bottom: 12px !important;
+    }
+    
+    .resume-print-container h3 {
+      font-weight: 600 !important;
+      color: #111827 !important;
+    }
+    
+    .resume-print-container p {
+      color: #374151 !important;
+    }
+    
+    /* Keep the same border styling */
+    .border-b-2 {
+      border-bottom: 2px solid #e5e7eb !important;
+    }
+    
+    .border-b {
+      border-bottom: 1px solid #e5e7eb !important;
+    }
+    
+    /* Keep the same spacing */
+    .mb-6 {
+      margin-bottom: 24px !important;
+    }
+    
+    .mb-5 {
+      margin-bottom: 20px !important;
+    }
+    
+    .mb-4 {
+      margin-bottom: 16px !important;
+    }
+    
+    .mb-3 {
+      margin-bottom: 12px !important;
+    }
+    
+    .mb-2 {
+      margin-bottom: 8px !important;
+    }
+    
+    .pb-4 {
+      padding-bottom: 16px !important;
+    }
+    
+    .pb-1 {
+      padding-bottom: 4px !important;
+    }
+    
+    /* Keep flex layouts */
+    .flex {
+      display: flex !important;
+    }
+    
+    .justify-between {
+      justify-content: space-between !important;
+    }
+    
+    .items-start {
+      align-items: flex-start !important;
+    }
+    
+    .text-center {
+      text-align: center !important;
+    }
+    
+    .text-right {
+      text-align: right !important;
+    }
+    
+    /* Keep skill tags styling */
+    .skill-tag {
+      background-color: #f3f4f6 !important;
+      color: #1f2937 !important;
+      padding: 4px 12px !important;
+      border-radius: 9999px !important;
+      font-size: 14px !important;
+      display: inline-block !important;
+      margin: 2px !important;
+    }
+    
+    /* Keep list styling */
+    .list-disc {
+      list-style-type: disc !important;
+    }
+    
+    .ml-6 {
+      margin-left: 24px !important;
+    }
+    
+    /* Keep link colors for screen-like appearance */
+    a {
+      color: #2563eb !important;
+    }
+    
+    a:hover {
+      text-decoration: underline !important;
+    }
+    
+    /* Page breaks only where needed */
+    .resume-section {
+      page-break-inside: avoid;
+    }
+    
+    .resume-item {
+      page-break-inside: avoid;
+    }
+  }
+`}</style>
 
       <div
-        className="resume-container bg-white text-gray-900 p-6 max-w-3xl mx-auto shadow-lg rounded-lg"
+        className="resume-print-container bg-white text-gray-900 p-6 max-w-3xl mx-auto shadow-lg rounded-lg"
         style={{ fontFamily: "Arial, sans-serif" }}
       >
         {/* Header */}
@@ -256,9 +311,15 @@ const ProfessionalResumePreview = ({ formData }) => {
             </div>
           )}
 
-        {/* Education - Simplified to always show if any education data exists */}
-        {(formData.educationExperiences?.length > 0 ||
-          formData.education?.length > 0 ||
+        {/* Education - Only show if user has started filling out education */}
+        {((formData.educationExperiences?.length > 0 &&
+          (formData.educationExperiences[0].schoolName ||
+            formData.educationExperiences[0].degree ||
+            formData.educationExperiences[0].fieldOfStudy)) ||
+          (formData.education?.length > 0 &&
+            (formData.education[0].schoolName ||
+              formData.education[0].degree ||
+              formData.education[0].fieldOfStudy)) ||
           formData.schoolName ||
           formData.degree ||
           formData.fieldOfStudy) && (
@@ -562,6 +623,160 @@ const ProfessionalResumePreview = ({ formData }) => {
 const ResumePreviewModal = ({ isOpen, onClose, formData }) => {
   if (!isOpen) return null;
 
+  // Proper print function that only prints resume content
+  const handlePrint = () => {
+    // Create a new window for printing
+    const printWindow = window.open("", "_blank");
+
+    // Get the resume content
+    const resumeContent = document.querySelector(
+      ".resume-print-container"
+    ).outerHTML;
+
+    // Create the print document
+    printWindow.document.write(`
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>Resume - ${formData.firstName} ${formData.lastName}</title>
+      <style>
+        @page {
+          size: A4;
+          margin: 0.5in;
+        }
+        
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: Arial, sans-serif;
+          background: white;
+        }
+        
+        /* Keep the same container styling as preview */
+        .resume-print-container {
+          max-width: none;
+          margin: 0;
+          padding: 20px;
+          box-shadow: none;
+          border-radius: 0;
+          background: white;
+          font-family: Arial, sans-serif;
+        }
+        
+        /* Smaller typography */
+        h1 {
+          font-size: 26px;
+          font-weight: bold;
+          color: #111827;
+          margin-bottom: 6px;
+        }
+        
+        h2 {
+          font-size: 16px;
+          font-weight: 600;
+          color: #111827;
+          border-bottom: 1px solid #e5e7eb;
+          padding-bottom: 3px;
+          margin-bottom: 10px;
+        }
+        
+        h3 {
+          font-weight: 600;
+          color: #111827;
+          font-size: 13px;
+        }
+        
+        p {
+          color: #374151;
+          font-size: 11px;
+        }
+        
+        /* Keep the same border styling */
+        .border-b-2 {
+          border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .border-b {
+          border-bottom: 1px solid #e5e7eb;
+        }
+        
+        /* Smaller spacing */
+        .mb-6 { margin-bottom: 18px; }
+        .mb-5 { margin-bottom: 15px; }
+        .mb-4 { margin-bottom: 12px; }
+        .mb-3 { margin-bottom: 9px; }
+        .mb-2 { margin-bottom: 6px; }
+        .pb-4 { padding-bottom: 12px; }
+        .pb-1 { padding-bottom: 3px; }
+        
+        /* Keep flex layouts */
+        .flex { display: flex; }
+        .justify-between { justify-content: space-between; }
+        .items-start { align-items: flex-start; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        
+        /* Smaller skill tags */
+        .skill-tag {
+          background-color: #f3f4f6;
+          color: #1f2937;
+          padding: 2px 8px;
+          border-radius: 9999px;
+          font-size: 10px;
+          display: inline-block;
+          margin: 1px;
+        }
+        
+        .skill-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+        }
+        
+        /* Keep list styling */
+        .list-disc { list-style-type: disc; }
+        .ml-6 { margin-left: 20px; }
+        
+        /* Keep link colors */
+        a { color: #2563eb; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        
+        /* Page breaks */
+        .resume-section { page-break-inside: avoid; }
+        .resume-item { page-break-inside: avoid; }
+        
+        /* Smaller utility classes */
+        .text-sm { font-size: 11px; }
+        .text-base { font-size: 12px; }
+        .text-xl { font-size: 16px; }
+        .text-4xl { font-size: 26px; }
+        .font-bold { font-weight: bold; }
+        .font-semibold { font-weight: 600; }
+        .text-gray-900 { color: #111827; }
+        .text-gray-700 { color: #374151; }
+        .text-gray-600 { color: #4b5563; }
+        .leading-relaxed { line-height: 1.5; }
+        
+        /* Smaller bullets */
+        li { font-size: 11px; margin-bottom: 1px; }
+        ul { margin: 3px 0 3px 16px; padding: 0; }
+      </style>
+    </head>
+    <body>
+      ${resumeContent}
+    </body>
+  </html>
+`);
+
+    printWindow.document.close();
+
+    // Wait for content to load then print
+    printWindow.onload = () => {
+      printWindow.print();
+      printWindow.close();
+    };
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-6xl max-h-[90vh] overflow-y-auto relative">
@@ -569,7 +784,7 @@ const ResumePreviewModal = ({ isOpen, onClose, formData }) => {
           <h2 className="text-xl font-bold text-gray-800">Resume Preview</h2>
           <div className="flex space-x-2">
             <button
-              onClick={() => window.print()}
+              onClick={handlePrint}
               className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
             >
               Print/Download
@@ -643,17 +858,21 @@ const TemplatePreview = ({ formData }) => {
       <h3 className="text-lg font-semibold text-white mb-2">Resume Preview</h3>
       <p className="text-gray-400 text-sm mb-6">Live preview of your resume</p>
 
-      <div className="bg-white text-black rounded-lg p-4 mb-6 h-96 overflow-y-auto text-xs">
-        <div className="border-b-2 border-purple-500 pb-2 mb-4">
-          <h1 className="text-lg font-bold text-gray-800">
+      <div
+        className="bg-white text-black rounded-lg p-4 mb-6 h-96 overflow-y-auto text-xs"
+        style={{ fontFamily: "Arial, sans-serif" }}
+      >
+        {/* Header */}
+        <div className="text-center border-b-2 border-gray-200 pb-3 mb-4">
+          <h1 className="text-lg font-bold text-gray-900 mb-1">
             {formData.firstName && formData.lastName
               ? `${formData.firstName} ${formData.lastName}`
               : "Your Name"}
           </h1>
-          <p className="text-sm text-purple-600">
+          <p className="text-sm text-gray-700 mb-1">
             {formData.jobTitle || "Your Job Title"}
           </p>
-          <div className="text-xs text-gray-600 mt-1">
+          <div className="text-xs text-gray-600">
             {formData.email && <span>{formData.email}</span>}
             {formData.phone && formData.email && <span> • </span>}
             {formData.phone && <span>{formData.phone}</span>}
@@ -665,7 +884,10 @@ const TemplatePreview = ({ formData }) => {
           {(formData.website ||
             formData.linkedin ||
             (formData.additionalLinks &&
-              formData.additionalLinks.length > 0)) && (
+              formData.additionalLinks.length > 0 &&
+              formData.additionalLinks.some(
+                (link) => link.url && link.label
+              ))) && (
             <div className="text-xs text-gray-600 mt-1">
               {formData.website && (
                 <span>
@@ -673,7 +895,7 @@ const TemplatePreview = ({ formData }) => {
                     href={formData.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-purple-600"
+                    className="text-blue-600"
                   >
                     Website
                   </a>
@@ -686,7 +908,7 @@ const TemplatePreview = ({ formData }) => {
                     href={formData.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-purple-600"
+                    className="text-blue-600"
                   >
                     LinkedIn
                   </a>
@@ -702,7 +924,7 @@ const TemplatePreview = ({ formData }) => {
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-purple-600"
+                        className="text-blue-600"
                       >
                         {link.label}
                       </a>
@@ -713,118 +935,245 @@ const TemplatePreview = ({ formData }) => {
           )}
         </div>
 
+        {/* Summary */}
         {formData.summary && formData.summary.trim() !== "" && (
           <div className="mb-4">
-            <h2 className="text-sm font-bold text-gray-800 mb-2">Summary</h2>
-            <p className="text-xs text-gray-600">{formData.summary}</p>
+            <h2 className="text-sm font-semibold text-gray-900 mb-2 border-b border-gray-200 pb-1">
+              Professional Summary
+            </h2>
+            <p className="text-xs text-gray-700 leading-relaxed">
+              {formData.summary.length > 150
+                ? `${formData.summary.substring(0, 150)}...`
+                : formData.summary}
+            </p>
           </div>
         )}
 
+        {/* Experience */}
         {formData.workExperiences &&
           formData.workExperiences.length > 0 &&
           formData.workExperiences[0].workJobTitle && (
             <div className="mb-4">
-              <h2 className="text-sm font-bold text-gray-800 mb-2">
+              <h2 className="text-sm font-semibold text-gray-900 mb-2 border-b border-gray-200 pb-1">
                 Experience
               </h2>
               {formData.workExperiences.map((work, index) => (
-                <div
-                  key={index}
-                  className={`border-l-2 border-purple-500 pl-2 ${
-                    index > 0 ? "mt-3" : ""
-                  }`}
-                >
-                  <h3 className="text-sm font-semibold">{work.workJobTitle}</h3>
-                  <p className="text-xs text-gray-700">{work.employer}</p>
-                  <p className="text-xs text-gray-600">{work.workLocation}</p>
+                <div key={index} className="mb-3">
+                  <div className="flex justify-between items-start mb-1">
+                    <div>
+                      <h3 className="text-xs font-semibold text-gray-900">
+                        {work.workJobTitle || "Job Title"}
+                      </h3>
+                      <p className="text-xs font-medium text-gray-700">
+                        {work.employer || "Company Name"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-600">
+                        {work.workLocation || "Location"}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {work.workStartMonth && work.workStartYear
+                          ? `${String(work.workStartMonth).padStart(2, "0")}/${
+                              work.workStartYear
+                            }`
+                          : "01/2020"}{" "}
+                        -{" "}
+                        {work.currentlyWorking
+                          ? "Present"
+                          : work.workEndMonth && work.workEndYear
+                          ? `${String(work.workEndMonth).padStart(2, "0")}/${
+                              work.workEndYear
+                            }`
+                          : "Present"}
+                      </p>
+                    </div>
+                  </div>
+                  {work.jobDescription && (
+                    <div className="text-xs text-gray-700 ml-4">
+                      {work.jobDescription
+                        .split("\n")
+                        .filter((line) => line.trim())
+                        .slice(0, 2)
+                        .map((line, lineIndex) => (
+                          <div key={lineIndex} className="mb-1">
+                            • {line.trim().substring(0, 80)}
+                            {line.trim().length > 80 ? "..." : ""}
+                          </div>
+                        ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           )}
 
-        {formData.educationExperiences &&
+        {/* Education */}
+        {((formData.educationExperiences &&
           formData.educationExperiences.length > 0 &&
-          formData.educationExperiences[0].schoolName && (
+          formData.educationExperiences.some(
+            (edu) => edu.schoolName && edu.schoolName.trim() !== ""
+          )) ||
+          (formData.education &&
+            formData.education.length > 0 &&
+            formData.education.some(
+              (edu) => edu.schoolName && edu.schoolName.trim() !== ""
+            )) ||
+          (formData.schoolName && formData.schoolName.trim() !== "") ||
+          (formData.degree && formData.degree.trim() !== "") ||
+          (formData.fieldOfStudy && formData.fieldOfStudy.trim() !== "")) && (
+          <div className="mb-4">
+            <h2 className="text-sm font-semibold text-gray-900 mb-2 border-b border-gray-200 pb-1">
+              Education
+            </h2>
+            {(formData.educationExperiences || formData.education || [])
+              .filter(
+                (edu) =>
+                  edu && (edu.schoolName || edu.degree || edu.fieldOfStudy)
+              )
+              .map((edu, index) => {
+                if (!edu) return null;
+                return (
+                  <div key={index} className="mb-2">
+                    <div className="flex justify-between items-start mb-1">
+                      <div>
+                        <h3 className="text-xs font-semibold text-gray-900">
+                          {edu.degree || edu.schoolName || "Education"}
+                        </h3>
+                        <p className="text-xs text-gray-700">
+                          {edu.schoolName || edu.institution || "Institution"}
+                        </p>
+                        {edu.fieldOfStudy && (
+                          <p className="text-xs text-gray-600">
+                            {edu.fieldOfStudy}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        {edu.schoolLocation && (
+                          <p className="text-xs text-gray-600">
+                            {edu.schoolLocation}
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-600">
+                          {edu.graduationMonth && edu.graduationYear
+                            ? `${new Date(
+                                2024,
+                                parseInt(edu.graduationMonth) - 1
+                              ).toLocaleString("default", { month: "long" })} ${
+                                edu.graduationYear
+                              }`
+                            : edu.graduationYear || "Graduation Date"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        )}
+
+        {/* Projects */}
+        {formData.projects &&
+          formData.projects.length > 0 &&
+          formData.projects[0].projectTitle && (
             <div className="mb-4">
-              <h2 className="text-sm font-bold text-gray-800 mb-2">
-                Education
+              <h2 className="text-sm font-semibold text-gray-900 mb-2 border-b border-gray-200 pb-1">
+                Projects
               </h2>
-              {formData.educationExperiences.map((edu, index) => (
-                <div
-                  key={index}
-                  className={`border-l-2 border-purple-500 pl-2 ${
-                    index > 0 ? "mt-3" : ""
-                  }`}
-                >
-                  <h3 className="text-sm font-semibold">{edu.degree}</h3>
-                  <p className="text-xs text-gray-700">{edu.schoolName}</p>
-                  <p className="text-xs text-gray-600">{edu.fieldOfStudy}</p>
+              {formData.projects.map((project, index) => (
+                <div key={index} className="mb-2">
+                  <div className="flex justify-between items-start mb-1">
+                    <div>
+                      <h3 className="text-xs font-semibold text-gray-900">
+                        {project.projectTitle || "Project Title"}
+                      </h3>
+                      {project.projectType && (
+                        <p className="text-xs text-gray-600">
+                          {project.projectType}
+                        </p>
+                      )}
+                      {project.projectLink && (
+                        <p className="text-xs">
+                          <a
+                            href={project.projectLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600"
+                          >
+                            View Project
+                          </a>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  {project.projectDescription && (
+                    <div className="text-xs text-gray-700 ml-4">
+                      {project.projectDescription.substring(0, 100)}
+                      {project.projectDescription.length > 100 ? "..." : ""}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           )}
 
+        {/* Skills/Interests */}
         {formData.skills &&
           formData.skills.length > 0 &&
-          formData.skills[0] && (
+          formData.skills.some((skill) => skill && skill.trim()) && (
             <div className="mb-4">
-              <h2 className="text-sm font-bold text-gray-800 mb-2">Skills</h2>
+              <h2 className="text-sm font-semibold text-gray-900 mb-2 border-b border-gray-200 pb-1">
+                Interests/Hobbies
+              </h2>
               <div className="flex flex-wrap gap-1">
                 {formData.skills
-                  .filter((skill) => skill.trim())
+                  .filter((skill) => skill && skill.trim())
+                  .slice(0, 6)
                   .map((skill, index) => (
                     <span
                       key={index}
-                      className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs"
+                      className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs"
                     >
                       {skill}
                     </span>
                   ))}
+                {formData.skills.filter((skill) => skill && skill.trim())
+                  .length > 6 && (
+                  <span className="text-xs text-gray-500">
+                    +
+                    {formData.skills.filter((skill) => skill && skill.trim())
+                      .length - 6}{" "}
+                    more
+                  </span>
+                )}
               </div>
             </div>
           )}
 
+        {/* Additional Interests */}
         {formData.interests &&
           formData.interests.length > 0 &&
-          formData.interests[0] && (
+          formData.interests.some(
+            (interest) => interest && interest.trim()
+          ) && (
             <div className="mb-4">
-              <h2 className="text-sm font-bold text-gray-800 mb-2">
-                Interests/Hobbies
+              <h2 className="text-sm font-semibold text-gray-900 mb-2 border-b border-gray-200 pb-1">
+                Additional Interests
               </h2>
               <div className="flex flex-wrap gap-1">
                 {formData.interests
-                  .filter((interest) => interest.trim())
+                  .filter((interest) => interest && interest.trim())
+                  .slice(0, 4)
                   .map((interest, index) => (
                     <span
                       key={index}
-                      className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs"
+                      className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs"
                     >
                       {interest}
                     </span>
                   ))}
               </div>
-            </div>
-          )}
-
-        {formData.references &&
-          formData.references.length > 0 &&
-          formData.references[0].name && (
-            <div className="mb-4">
-              <h2 className="text-sm font-bold text-gray-800 mb-2">
-                References
-              </h2>
-              {formData.references.map((ref, index) => (
-                <div
-                  key={index}
-                  className={`border-l-2 border-purple-500 pl-2 ${
-                    index > 0 ? "mt-3" : ""
-                  }`}
-                >
-                  <h3 className="text-sm font-semibold">{ref.name}</h3>
-                  <p className="text-xs text-gray-700">{ref.relationship}</p>
-                  <p className="text-xs text-gray-600">{ref.contact}</p>
-                </div>
-              ))}
             </div>
           )}
       </div>
@@ -3340,24 +3689,21 @@ const ProjectsStep = ({ formData, handleChange, error }) => {
   return null;
 };
 
-// Step 7: Finalize
+// Step 7: Finalize (Multi-step)
+// Step 7: Finalize (Multi-step)
 const FinalizeStep = ({ formData, handleChange, error }) => {
+  const [finalizeSubStep, setFinalizeSubStep] = useState(1);
   const [interests, setInterests] = useState(formData.interests || [""]);
-  const [references, setReferences] = useState(
-    formData.references || [{ name: "", relationship: "", contact: "" }]
+  const [softwareSkills, setSoftwareSkills] = useState(
+    formData.softwareSkills || [""]
   );
-  const [additionalLinks, setAdditionalLinks] = useState(
-    formData.additionalLinks || [{ label: "", url: "" }]
-  );
+  const [finalizeError, setFinalizeError] = useState("");
 
   // Sync local state with formData
   useEffect(() => {
     setInterests(formData.interests || [""]);
-    setReferences(
-      formData.references || [{ name: "", relationship: "", contact: "" }]
-    );
-    setAdditionalLinks(formData.additionalLinks || [{ label: "", url: "" }]);
-  }, [formData.interests, formData.references, formData.additionalLinks]);
+    setSoftwareSkills(formData.softwareSkills || [""]);
+  }, [formData.interests, formData.softwareSkills]);
 
   const updateInterest = (index, value) => {
     const newInterests = [...interests];
@@ -3376,264 +3722,581 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
     handleChange({ target: { id: "interests", value: newInterests } });
   };
 
-  const updateReference = (index, field, value) => {
-    const newReferences = [...references];
-    newReferences[index] = { ...newReferences[index], [field]: value };
-    setReferences(newReferences);
-    handleChange({ target: { id: "references", value: newReferences } });
+  const updateSoftwareSkill = (index, value) => {
+    const newSkills = [...softwareSkills];
+    newSkills[index] = value;
+    setSoftwareSkills(newSkills);
+    handleChange({ target: { id: "softwareSkills", value: newSkills } });
   };
 
-  const addReference = () => {
-    setReferences([...references, { name: "", relationship: "", contact: "" }]);
+  const addSoftwareSkill = () => {
+    setSoftwareSkills([...softwareSkills, ""]);
   };
 
-  const removeReference = (index) => {
-    const newReferences = references.filter((_, i) => i !== index);
-    setReferences(newReferences);
-    handleChange({ target: { id: "references", value: newReferences } });
+  const removeSoftwareSkill = (index) => {
+    const newSkills = softwareSkills.filter((_, i) => i !== index);
+    setSoftwareSkills(newSkills);
+    handleChange({ target: { id: "softwareSkills", value: newSkills } });
   };
 
-  const updateAdditionalLink = (index, field, value) => {
-    const newLinks = [...additionalLinks];
-    newLinks[index] = { ...newLinks[index], [field]: value };
-    setAdditionalLinks(newLinks);
-    handleChange({ target: { id: "additionalLinks", value: newLinks } });
+  const handleFinalizeNext = () => {
+    setFinalizeError("");
+    if (finalizeSubStep < 5) {
+      setFinalizeSubStep(finalizeSubStep + 1);
+    }
   };
 
-  const addAdditionalLink = () => {
-    setAdditionalLinks([...additionalLinks, { label: "", url: "" }]);
+  const handleFinalizeBack = () => {
+    setFinalizeError("");
+    if (finalizeSubStep > 1) {
+      setFinalizeSubStep(finalizeSubStep - 1);
+    }
   };
 
-  const removeAdditionalLink = (index) => {
-    const newLinks = additionalLinks.filter((_, i) => i !== index);
-    setAdditionalLinks(newLinks);
-    handleChange({ target: { id: "additionalLinks", value: newLinks } });
+  const handleSkip = () => {
+    if (finalizeSubStep < 5) {
+      setFinalizeSubStep(finalizeSubStep + 1);
+    }
   };
 
-  return (
-    <div className="max-w-6xl mx-auto">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        <div className="flex flex-col justify-center">
-          <div className="max-w-md">
-            <h1 className="text-4xl font-bold text-white mb-4">
-              Your resume has been completed
+  // Sub-step 1: Links
+  if (finalizeSubStep === 1) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              What do you want to link to?
             </h1>
-            <p className="text-gray-400 mb-8">
-              Would you like to enhance it with AI or add more details?
+            <p className="text-gray-400">
+              Include links to portfolios or social media. In your resume, this
+              can help
+              <br />
+              employers get to know you better.
             </p>
+          </div>
+          <div className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
+            1/5
+          </div>
+        </div>
 
-            <button className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors mb-6 flex items-center justify-center space-x-2">
-              <span>✨</span>
-              <span>Enhance with AI</span>
-            </button>
+        {finalizeError && (
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+            {finalizeError}
+          </div>
+        )}
 
-            {error && (
-              <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
-                {error}
-              </div>
-            )}
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Website
+              </label>
+              <input
+                id="website"
+                type="url"
+                value={formData.website || ""}
+                onChange={handleChange}
+                placeholder="Paste link"
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Linkedin
+              </label>
+              <input
+                id="linkedin"
+                type="url"
+                value={formData.linkedin || ""}
+                onChange={handleChange}
+                placeholder="Paste link"
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+              />
+            </div>
+          </div>
 
-            <div className="space-y-6">
-              {/* Professional Summary */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Professional Summary
-                </label>
-                <textarea
-                  id="summary"
-                  value={formData.summary || ""}
-                  onChange={handleChange}
-                  placeholder="Write a brief summary of your professional background..."
-                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                  rows={4}
-                />
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Behance
+              </label>
+              <input
+                id="behance"
+                type="url"
+                value={formData.behance || ""}
+                onChange={handleChange}
+                placeholder="Paste link"
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Any other relevant link
+              </label>
+              <input
+                id="otherLink"
+                type="url"
+                value={formData.otherLink || ""}
+                onChange={handleChange}
+                placeholder="Paste link"
+                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+              />
+            </div>
+          </div>
+        </div>
 
-              {/* Interests/Hobbies */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Interests/Hobbies
-                </label>
-                {interests.map((interest, index) => (
-                  <div key={index} className="flex items-center space-x-3 mb-2">
-                    <input
-                      type="text"
-                      value={interest}
-                      onChange={(e) => updateInterest(index, e.target.value)}
-                      placeholder="e.g., Photography"
-                      className="flex-1 px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    />
-                    {interests.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeInterest(index)}
-                        className="p-3 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-lg transition-colors"
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={addInterest}
-                  className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Add Interest
-                </button>
-              </div>
+        <div className="flex justify-between mt-8">
+          <button
+            type="button"
+            onClick={handleSkip}
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Skip
+          </button>
+          <button
+            type="button"
+            onClick={handleFinalizeNext}
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-              {/* References */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  References
-                </label>
-                {references.map((ref, index) => (
-                  <div key={index} className="space-y-2 mb-4">
-                    <input
-                      type="text"
-                      value={ref.name}
-                      onChange={(e) =>
-                        updateReference(index, "name", e.target.value)
-                      }
-                      placeholder="Name"
-                      className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    />
-                    <input
-                      type="text"
-                      value={ref.relationship}
-                      onChange={(e) =>
-                        updateReference(index, "relationship", e.target.value)
-                      }
-                      placeholder="Relationship (e.g., Former Manager)"
-                      className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    />
-                    <input
-                      type="text"
-                      value={ref.contact}
-                      onChange={(e) =>
-                        updateReference(index, "contact", e.target.value)
-                      }
-                      placeholder="Contact Information"
-                      className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    />
-                    {references.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeReference(index)}
-                        className="text-red-400 hover:text-red-300"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={addReference}
-                  className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Add Reference
-                </button>
-              </div>
+  // Sub-step 2: Professional Summary
+  if (finalizeSubStep === 2) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Give us a brief summary of your background
+            </h1>
+            <p className="text-gray-400">
+              Add anything else you want employers to know. Highlight any unique
+              skills, experiences,
+              <br />
+              or achievements that set you apart, showcase your passion, or
+              explain your career goals.
+            </p>
+          </div>
+          <div className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
+            2/5
+          </div>
+        </div>
 
-              {/* Additional Links */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Additional Links
-                </label>
-                {additionalLinks.map((link, index) => (
-                  <div
-                    key={index}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2"
-                  >
-                    <input
-                      type="text"
-                      value={link.label}
-                      onChange={(e) =>
-                        updateAdditionalLink(index, "label", e.target.value)
-                      }
-                      placeholder="Label (e.g., GitHub)"
-                      className="px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    />
-                    <input
-                      type="url"
-                      value={link.url}
-                      onChange={(e) =>
-                        updateAdditionalLink(index, "url", e.target.value)
-                      }
-                      placeholder="URL"
-                      className="px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    />
-                    {additionalLinks.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeAdditionalLink(index)}
-                        className="col-span-2 text-red-400 hover:text-red-300"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={addAdditionalLink}
-                  className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Add Link
-                </button>
-              </div>
+        {finalizeError && (
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+            {finalizeError}
+          </div>
+        )}
 
-              {/* Existing Website and LinkedIn */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Website
-                  </label>
-                  <input
-                    id="website"
-                    type="url"
-                    value={formData.website || ""}
-                    onChange={handleChange}
-                    placeholder="Paste link"
-                    className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                  />
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Background Description
+            </label>
+            <div className="bg-gray-900/80 border border-gray-700 rounded-lg">
+              <textarea
+                id="summary"
+                value={formData.summary || ""}
+                onChange={handleChange}
+                placeholder="I am a Creative UI/UX designer with [number] years facilitating and supporting human interactions with complex systems and software. Maintains user-centric designs while adhering to prescribed interface principals and related development goals. Dedicated to creating inviting and unintimidating interfaces for everything from simple open-source applications to complex proprietary systems."
+                rows={8}
+                className="w-full p-4 text-white bg-transparent focus:outline-none resize-none"
+              />
+              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-700">
+                <div className="flex items-center space-x-2">
+                  <button className="p-2 text-gray-400 hover:text-white">
+                    <svg
+                      className="w-4 h-4 font-bold"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+                    </svg>
+                  </button>
+                  <button className="p-2 text-gray-400 hover:text-white italic">
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M4 4a1 1 0 012 0v1h8V4a1 1 0 112 0v1h1a2 2 0 012 2v10a2 2 0 01-2 2H3a2 2 0 01-2-2V7a2 2 0 012-2h1V4z" />
+                    </svg>
+                  </button>
+                  <button className="p-2 text-gray-400 hover:text-white">
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                      />
+                    </svg>
+                  </button>
+                  <button className="px-2 py-1 bg-purple-600 text-white text-xs rounded">
+                    AB
+                  </button>
+                  <button className="p-2 text-gray-400 hover:text-white">
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      />
+                    </svg>
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    LinkedIn
-                  </label>
-                  <input
-                    id="linkedin"
-                    type="url"
-                    value={formData.linkedin || ""}
-                    onChange={handleChange}
-                    placeholder="Paste link"
-                    className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                  />
+                <div className="flex items-center space-x-2">
+                  <button className="p-2 text-gray-400 hover:text-white">
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                      />
+                    </svg>
+                  </button>
+                  <button className="p-2 text-gray-400 hover:text-white">
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 9.5H17a1 1 0 110 2h-5.586l4.293 4.293a1 1 0 010 1.414z"
+                      />
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div>
-          <TemplatePreview formData={formData} />
+        <div className="flex justify-between mt-8">
+          <button
+            type="button"
+            onClick={handleFinalizeBack}
+            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            Go back
+          </button>
+          <div className="flex space-x-4">
+            <button
+              type="button"
+              onClick={handleSkip}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Skip
+            </button>
+            <button
+              type="button"
+              onClick={handleFinalizeNext}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  // Sub-step 3: Software Skills
+  if (finalizeSubStep === 3) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              What Software skills do you have?
+            </h1>
+            <p className="text-gray-400 mb-2">
+              List the software tools and programs you're proficient in, from
+              productivity suites
+              <br />
+              to specialized software relevant to your field.
+            </p>
+            <p className="text-gray-300 text-sm">We recommend 6 to 12 skills</p>
+          </div>
+          <div className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
+            3/5
+          </div>
+        </div>
+
+        {finalizeError && (
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+            {finalizeError}
+          </div>
+        )}
+
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {softwareSkills.map((skill, index) => (
+              <div key={index} className="flex items-center space-x-3">
+                <input
+                  type="text"
+                  value={skill}
+                  onChange={(e) => updateSoftwareSkill(index, e.target.value)}
+                  placeholder={
+                    index === 0
+                      ? "Figma"
+                      : index === 1
+                      ? "Sketch"
+                      : index === 2
+                      ? "Adobe XD"
+                      : index === 3
+                      ? "Blender"
+                      : index === 4
+                      ? "Spline"
+                      : "Enter here"
+                  }
+                  className="flex-1 px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                />
+                {softwareSkills.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeSoftwareSkill(index)}
+                    className="p-3 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-lg transition-colors"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={addSoftwareSkill}
+            className="w-full border-2 border-dashed border-gray-700 rounded-lg py-4 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors"
+          >
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-purple-400 text-lg">+</span>
+              <span className="text-purple-400 font-medium">
+                Add another skill
+              </span>
+            </div>
+          </button>
+        </div>
+
+        <div className="flex justify-between mt-8">
+          <button
+            type="button"
+            onClick={handleFinalizeBack}
+            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            Go back
+          </button>
+          <div className="flex space-x-4">
+            <button
+              type="button"
+              onClick={handleSkip}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Skip
+            </button>
+            <button
+              type="button"
+              onClick={handleFinalizeNext}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Sub-step 4: Interests/Hobbies
+  if (finalizeSubStep === 4) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              What interests/Hobbies do you have
+            </h1>
+            <p className="text-gray-400">
+              List the software tools and programs you're proficient in, from
+              productivity suites to
+              <br />
+              specialized software relevant to your field.
+            </p>
+            <p className="text-gray-300 text-sm mt-2">
+              We recommend 6 to 12 skills
+            </p>
+          </div>
+          <div className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
+            4/5
+          </div>
+        </div>
+
+        {finalizeError && (
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+            {finalizeError}
+          </div>
+        )}
+
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {interests.map((interest, index) => (
+              <div key={index} className="flex items-center space-x-3">
+                <input
+                  type="text"
+                  value={interest}
+                  onChange={(e) => updateInterest(index, e.target.value)}
+                  placeholder={index === 0 ? "Chess" : "Enter here"}
+                  className="flex-1 px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                />
+                {interests.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeInterest(index)}
+                    className="p-3 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-lg transition-colors"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={addInterest}
+            className="w-full border-2 border-dashed border-gray-700 rounded-lg py-4 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors"
+          >
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-purple-400 text-lg">+</span>
+              <span className="text-purple-400 font-medium">
+                Add another interest
+              </span>
+            </div>
+          </button>
+        </div>
+
+        <div className="flex justify-between mt-8">
+          <button
+            type="button"
+            onClick={handleFinalizeBack}
+            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            Go back
+          </button>
+          <div className="flex space-x-4">
+            <button
+              type="button"
+              onClick={handleSkip}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Skip
+            </button>
+            <button
+              type="button"
+              onClick={handleFinalizeNext}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Finalize
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Sub-step 5: Completion
+  if (finalizeSubStep === 5) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="flex flex-col justify-center">
+            <div className="max-w-md">
+              <div className="flex items-center justify-between mb-8">
+                <h1 className="text-4xl font-bold text-white">
+                  Your resume has been completed
+                </h1>
+                <div className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">
+                  5/5
+                </div>
+              </div>
+              <p className="text-gray-400 mb-8">
+                Would you like to enhance it with AI or add more details?
+              </p>
+
+              <button className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors mb-6 flex items-center justify-center space-x-2">
+                <span>✨</span>
+                <span>Enhance with AI</span>
+              </button>
+
+              {finalizeError && (
+                <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+                  {finalizeError}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <TemplatePreview formData={formData} />
+          </div>
+        </div>
+
+        <div className="flex justify-between mt-8">
+          <button
+            type="button"
+            onClick={handleFinalizeBack}
+            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            Go back
+          </button>
+          <button
+            type="button"
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Complete Resume
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 };
 
 // Form validation functions
@@ -4034,8 +4697,11 @@ const ResumeBuilderPage = () => {
 
   return (
     <div className="min-h-screen text-white relative bg-black">
-      {/* Tiny purple accent at bottom center - just a bit more visible */}
-      <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-96 h-48 bg-purple-900/25 rounded-full blur-3xl"></div>
+      {/* Rising sun effect at bottom center */}
+      <div
+        className="fixed -bottom-64 left-1/2 transform -translate-x-1/2 w-[500px] h-[400px] bg-gradient-to-t from-purple-500/40 via-purple-600/30 to-purple-800/20 rounded-full"
+        style={{ filter: "blur(150px)" }}
+      ></div>
 
       {/* Content - higher z-index to ensure it's above background */}
       <div className="relative z-20">
