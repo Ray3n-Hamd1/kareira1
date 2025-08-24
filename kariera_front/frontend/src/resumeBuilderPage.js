@@ -166,7 +166,7 @@ const ProfessionalResumePreview = ({ formData }) => {
 `}</style>
 
       <div
-        className="resume-print-container bg-white text-gray-900 p-6 max-w-3xl mx-auto shadow-lg rounded-lg"
+        className="resume-print-container bg-white text-gray-900 p-6 max-w-3xl mx-auto shadow-lg rounded-xl"
         style={{ fontFamily: "Arial, sans-serif" }}
       >
         {/* Header */}
@@ -779,7 +779,7 @@ const ResumePreviewModal = ({ isOpen, onClose, formData }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-6xl max-h-[90vh] overflow-y-auto relative">
+      <div className="bg-white rounded-xl max-w-6xl max-h-[90vh] overflow-y-auto relative">
         <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-800">Resume Preview</h2>
           <div className="flex space-x-2">
@@ -821,7 +821,7 @@ const ProgressSteps = ({ currentStep = 1 }) => {
   return (
     <div className="mb-8">
       <div className="flex items-center justify-between mb-4 w-full">
-        <div className="flex items-center justify-between flex-1 mr-6 bg-gray-900/80 rounded-full px-2 py-2 overflow-x-auto">
+        <div className="flex items-center justify-between flex-1 mr-6 bg-transparent rounded-full px-2 py-2 overflow-x-auto">
           {steps.map((step) => (
             <div
               key={step.id}
@@ -854,12 +854,12 @@ const ProgressSteps = ({ currentStep = 1 }) => {
 // Template Preview Component
 const TemplatePreview = ({ formData }) => {
   return (
-    <div className="bg-gray-900/80 rounded-lg p-6">
+    <div className="bg-transparent rounded-xl p-6">
       <h3 className="text-lg font-semibold text-white mb-2">Resume Preview</h3>
       <p className="text-gray-400 text-sm mb-6">Live preview of your resume</p>
 
       <div
-        className="bg-white text-black rounded-lg p-4 mb-6 h-96 overflow-y-auto text-xs"
+        className="bg-white text-black rounded-xl p-4 mb-6 h-96 overflow-y-auto text-xs"
         style={{ fontFamily: "Arial, sans-serif" }}
       >
         {/* Header */}
@@ -1178,7 +1178,7 @@ const TemplatePreview = ({ formData }) => {
           )}
       </div>
 
-      <button className="w-full py-2 px-4 border-2 border-purple-600 text-purple-400 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">
+      <button className="w-full py-2 px-4 border-2 border-purple-600 text-purple-400 rounded-xl hover:bg-purple-600 hover:text-white transition-colors">
         Change Template
       </button>
     </div>
@@ -1219,7 +1219,7 @@ const RichTextEditor = ({
   };
 
   return (
-    <div className="bg-gray-900/80 border border-gray-700 rounded-lg">
+    <div className="bg-transparent border border-gray-700 rounded-xl">
       <textarea
         value={content}
         onChange={handleChange}
@@ -1251,7 +1251,7 @@ const PersonalInfoStep = ({ formData, handleChange, error }) => {
         </p>
 
         {error && (
-          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
             {error}
           </div>
         )}
@@ -1272,7 +1272,7 @@ const PersonalInfoStep = ({ formData, handleChange, error }) => {
                 onChange={handleChange}
                 placeholder="Enter first name"
                 required
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               />
             </div>
             <div>
@@ -1289,7 +1289,7 @@ const PersonalInfoStep = ({ formData, handleChange, error }) => {
                 onChange={handleChange}
                 placeholder="Enter last name"
                 required
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               />
             </div>
           </div>
@@ -1308,7 +1308,7 @@ const PersonalInfoStep = ({ formData, handleChange, error }) => {
               onChange={handleChange}
               placeholder="e.g UI/UX Designer"
               required
-              className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
             />
           </div>
 
@@ -1325,7 +1325,7 @@ const PersonalInfoStep = ({ formData, handleChange, error }) => {
               value={formData.languages || ""}
               onChange={handleChange}
               placeholder="e.g English, French"
-              className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
             />
           </div>
 
@@ -1343,7 +1343,7 @@ const PersonalInfoStep = ({ formData, handleChange, error }) => {
                 value={formData.district || ""}
                 onChange={handleChange}
                 placeholder="Enter district name"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               />
             </div>
             <div>
@@ -1359,7 +1359,7 @@ const PersonalInfoStep = ({ formData, handleChange, error }) => {
                 value={formData.cityCountry || ""}
                 onChange={handleChange}
                 placeholder="e.g Lagos, Nigeria"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               />
             </div>
             <div>
@@ -1375,7 +1375,7 @@ const PersonalInfoStep = ({ formData, handleChange, error }) => {
                 value={formData.postalCode || ""}
                 onChange={handleChange}
                 placeholder="Enter postal code"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               />
             </div>
           </div>
@@ -1394,7 +1394,7 @@ const PersonalInfoStep = ({ formData, handleChange, error }) => {
                 value={formData.phone || ""}
                 onChange={handleChange}
                 placeholder="Enter phone number"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               />
             </div>
             <div>
@@ -1411,7 +1411,7 @@ const PersonalInfoStep = ({ formData, handleChange, error }) => {
                 onChange={handleChange}
                 placeholder="Enter email address"
                 required
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               />
             </div>
           </div>
@@ -1601,7 +1601,7 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
         </div>
 
         {workError && (
-          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
             {workError}
           </div>
         )}
@@ -1618,7 +1618,7 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
                 value={currentWork.workJobTitle || ""}
                 onChange={handleWorkFieldChange}
                 placeholder="e.g UI/UX Designer"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
                 required
               />
             </div>
@@ -1632,7 +1632,7 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
                 value={currentWork.employer || ""}
                 onChange={handleWorkFieldChange}
                 placeholder="e.g Grey finance"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
                 required
               />
             </div>
@@ -1649,7 +1649,7 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
                 value={currentWork.workLocation || ""}
                 onChange={handleWorkFieldChange}
                 placeholder="e.g lagos, Nigeria"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
             <div>
@@ -1660,7 +1660,7 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
                 id="jobType"
                 value={currentWork.jobType || "Full time"}
                 onChange={handleWorkFieldChange}
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
               >
                 <option value="Full time">Full time</option>
                 <option value="Part time">Part time</option>
@@ -1681,7 +1681,7 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
                   key={mode}
                   type="button"
                   onClick={() => handleWorkModeChange(mode)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2 ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center space-x-2 ${
                     currentWork.workMode === mode
                       ? "bg-purple-600 text-white"
                       : "bg-gray-800 text-gray-400 hover:bg-gray-700"
@@ -1704,7 +1704,7 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
                   id="workStartMonth"
                   value={currentWork.workStartMonth || ""}
                   onChange={handleWorkFieldChange}
-                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
                 >
                   <option value="">Month</option>
                   {Array.from({ length: 12 }, (_, i) => (
@@ -1719,7 +1719,7 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
                   id="workStartYear"
                   value={currentWork.workStartYear || ""}
                   onChange={handleWorkFieldChange}
-                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
                 >
                   <option value="">Year</option>
                   {Array.from({ length: 30 }, (_, i) => (
@@ -1740,7 +1740,7 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
                   value={currentWork.workEndMonth || ""}
                   onChange={handleWorkFieldChange}
                   disabled={currentWork.currentlyWorking}
-                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600 disabled:opacity-50"
+                  className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-600 disabled:opacity-50"
                 >
                   <option value="">Month</option>
                   {Array.from({ length: 12 }, (_, i) => (
@@ -1756,7 +1756,7 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
                   value={currentWork.workEndYear || ""}
                   onChange={handleWorkFieldChange}
                   disabled={currentWork.currentlyWorking}
-                  className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600 disabled:opacity-50"
+                  className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-600 disabled:opacity-50"
                 >
                   <option value="">Year</option>
                   {Array.from({ length: 30 }, (_, i) => (
@@ -1787,7 +1787,7 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
           <button
             type="button"
             onClick={handleWorkBack}
-            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-xl hover:bg-gray-700 transition-colors"
           >
             {workExperiences.length === 1 && currentWorkIndex === 0
               ? "Cancel"
@@ -1796,7 +1796,7 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
           <button
             type="button"
             onClick={() => handleWorkNext(1)}
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
           >
             Next
           </button>
@@ -1822,7 +1822,7 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
         </div>
 
         {workError && (
-          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
             {workError}
           </div>
         )}
@@ -1862,7 +1862,7 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
             Job Description <span className="text-red-400">*</span>
           </label>
 
-          <div className="bg-gray-900/80 border border-gray-700 rounded-lg p-4 mb-4">
+          <div className="bg-transparent border border-gray-700 rounded-xl p-4 mb-4">
             <div className="space-y-3 mb-4">
               {currentWork.jobDescription ? (
                 currentWork.jobDescription
@@ -1989,14 +1989,14 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
           <button
             type="button"
             onClick={handleWorkBack}
-            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-xl hover:bg-gray-700 transition-colors"
           >
             Go back
           </button>
           <button
             type="button"
             onClick={() => handleWorkNext(2)}
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
           >
             Next
           </button>
@@ -2029,11 +2029,11 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
           {workExperiences.map((work, index) => (
             <div
               key={index}
-              className="bg-gray-900/80 border border-gray-700 rounded-lg p-6"
+              className="bg-transparent border border-gray-700 rounded-xl p-6"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-4">
-                  <div className="bg-purple-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-semibold">
+                  <div className="bg-purple-600 text-white w-8 h-8 rounded-xl flex items-center justify-center font-semibold">
                     {index + 1}
                   </div>
                   <div>
@@ -2155,7 +2155,7 @@ const WorkHistoryStep = ({ formData, handleChange, error }) => {
 
         <button
           onClick={addNewWorkExperience}
-          className="w-full border-2 border-dashed border-gray-700 rounded-lg py-6 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors mb-8"
+          className="w-full border-2 border-dashed border-gray-700 rounded-xl py-6 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors mb-8"
         >
           <div className="flex items-center justify-center space-x-2">
             <span className="text-purple-400 text-lg">+</span>
@@ -2405,7 +2405,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
         </div>
 
         {eduError && (
-          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
             {eduError}
           </div>
         )}
@@ -2420,7 +2420,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                 id="educationLevel"
                 value={currentEdu.educationLevel || "Bachelors"}
                 onChange={handleEduFieldChange}
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
                 required
               >
                 {educationLevels.map((level) => (
@@ -2440,7 +2440,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                 value={currentEdu.schoolName || ""}
                 onChange={handleEduFieldChange}
                 placeholder="Enter school name"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
                 required
               />
             </div>
@@ -2457,7 +2457,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                 value={currentEdu.schoolLocation || ""}
                 onChange={handleEduFieldChange}
                 placeholder="e.g Lagos, Nigeria"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
             <div>
@@ -2468,7 +2468,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                 id="degree"
                 value={currentEdu.degree || ""}
                 onChange={handleEduFieldChange}
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
                 required
               >
                 <option value="">Select</option>
@@ -2500,7 +2500,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
               value={currentEdu.fieldOfStudy || ""}
               onChange={handleEduFieldChange}
               placeholder="e.g Architecture"
-              className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+              className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
               required
             />
           </div>
@@ -2514,7 +2514,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                 id="graduationMonth"
                 value={currentEdu.graduationMonth || ""}
                 onChange={handleEduFieldChange}
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
               >
                 <option value="">Month</option>
                 {Array.from({ length: 12 }, (_, i) => (
@@ -2529,7 +2529,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                 id="graduationYear"
                 value={currentEdu.graduationYear || ""}
                 onChange={handleEduFieldChange}
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
               >
                 <option value="">Year</option>
                 {Array.from({ length: 20 }, (_, i) => (
@@ -2559,7 +2559,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
           <button
             type="button"
             onClick={handleEduBack}
-            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-xl hover:bg-gray-700 transition-colors"
           >
             {educationExperiences.length === 1 && currentEduIndex === 0
               ? "Cancel"
@@ -2568,7 +2568,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
           <button
             type="button"
             onClick={() => handleEduNext(1)}
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
           >
             Next
           </button>
@@ -2600,7 +2600,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
         </div>
 
         {eduError && (
-          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
             {eduError}
           </div>
         )}
@@ -2694,7 +2694,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                       value={currentEdu.awardName || ""}
                       onChange={handleEduFieldChange}
                       placeholder="Award name"
-                      className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
                     />
                   </div>
                   <div>
@@ -2707,7 +2707,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                       value={currentEdu.awardYear || ""}
                       onChange={handleEduFieldChange}
                       placeholder="School year award was received"
-                      className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
                     />
                   </div>
                 </div>
@@ -2727,7 +2727,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                         value={currentEdu.academicScholarshipName || ""}
                         onChange={handleEduFieldChange}
                         placeholder="Scholarship name"
-                        className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
                       />
                     </div>
                     <div>
@@ -2738,7 +2738,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                         id="academicScholarshipYear"
                         value={currentEdu.academicScholarshipYear || ""}
                         onChange={handleEduFieldChange}
-                        className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
                       >
                         <option value="">Year</option>
                         {Array.from({ length: 20 }, (_, i) => (
@@ -2759,7 +2759,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                       value={currentEdu.academicScholarshipBody || ""}
                       onChange={handleEduFieldChange}
                       placeholder="Enter here"
-                      className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
                     />
                   </div>
                 </div>
@@ -2779,7 +2779,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                         value={currentEdu.sportsScholarshipName || ""}
                         onChange={handleEduFieldChange}
                         placeholder="Scholarship name"
-                        className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
                       />
                     </div>
                     <div>
@@ -2790,7 +2790,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                         id="sportsScholarshipYear"
                         value={currentEdu.sportsScholarshipYear || ""}
                         onChange={handleEduFieldChange}
-                        className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
                       >
                         <option value="">Year</option>
                         {Array.from({ length: 20 }, (_, i) => (
@@ -2811,7 +2811,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                       value={currentEdu.sportsScholarshipBody || ""}
                       onChange={handleEduFieldChange}
                       placeholder="Enter here"
-                      className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
                     />
                   </div>
                 </div>
@@ -2829,7 +2829,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                     value={currentEdu.gpaValue || ""}
                     onChange={handleEduFieldChange}
                     placeholder="Enter number"
-                    className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
                   />
                 </div>
               )}
@@ -2847,7 +2847,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                       value={currentEdu.clubName || ""}
                       onChange={handleEduFieldChange}
                       placeholder="Club name"
-                      className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2859,7 +2859,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                         id="clubStartYear"
                         value={currentEdu.clubStartYear || ""}
                         onChange={handleEduFieldChange}
-                        className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
                       >
                         <option value="">Year</option>
                         {Array.from({ length: 20 }, (_, i) => (
@@ -2877,7 +2877,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
                         id="clubEndYear"
                         value={currentEdu.clubEndYear || ""}
                         onChange={handleEduFieldChange}
-                        className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
                       >
                         <option value="">Year</option>
                         {Array.from({ length: 20 }, (_, i) => (
@@ -2898,14 +2898,14 @@ const EducationStep = ({ formData, handleChange, error }) => {
           <button
             type="button"
             onClick={handleEduBack}
-            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-xl hover:bg-gray-700 transition-colors"
           >
             Go back
           </button>
           <button
             type="button"
             onClick={() => handleEduNext(2)}
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
           >
             Next
           </button>
@@ -2938,11 +2938,11 @@ const EducationStep = ({ formData, handleChange, error }) => {
           {educationExperiences.map((edu, index) => (
             <div
               key={index}
-              className="bg-gray-900/80 border border-gray-700 rounded-lg p-6"
+              className="bg-transparent border border-gray-700 rounded-xl p-6"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-4">
-                  <div className="bg-purple-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-semibold">
+                  <div className="bg-purple-600 text-white w-8 h-8 rounded-xl flex items-center justify-center font-semibold">
                     {index + 1}
                   </div>
                   <div>
@@ -3074,7 +3074,7 @@ const EducationStep = ({ formData, handleChange, error }) => {
 
         <button
           onClick={addNewEducation}
-          className="w-full border-2 border-dashed border-gray-700 rounded-lg py-6 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors mb-8"
+          className="w-full border-2 border-dashed border-gray-700 rounded-xl py-6 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors mb-8"
         >
           <div className="flex items-center justify-center space-x-2">
             <span className="text-purple-400 text-lg">+</span>
@@ -3127,7 +3127,7 @@ const SkillsStep = ({ formData, handleChange, error }) => {
       </div>
 
       {error && (
-        <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+        <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
           {error}
         </div>
       )}
@@ -3141,13 +3141,13 @@ const SkillsStep = ({ formData, handleChange, error }) => {
                 value={skill}
                 onChange={(e) => updateSkill(index, e.target.value)}
                 placeholder={index === 0 ? "Chess" : "Enter here"}
-                className="flex-1 px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="flex-1 px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
               {skills.length > 1 && (
                 <button
                   type="button"
                   onClick={() => removeSkill(index)}
-                  className="p-3 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-lg transition-colors"
+                  className="p-3 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-xl transition-colors"
                 >
                   <svg
                     className="w-5 h-5"
@@ -3169,7 +3169,7 @@ const SkillsStep = ({ formData, handleChange, error }) => {
         <button
           type="button"
           onClick={addSkill}
-          className="w-full border-2 border-dashed border-gray-700 rounded-lg py-4 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors"
+          className="w-full border-2 border-dashed border-gray-700 rounded-xl py-4 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors"
         >
           <div className="flex items-center justify-center space-x-2">
             <span className="text-purple-400 text-lg">+</span>
@@ -3225,7 +3225,7 @@ const CertificationsStep = ({ formData, handleChange, error }) => {
       </div>
 
       {error && (
-        <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+        <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
           {error}
         </div>
       )}
@@ -3234,7 +3234,7 @@ const CertificationsStep = ({ formData, handleChange, error }) => {
         {certificates.map((certificate, index) => (
           <div
             key={index}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-900/80 rounded-lg"
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-transparent rounded-xl"
           >
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -3247,7 +3247,7 @@ const CertificationsStep = ({ formData, handleChange, error }) => {
                   updateCertificate(index, "title", e.target.value)
                 }
                 placeholder="Title of certificate"
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
             <div>
@@ -3262,13 +3262,13 @@ const CertificationsStep = ({ formData, handleChange, error }) => {
                     updateCertificate(index, "link", e.target.value)
                   }
                   placeholder="Paste link"
-                  className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  className="flex-1 px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
                 />
                 {certificates.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeCertificate(index)}
-                    className="p-3 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-lg transition-colors"
+                    className="p-3 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-xl transition-colors"
                   >
                     <svg
                       className="w-5 h-5"
@@ -3291,7 +3291,7 @@ const CertificationsStep = ({ formData, handleChange, error }) => {
         <button
           type="button"
           onClick={addCertificate}
-          className="w-full border-2 border-dashed border-gray-700 rounded-lg py-4 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors"
+          className="w-full border-2 border-dashed border-gray-700 rounded-xl py-4 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors"
         >
           <div className="flex items-center justify-center space-x-2">
             <span className="text-purple-400 text-lg">+</span>
@@ -3435,7 +3435,7 @@ const ProjectsStep = ({ formData, handleChange, error }) => {
         </div>
 
         {projectError && (
-          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
             {projectError}
           </div>
         )}
@@ -3453,7 +3453,7 @@ const ProjectsStep = ({ formData, handleChange, error }) => {
                 value={currentProject.projectTitle || ""}
                 onChange={handleProjectFieldChange}
                 placeholder="e.g Fitness app"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
                 required
               />
             </div>
@@ -3468,7 +3468,7 @@ const ProjectsStep = ({ formData, handleChange, error }) => {
                 value={currentProject.projectType || ""}
                 onChange={handleProjectFieldChange}
                 placeholder="e.g Freelance"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
 
@@ -3482,7 +3482,7 @@ const ProjectsStep = ({ formData, handleChange, error }) => {
                 value={currentProject.projectLink || ""}
                 onChange={handleProjectFieldChange}
                 placeholder="Paste project link"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
           </div>
@@ -3508,7 +3508,7 @@ const ProjectsStep = ({ formData, handleChange, error }) => {
           <button
             type="button"
             onClick={handleProjectBack}
-            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-xl hover:bg-gray-700 transition-colors"
           >
             {projects.length === 1 && currentProjectIndex === 0
               ? "Cancel"
@@ -3517,7 +3517,7 @@ const ProjectsStep = ({ formData, handleChange, error }) => {
           <button
             type="button"
             onClick={handleProjectNext}
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
           >
             Next
           </button>
@@ -3549,11 +3549,11 @@ const ProjectsStep = ({ formData, handleChange, error }) => {
           {projects.map((project, index) => (
             <div
               key={index}
-              className="bg-gray-900/80 border border-gray-700 rounded-lg p-6"
+              className="bg-transparent border border-gray-700 rounded-xl p-6"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-4">
-                  <div className="bg-purple-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-semibold">
+                  <div className="bg-purple-600 text-white w-8 h-8 rounded-xl flex items-center justify-center font-semibold">
                     {index + 1}
                   </div>
                   <div>
@@ -3671,7 +3671,7 @@ const ProjectsStep = ({ formData, handleChange, error }) => {
 
         <button
           onClick={addNewProject}
-          className="w-full border-2 border-dashed border-gray-700 rounded-lg py-6 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors mb-8"
+          className="w-full border-2 border-dashed border-gray-700 rounded-xl py-6 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors mb-8"
         >
           <div className="flex items-center justify-center space-x-2">
             <span className="text-purple-400 text-lg">+</span>
@@ -3781,7 +3781,7 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
         </div>
 
         {finalizeError && (
-          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
             {finalizeError}
           </div>
         )}
@@ -3798,7 +3798,7 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
                 value={formData.website || ""}
                 onChange={handleChange}
                 placeholder="Paste link"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
             <div>
@@ -3811,7 +3811,7 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
                 value={formData.linkedin || ""}
                 onChange={handleChange}
                 placeholder="Paste link"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
           </div>
@@ -3827,7 +3827,7 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
                 value={formData.behance || ""}
                 onChange={handleChange}
                 placeholder="Paste link"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
             <div>
@@ -3840,7 +3840,7 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
                 value={formData.otherLink || ""}
                 onChange={handleChange}
                 placeholder="Paste link"
-                className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
           </div>
@@ -3850,14 +3850,14 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
           <button
             type="button"
             onClick={handleSkip}
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
           >
             Skip
           </button>
           <button
             type="button"
             onClick={handleFinalizeNext}
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
           >
             Next
           </button>
@@ -3889,7 +3889,7 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
         </div>
 
         {finalizeError && (
-          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
             {finalizeError}
           </div>
         )}
@@ -3899,7 +3899,7 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Background Description
             </label>
-            <div className="bg-gray-900/80 border border-gray-700 rounded-lg">
+            <div className="bg-transparent border border-gray-700 rounded-xl">
               <textarea
                 id="summary"
                 value={formData.summary || ""}
@@ -3991,7 +3991,7 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
           <button
             type="button"
             onClick={handleFinalizeBack}
-            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-xl hover:bg-gray-700 transition-colors"
           >
             Go back
           </button>
@@ -3999,14 +3999,14 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
             <button
               type="button"
               onClick={handleSkip}
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
             >
               Skip
             </button>
             <button
               type="button"
               onClick={handleFinalizeNext}
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
             >
               Next
             </button>
@@ -4039,7 +4039,7 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
         </div>
 
         {finalizeError && (
-          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
             {finalizeError}
           </div>
         )}
@@ -4065,13 +4065,13 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
                       ? "Spline"
                       : "Enter here"
                   }
-                  className="flex-1 px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  className="flex-1 px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
                 />
                 {softwareSkills.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeSoftwareSkill(index)}
-                    className="p-3 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-lg transition-colors"
+                    className="p-3 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-xl transition-colors"
                   >
                     <svg
                       className="w-5 h-5"
@@ -4093,7 +4093,7 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
           <button
             type="button"
             onClick={addSoftwareSkill}
-            className="w-full border-2 border-dashed border-gray-700 rounded-lg py-4 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors"
+            className="w-full border-2 border-dashed border-gray-700 rounded-xl py-4 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors"
           >
             <div className="flex items-center justify-center space-x-2">
               <span className="text-purple-400 text-lg">+</span>
@@ -4108,7 +4108,7 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
           <button
             type="button"
             onClick={handleFinalizeBack}
-            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-xl hover:bg-gray-700 transition-colors"
           >
             Go back
           </button>
@@ -4116,14 +4116,14 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
             <button
               type="button"
               onClick={handleSkip}
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
             >
               Skip
             </button>
             <button
               type="button"
               onClick={handleFinalizeNext}
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
             >
               Next
             </button>
@@ -4158,7 +4158,7 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
         </div>
 
         {finalizeError && (
-          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+          <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
             {finalizeError}
           </div>
         )}
@@ -4172,13 +4172,13 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
                   value={interest}
                   onChange={(e) => updateInterest(index, e.target.value)}
                   placeholder={index === 0 ? "Chess" : "Enter here"}
-                  className="flex-1 px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  className="flex-1 px-4 py-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
                 />
                 {interests.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeInterest(index)}
-                    className="p-3 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-lg transition-colors"
+                    className="p-3 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-xl transition-colors"
                   >
                     <svg
                       className="w-5 h-5"
@@ -4200,7 +4200,7 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
           <button
             type="button"
             onClick={addInterest}
-            className="w-full border-2 border-dashed border-gray-700 rounded-lg py-4 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors"
+            className="w-full border-2 border-dashed border-gray-700 rounded-xl py-4 px-6 text-center hover:border-purple-500 hover:bg-gray-900/50 transition-colors"
           >
             <div className="flex items-center justify-center space-x-2">
               <span className="text-purple-400 text-lg">+</span>
@@ -4215,7 +4215,7 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
           <button
             type="button"
             onClick={handleFinalizeBack}
-            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-xl hover:bg-gray-700 transition-colors"
           >
             Go back
           </button>
@@ -4223,14 +4223,14 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
             <button
               type="button"
               onClick={handleSkip}
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
             >
               Skip
             </button>
             <button
               type="button"
               onClick={handleFinalizeNext}
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
             >
               Finalize
             </button>
@@ -4259,13 +4259,13 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
                 Would you like to enhance it with AI or add more details?
               </p>
 
-              <button className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors mb-6 flex items-center justify-center space-x-2">
+              <button className="w-full px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors mb-6 flex items-center justify-center space-x-2">
                 <span>✨</span>
                 <span>Enhance with AI</span>
               </button>
 
               {finalizeError && (
-                <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+                <div className="mb-6 p-3 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
                   {finalizeError}
                 </div>
               )}
@@ -4281,13 +4281,13 @@ const FinalizeStep = ({ formData, handleChange, error }) => {
           <button
             type="button"
             onClick={handleFinalizeBack}
-            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-6 py-3 bg-gray-800 text-gray-300 rounded-xl hover:bg-gray-700 transition-colors"
           >
             Go back
           </button>
           <button
             type="button"
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
           >
             Complete Resume
           </button>
@@ -4715,7 +4715,7 @@ const ResumeBuilderPage = () => {
             <button
               type="button"
               onClick={handleGoBack}
-              className="px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+              className="px-6 py-3 bg-gray-800 text-gray-300 rounded-xl hover:bg-gray-700 transition-colors"
             >
               Go back
             </button>
@@ -4724,7 +4724,7 @@ const ResumeBuilderPage = () => {
               <button
                 type="button"
                 onClick={handlePreview}
-                className="px-6 py-3 border border-purple-600 text-purple-400 rounded-lg hover:bg-purple-600 hover:text-white transition-colors"
+                className="px-6 py-3 border border-purple-600 text-purple-400 rounded-xl hover:bg-purple-600 hover:text-white transition-colors"
               >
                 Preview Resume
               </button>
@@ -4732,7 +4732,7 @@ const ResumeBuilderPage = () => {
                 type="button"
                 onClick={handleNext}
                 disabled={isLoading}
-                className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isLoading
                   ? "Saving..."
