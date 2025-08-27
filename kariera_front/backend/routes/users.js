@@ -17,28 +17,7 @@ router.get("/profile", auth, async (req, res) => {
   }
 });
 
-// Update user profile
-router.put("/profile", auth, async (req, res) => {
-  try {
-    const { name, email } = req.body;
-
-    // Find and update user
-    const user = await User.findByIdAndUpdate(
-      req.userId,
-      { $set: { name, email } },
-      { new: true }
-    ).select("-password");
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    res.json(user);
-  } catch (error) {
-    console.error("Update profile error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+// Update user profile - KEEP ONLY THIS ONE
 router.put("/profile", auth, async (req, res) => {
   try {
     const { name, email, phone, profession, district, city, postalCode } =
@@ -76,7 +55,8 @@ router.put("/profile", auth, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json({ user });
+    // Make response format consistent with GET route
+    res.json(user); // Changed from res.json({ user }) to res.json(user)
   } catch (error) {
     console.error("Update profile error:", error);
     res.status(500).json({ message: "Server error" });
@@ -88,7 +68,6 @@ router.put("/notifications", auth, async (req, res) => {
   try {
     const { emailNotifications, pushNotifications } = req.body;
 
-    // Find and update user
     const user = await User.findByIdAndUpdate(
       req.userId,
       {
