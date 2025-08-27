@@ -14,7 +14,7 @@ import Register from "./pages/Register";
 
 // Layout components
 import Navbar from "./components/Navbar";
-
+import Settings from "./pages/Settings";
 // Simple Landing Page Component (embedded to avoid import issues)
 const JobSearchLandingPage = () => {
   return (
@@ -141,6 +141,14 @@ function App() {
                     <Navbar />
                     <JobSearchDashboard />
                   </>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/settings/*"
+              element={
+                <PrivateRoute>
+                  <Settings />
                 </PrivateRoute>
               }
             />

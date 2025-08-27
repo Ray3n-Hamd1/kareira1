@@ -26,6 +26,62 @@ const userSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  phone: {
+    type: String,
+    trim: true
+  },
+  profession: {
+    type: String,
+    trim: true
+  },
+  district: {
+    type: String,
+    trim: true
+  },
+  city: {
+    type: String,
+    trim: true
+  },
+  postalCode: {
+    type: String,
+    trim: true
+  },
+  emailNotifications: {
+    newJobs: {
+      type: Boolean,
+      default: true
+    },
+    newsUpdates: {
+      type: Boolean,
+      default: true
+    },
+    interviewSchedule: {
+      type: Boolean,
+      default: true
+    },
+    jobRejection: {
+      type: Boolean,
+      default: true
+    }
+  },
+  pushNotifications: {
+    newJobs: {
+      type: Boolean,
+      default: true
+    },
+    newsUpdates: {
+      type: Boolean,
+      default: true
+    },
+    interviewSchedule: {
+      type: Boolean,
+      default: true
+    },
+    jobRejection: {
+      type: Boolean,
+      default: true
+    }
   }
 });
 
