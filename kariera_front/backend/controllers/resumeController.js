@@ -2,7 +2,7 @@ const { default: PDFDocument } = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 const { getUserInfo } = require('../services/userService');
-const { refineResumeWithAI } = require('../services/resumeService');
+const { refineResumeWithAI, matchCVWithAI } = require('../services/resumeService');
 
 // Get user resume data
 const getUserResume = async (req, res) => {
@@ -141,9 +141,27 @@ const generatePDFResume = async (req, res) => {
     res.status(500).json({ message: 'Error generating PDF', error: error.message });
   }
 };
+const matchCV = async (req, res) => {
+  try {
+    const { jobDescription } = req.body;
+    if (!jobDescription) {    
+      return res.status(400).json({ message: 'Job description is required' });
+    } 
+    const userInfo = await getUserInfo();
+    if (!userInfo) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const matchedCV = await matchCVWithAI(userInfo, jobDescription);
+    res.json({ success: true, matchedCV });
+  } catch (error) {
+    console.error('Error matching CV:', error);
+    res.status(500).json({ message: 'Error matching CV', error: error.message });
+  }
+};
 
 module.exports = {
   getUserResume,
   refineResume,
-  generatePDFResume
+  generatePDFResume,
+  matchCV
 };

@@ -4,6 +4,7 @@ const {
   getUserResume,
   refineResume,
   generatePDFResume,
+  matchCV
 } = require("../controllers/resumeController");
 
 const router = express.Router();
@@ -13,6 +14,8 @@ router.get("/", protect, getUserResume);
 
 // Refine resume for a specific country
 router.post("/refine", protect, refineResume);
+router.post("/match", protect, matchCV);
+
 
 // Generate PDF resume from refined data
 router.post("/generate-pdf", protect, generatePDFResume);
