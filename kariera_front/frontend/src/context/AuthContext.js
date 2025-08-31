@@ -141,10 +141,15 @@ export function AuthProvider({ children }) {
     setError(null);
   };
 
-  // Update user profile
+  // Update user profile - IMPROVED VERSION
   const updateUserProfile = async (profileData) => {
     try {
-      console.log("Sending profile update request:", profileData);
+      console.log("AuthContext: Sending profile update request:", profileData);
+
+      // Ensure token exists
+      if (!token) {
+        throw new Error("No authentication token available");
+      }
 
       const response = await axios.put(
         `${API_URL}/users/profile`,
@@ -153,56 +158,169 @@ export function AuthProvider({ children }) {
           headers: {
             "x-auth-token": token,
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         }
       );
 
-      console.log("Profile update response:", response.data);
+      console.log("AuthContext: Full response:", response);
+      console.log("AuthContext: Response data:", response.data);
+      console.log("AuthContext: Response status:", response.status);
 
-      if (response.data && response.data.user) {
-        setUser(response.data.user);
-        return { success: true, user: response.data.user };
-      } else {
-        console.error("Unexpected response format:", response.data);
-        return { success: false, error: "Invalid response from server" };
+      // Handle successful response (200-299 status codes)
+      if (response.status >= 200 && response.status < 300) {
+        // Check for different possible response formats
+        let updatedUser = null;
+        let successMessage = "Profile updated successfully!";
+
+        // Format 1: { success: true, user: {...}, message: "..." }
+        if (response.data && response.data.success && response.data.user) {
+          updatedUser = response.data.user;
+          successMessage = response.data.message || successMessage;
+        }
+        // Format 2: { user: {...}, message: "..." }
+        else if (response.data && response.data.user) {
+          updatedUser = response.data.user;
+          successMessage = response.data.message || successMessage;
+        }
+        // Format 3: Direct user object { id, name, email, ... }
+        else if (
+          response.data &&
+          (response.data.id || response.data.email || response.data._id)
+        ) {
+          updatedUser = response.data;
+        }
+        // Format 4: { data: { user: {...} } }
+        else if (
+          response.data &&
+          response.data.data &&
+          response.data.data.user
+        ) {
+          updatedUser = response.data.data.user;
+        }
+        // Format 5: { message: "success" } - no user data returned
+        else if (response.data && response.data.message) {
+          successMessage = response.data.message;
+          // Keep current user data, just assume it was updated
+          updatedUser = { ...user, ...profileData };
+        } else {
+          console.warn(
+            "AuthContext: Unexpected response format, treating as success:",
+            response.data
+          );
+          // Assume success and merge the sent data with current user
+          updatedUser = { ...user, ...profileData };
+        }
+
+        // Update local user state if we have user data
+        if (updatedUser) {
+          setUser(updatedUser);
+          console.log("AuthContext: User updated successfully:", updatedUser);
+        }
+
+        return {
+          success: true,
+          user: updatedUser,
+          message: successMessage,
+        };
+      }
+      // Handle non-2xx status codes
+      else {
+        console.error("AuthContext: Non-success status code:", response.status);
+        return {
+          success: false,
+          error: `Server returned status: ${response.status}`,
+        };
       }
     } catch (error) {
-      console.error("Error updating profile:", error);
-      // More detailed error logging
+      console.error("AuthContext: Error updating profile:", error);
+
+      // Handle different types of errors
       if (error.response) {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
-        console.error("Response data:", error.response.data);
-        console.error("Response status:", error.response.status);
-        console.error("Response headers:", error.response.headers);
+        console.error("AuthContext: Response data:", error.response.data);
+        console.error("AuthContext: Response status:", error.response.status);
+        console.error("AuthContext: Response headers:", error.response.headers);
+
+        const errorMessage =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          `Server error (${error.response.status})`;
+
         return {
           success: false,
-          error: error.response.data.message || "Server error",
+          error: errorMessage,
         };
       } else if (error.request) {
         // The request was made but no response was received
-        console.error("No response received:", error.request);
-        return { success: false, error: "No response from server" };
+        console.error("AuthContext: No response received:", error.request);
+        return {
+          success: false,
+          error: "No response from server. Please check your connection.",
+        };
       } else {
         // Something happened in setting up the request that triggered an Error
-        console.error("Request error:", error.message);
-        return { success: false, error: "Request failed" };
+        console.error("AuthContext: Request setup error:", error.message);
+        return {
+          success: false,
+          error: error.message || "Request failed",
+        };
       }
     }
   };
 
-  // Change password
+  // Change password - Updated for your specific backend
   const changePassword = async (oldPassword, newPassword) => {
     try {
-      const response = await axios.put(`${API_URL}/auth/change-password`, {
-        oldPassword,
-        newPassword,
-      });
+      console.log("AuthContext: Attempting to change password");
 
-      return response.data;
+      if (!token) {
+        throw new Error("No authentication token available");
+      }
+
+      // Use the correct endpoint for your backend
+      const response = await axios.put(
+        `${API_URL}/auth/change-password`,
+        {
+          oldPassword,
+          newPassword,
+        },
+        {
+          headers: {
+            "x-auth-token": token,
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("AuthContext: Password change response:", response.data);
+
+      return {
+        success: true,
+        message: response.data?.message || "Password changed successfully!",
+      };
     } catch (error) {
-      console.error("Error changing password:", error);
-      throw error;
+      console.error("AuthContext: Error changing password:", error);
+
+      let errorMessage = "Failed to change password";
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      // Add helpful debugging info
+      if (error.response?.status === 404) {
+        errorMessage +=
+          ". Please make sure you've added the password change route to your backend.";
+      }
+
+      throw new Error(errorMessage);
     }
   };
 
@@ -228,5 +346,9 @@ export function AuthProvider({ children }) {
 
 // Custom hook for using auth context
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 }

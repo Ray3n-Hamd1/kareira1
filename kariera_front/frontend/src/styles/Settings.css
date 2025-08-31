@@ -1,0 +1,416 @@
+/* Settings.css - Additional styles to match the exact design */
+
+/* Custom scrollbar for better visual consistency */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1f2937;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Settings layout improvements */
+.settings-container {
+  background: #000000;
+  min-height: 100vh;
+}
+
+/* Navigation improvements */
+.nav-bar {
+  background: #111827;
+  border-bottom: 1px solid #374151;
+}
+
+.nav-search input {
+  background: #1f2937;
+  border: 1px solid #374151;
+  transition: all 0.2s ease;
+}
+
+.nav-search input:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+/* Profile avatar styles */
+.profile-avatar {
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 600;
+  color: white;
+}
+
+/* Settings sidebar improvements */
+.settings-sidebar {
+  background: transparent;
+}
+
+.settings-nav-item {
+  display: block;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+}
+
+.settings-nav-item:hover {
+  background: #1f2937;
+  color: white;
+}
+
+.settings-nav-item.active {
+  background: #1f2937;
+  color: white;
+}
+
+.settings-nav-item.logout {
+  color: #ef4444;
+  border-top: 1px solid #374151;
+  margin-top: 16px;
+  padding-top: 16px;
+}
+
+.settings-nav-item.logout:hover {
+  background: #1f2937;
+  color: #ef4444;
+}
+
+/* Settings content improvements */
+.settings-content {
+  background: #111827;
+  border-radius: 8px;
+  padding: 32px;
+  border: 1px solid #374151;
+}
+
+/* Form improvements */
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #d1d5db;
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.form-input::placeholder {
+  color: #6b7280;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+/* Button improvements */
+.btn-primary {
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: #7c3aed;
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: #374151;
+  color: #d1d5db;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+  color: white;
+}
+
+/* Security settings card improvements */
+.security-card {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 24px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.security-card:hover {
+  background: #253147;
+  border-color: #4b5563;
+}
+
+.security-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.security-card p {
+  font-size: 14px;
+  color: #9ca3af;
+  line-height: 1.4;
+}
+
+.security-card.danger h3 {
+  color: #ef4444;
+}
+
+/* Toggle switch improvements */
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  height: 24px;
+  width: 44px;
+  align-items: center;
+  border-radius: 12px;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.toggle-switch:focus {
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+}
+
+.toggle-switch.enabled {
+  background: #8b5cf6;
+}
+
+.toggle-switch.disabled {
+  background: #4b5563;
+}
+
+.toggle-switch-handle {
+  display: inline-block;
+  height: 16px;
+  width: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  transform: translateX(4px);
+}
+
+.toggle-switch.enabled .toggle-switch-handle {
+  transform: translateX(24px);
+}
+
+/* Notification settings improvements */
+.notification-section {
+  margin-bottom: 32px;
+}
+
+.notification-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.notification-section p {
+  font-size: 14px;
+  color: #9ca3af;
+  margin-bottom: 24px;
+}
+
+.notification-list {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 0;
+}
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid #374151;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.notification-item p {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+/* Change password modal improvements */
+.password-field {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+}
+
+.password-toggle:hover {
+  color: white;
+}
+
+/* Profile photo section */
+.profile-photo-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.profile-photo {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+}
+
+.change-photo-btn {
+  background: transparent;
+  border: 1px solid #4b5563;
+  color: #d1d5db;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.change-photo-btn:hover {
+  background: #1f2937;
+  border-color: #6b7280;
+  color: white;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .settings-content {
+    padding: 16px;
+  }
+  
+  .profile-photo-section {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Form grid layouts */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+}
+
+/* Success and error message styles */
+.message-success {
+  background: #065f46;
+  border: 1px solid #059669;
+  color: #a7f3d0;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.message-error {
+  background: #7f1d1d;
+  border: 1px solid #dc2626;
+  color: #fca5a5;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* Loading state improvements */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}

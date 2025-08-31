@@ -62,297 +62,155 @@ export default function NotificationSettings() {
     }
   };
 
+  const ToggleSwitch = ({ isEnabled, onToggle, disabled = false }) => (
+    <button
+      onClick={onToggle}
+      disabled={disabled}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${
+        isEnabled ? "bg-purple-600" : "bg-gray-600"
+      } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+          isEnabled ? "translate-x-6" : "translate-x-1"
+        }`}
+      />
+    </button>
+  );
+
+  const NotificationRow = ({
+    title,
+    description,
+    emailEnabled,
+    pushEnabled,
+    settingKey,
+  }) => (
+    <div className="flex items-center justify-between py-4 border-b border-gray-700 last:border-b-0">
+      <div className="flex-1">
+        <h3 className="text-white font-medium">{title}</h3>
+        <p className="text-gray-400 text-sm">{description}</p>
+      </div>
+      <div className="flex items-center space-x-8">
+        {/* Email Toggle - Only shown for email section */}
+        {emailEnabled !== undefined && (
+          <ToggleSwitch
+            isEnabled={emailEnabled}
+            onToggle={() => handleEmailToggle(settingKey)}
+          />
+        )}
+        {/* Push Toggle - Only shown for push section */}
+        {pushEnabled !== undefined && (
+          <ToggleSwitch
+            isEnabled={pushEnabled}
+            onToggle={() => handlePushToggle(settingKey)}
+          />
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-2">Notifications</h2>
-      <p className="text-gray-400 mb-6">
+    <div className="bg-gray-900 rounded-lg p-8">
+      <h2 className="text-2xl font-semibold text-white mb-2">Notifications</h2>
+      <p className="text-gray-400 mb-8">
         Select the kinds of notifications you get about your activities
       </p>
 
       {message.text && (
         <div
-          className={`mb-6 p-3 rounded-lg ${
+          className={`mb-6 p-4 rounded-lg ${
             message.type === "success"
-              ? "bg-green-900/50 border border-green-500 text-green-200"
-              : "bg-red-900/50 border border-red-500 text-red-200"
+              ? "bg-green-900 border border-green-700 text-green-300"
+              : "bg-red-900 border border-red-700 text-red-300"
           }`}
         >
           {message.text}
         </div>
       )}
 
-      <div className="mb-8">
-        <h3 className="text-lg font-medium mb-4">Email notifications</h3>
-        <p className="text-sm text-gray-400 mb-4">
-          Get emails to find out what's going on when you're not online
-        </p>
+      <div className="space-y-8">
+        {/* Email notifications section */}
+        <div>
+          <h3 className="text-lg font-medium text-white mb-4">
+            Email notifications
+          </h3>
+          <p className="text-sm text-gray-400 mb-6">
+            Get emails to find out what's going on when you're not online
+          </p>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-medium text-white">
-                New Jobs alerts
-              </h4>
-              <p className="text-xs text-gray-400">
-                News about jobs that fit your preferences
-              </p>
-            </div>
-            <div className="relative inline-block w-12 h-6 transition duration-200 ease-in-out rounded-full">
-              <input
-                type="checkbox"
-                className="absolute w-6 h-6 opacity-0 z-10 cursor-pointer"
-                checked={emailNotifications.newJobs}
-                onChange={() => handleEmailToggle("newJobs")}
-              />
-              <span
-                className={`absolute left-0 top-0 right-0 bottom-0 rounded-full transition-colors ${
-                  emailNotifications.newJobs ? "bg-purple-600" : "bg-gray-700"
-                }`}
-              ></span>
-              <span
-                className={`absolute w-4 h-4 bg-white rounded-full transition-transform transform ${
-                  emailNotifications.newJobs ? "translate-x-6" : "translate-x-1"
-                } top-1`}
-              ></span>
-            </div>
+          <div className="bg-gray-800 rounded-lg p-6">
+            <NotificationRow
+              title="New Jobs alerts"
+              description="News about jobs that fit your preferences"
+              emailEnabled={emailNotifications.newJobs}
+              settingKey="newJobs"
+            />
+            <NotificationRow
+              title="News and updates"
+              description="News about products and feature updates"
+              emailEnabled={emailNotifications.newsUpdates}
+              settingKey="newsUpdates"
+            />
+            <NotificationRow
+              title="Interview Schedule"
+              description="Scheduled for Interview on Jobs"
+              emailEnabled={emailNotifications.interviewSchedule}
+              settingKey="interviewSchedule"
+            />
+            <NotificationRow
+              title="Job rejection"
+              description="Rejection on applied Jobs"
+              emailEnabled={emailNotifications.jobRejection}
+              settingKey="jobRejection"
+            />
           </div>
+        </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-medium text-white">
-                News and updates
-              </h4>
-              <p className="text-xs text-gray-400">
-                News about products and feature updates
-              </p>
-            </div>
-            <div className="relative inline-block w-12 h-6 transition duration-200 ease-in-out rounded-full">
-              <input
-                type="checkbox"
-                className="absolute w-6 h-6 opacity-0 z-10 cursor-pointer"
-                checked={emailNotifications.newsUpdates}
-                onChange={() => handleEmailToggle("newsUpdates")}
-              />
-              <span
-                className={`absolute left-0 top-0 right-0 bottom-0 rounded-full transition-colors ${
-                  emailNotifications.newsUpdates
-                    ? "bg-purple-600"
-                    : "bg-gray-700"
-                }`}
-              ></span>
-              <span
-                className={`absolute w-4 h-4 bg-white rounded-full transition-transform transform ${
-                  emailNotifications.newsUpdates
-                    ? "translate-x-6"
-                    : "translate-x-1"
-                } top-1`}
-              ></span>
-            </div>
-          </div>
+        {/* Push notifications section */}
+        <div>
+          <h3 className="text-lg font-medium text-white mb-4">
+            Push notifications
+          </h3>
+          <p className="text-sm text-gray-400 mb-6">
+            Get push notifications in app to find out what's going on when
+            you're online
+          </p>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-medium text-white">
-                Interview Schedule
-              </h4>
-              <p className="text-xs text-gray-400">
-                Scheduled for interview on jobs
-              </p>
-            </div>
-            <div className="relative inline-block w-12 h-6 transition duration-200 ease-in-out rounded-full">
-              <input
-                type="checkbox"
-                className="absolute w-6 h-6 opacity-0 z-10 cursor-pointer"
-                checked={emailNotifications.interviewSchedule}
-                onChange={() => handleEmailToggle("interviewSchedule")}
-              />
-              <span
-                className={`absolute left-0 top-0 right-0 bottom-0 rounded-full transition-colors ${
-                  emailNotifications.interviewSchedule
-                    ? "bg-purple-600"
-                    : "bg-gray-700"
-                }`}
-              ></span>
-              <span
-                className={`absolute w-4 h-4 bg-white rounded-full transition-transform transform ${
-                  emailNotifications.interviewSchedule
-                    ? "translate-x-6"
-                    : "translate-x-1"
-                } top-1`}
-              ></span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-medium text-white">Job rejection</h4>
-              <p className="text-xs text-gray-400">Rejection on applied jobs</p>
-            </div>
-            <div className="relative inline-block w-12 h-6 transition duration-200 ease-in-out rounded-full">
-              <input
-                type="checkbox"
-                className="absolute w-6 h-6 opacity-0 z-10 cursor-pointer"
-                checked={emailNotifications.jobRejection}
-                onChange={() => handleEmailToggle("jobRejection")}
-              />
-              <span
-                className={`absolute left-0 top-0 right-0 bottom-0 rounded-full transition-colors ${
-                  emailNotifications.jobRejection
-                    ? "bg-purple-600"
-                    : "bg-gray-700"
-                }`}
-              ></span>
-              <span
-                className={`absolute w-4 h-4 bg-white rounded-full transition-transform transform ${
-                  emailNotifications.jobRejection
-                    ? "translate-x-6"
-                    : "translate-x-1"
-                } top-1`}
-              ></span>
-            </div>
+          <div className="bg-gray-800 rounded-lg p-6">
+            <NotificationRow
+              title="New Jobs alerts"
+              description="News about jobs that fit your preferences"
+              pushEnabled={pushNotifications.newJobs}
+              settingKey="newJobs"
+            />
+            <NotificationRow
+              title="News and updates"
+              description="News about products and feature updates"
+              pushEnabled={pushNotifications.newsUpdates}
+              settingKey="newsUpdates"
+            />
+            <NotificationRow
+              title="Interview Schedule"
+              description="Scheduled for Interview on Jobs"
+              pushEnabled={pushNotifications.interviewSchedule}
+              settingKey="interviewSchedule"
+            />
+            <NotificationRow
+              title="Job rejection"
+              description="Rejection on applied Jobs"
+              pushEnabled={pushNotifications.jobRejection}
+              settingKey="jobRejection"
+            />
           </div>
         </div>
       </div>
 
-      <div className="mb-8">
-        <h3 className="text-lg font-medium mb-4">Push notifications</h3>
-        <p className="text-sm text-gray-400 mb-4">
-          Get push notifications to app to find out what's going on when you're
-          online
-        </p>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-medium text-white">
-                New Jobs alerts
-              </h4>
-              <p className="text-xs text-gray-400">
-                News about jobs that fit your preferences
-              </p>
-            </div>
-            <div className="relative inline-block w-12 h-6 transition duration-200 ease-in-out rounded-full">
-              <input
-                type="checkbox"
-                className="absolute w-6 h-6 opacity-0 z-10 cursor-pointer"
-                checked={pushNotifications.newJobs}
-                onChange={() => handlePushToggle("newJobs")}
-              />
-              <span
-                className={`absolute left-0 top-0 right-0 bottom-0 rounded-full transition-colors ${
-                  pushNotifications.newJobs ? "bg-purple-600" : "bg-gray-700"
-                }`}
-              ></span>
-              <span
-                className={`absolute w-4 h-4 bg-white rounded-full transition-transform transform ${
-                  pushNotifications.newJobs ? "translate-x-6" : "translate-x-1"
-                } top-1`}
-              ></span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-medium text-white">
-                News and updates
-              </h4>
-              <p className="text-xs text-gray-400">
-                News about products and feature updates
-              </p>
-            </div>
-            <div className="relative inline-block w-12 h-6 transition duration-200 ease-in-out rounded-full">
-              <input
-                type="checkbox"
-                className="absolute w-6 h-6 opacity-0 z-10 cursor-pointer"
-                checked={pushNotifications.newsUpdates}
-                onChange={() => handlePushToggle("newsUpdates")}
-              />
-              <span
-                className={`absolute left-0 top-0 right-0 bottom-0 rounded-full transition-colors ${
-                  pushNotifications.newsUpdates
-                    ? "bg-purple-600"
-                    : "bg-gray-700"
-                }`}
-              ></span>
-              <span
-                className={`absolute w-4 h-4 bg-white rounded-full transition-transform transform ${
-                  pushNotifications.newsUpdates
-                    ? "translate-x-6"
-                    : "translate-x-1"
-                } top-1`}
-              ></span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-medium text-white">
-                Interview Schedule
-              </h4>
-              <p className="text-xs text-gray-400">
-                Scheduled for interview on jobs
-              </p>
-            </div>
-            <div className="relative inline-block w-12 h-6 transition duration-200 ease-in-out rounded-full">
-              <input
-                type="checkbox"
-                className="absolute w-6 h-6 opacity-0 z-10 cursor-pointer"
-                checked={pushNotifications.interviewSchedule}
-                onChange={() => handlePushToggle("interviewSchedule")}
-              />
-              <span
-                className={`absolute left-0 top-0 right-0 bottom-0 rounded-full transition-colors ${
-                  pushNotifications.interviewSchedule
-                    ? "bg-purple-600"
-                    : "bg-gray-700"
-                }`}
-              ></span>
-              <span
-                className={`absolute w-4 h-4 bg-white rounded-full transition-transform transform ${
-                  pushNotifications.interviewSchedule
-                    ? "translate-x-6"
-                    : "translate-x-1"
-                } top-1`}
-              ></span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-medium text-white">Job rejection</h4>
-              <p className="text-xs text-gray-400">Rejection on applied jobs</p>
-            </div>
-            <div className="relative inline-block w-12 h-6 transition duration-200 ease-in-out rounded-full">
-              <input
-                type="checkbox"
-                className="absolute w-6 h-6 opacity-0 z-10 cursor-pointer"
-                checked={pushNotifications.jobRejection}
-                onChange={() => handlePushToggle("jobRejection")}
-              />
-              <span
-                className={`absolute left-0 top-0 right-0 bottom-0 rounded-full transition-colors ${
-                  pushNotifications.jobRejection
-                    ? "bg-purple-600"
-                    : "bg-gray-700"
-                }`}
-              ></span>
-              <span
-                className={`absolute w-4 h-4 bg-white rounded-full transition-transform transform ${
-                  pushNotifications.jobRejection
-                    ? "translate-x-6"
-                    : "translate-x-1"
-                } top-1`}
-              ></span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-center">
+      {/* Save Button */}
+      <div className="flex justify-center mt-8">
         <button
           onClick={handleSaveSettings}
           disabled={isLoading}
-          className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isLoading ? "Saving..." : "Save Changes"}
         </button>

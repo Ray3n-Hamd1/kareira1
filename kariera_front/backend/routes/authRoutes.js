@@ -7,6 +7,7 @@ const {
 } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 const bcrypt = require("bcryptjs");
+const User = require("../models/User"); // Add this import
 
 const router = express.Router();
 
@@ -16,6 +17,67 @@ router.post("/login", loginUser);
 
 // Protected routes
 router.get("/me", protect, getUserProfile);
+
+// ADD THIS NEW ROUTE - Change Password (CORRECTED VERSION)
+router.put("/change-password", protect, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    console.log("Password change request received for user:", req.userId);
+
+    // Validation
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        message: "Please provide both old and new passwords",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        message: "New password must be at least 6 characters long",
+      });
+    }
+
+    // Get user from database (with password field included)
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log("Found user:", user.email);
+
+    // Verify old password using the correct method name
+    const isMatch = await user.matchPassword(oldPassword);
+    if (!isMatch) {
+      console.log(
+        "Password change failed: Invalid old password for user",
+        req.userId
+      );
+      return res.status(400).json({
+        message: "Current password is incorrect",
+      });
+    }
+
+    console.log("Old password verified successfully");
+
+    // Update password directly (let the User model pre-save hook handle hashing)
+    user.password = newPassword;
+    await user.save();
+
+    console.log("Password changed successfully for user:", req.userId);
+
+    res.json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(500).json({
+      message: "Server error while changing password",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+});
 
 // Debug route (remove in production)
 if (process.env.NODE_ENV !== "production") {
@@ -51,49 +113,5 @@ if (process.env.NODE_ENV !== "production") {
   // Admin password reset route (remove or secure in production)
   router.post("/reset-password", resetPassword);
 }
-const updateUserProfile = async (profileData) => {
-  try {
-    console.log("Sending profile update request:", profileData);
-
-    const response = await axios.put(`${API_URL}/users/profile`, profileData, {
-      headers: {
-        "x-auth-token": token,
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    console.log("Profile update response:", response.data);
-
-    if (response.data && response.data.user) {
-      setUser(response.data.user);
-      return { success: true, user: response.data.user };
-    } else {
-      console.error("Unexpected response format:", response.data);
-      return { success: false, error: "Invalid response from server" };
-    }
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    // More detailed error logging
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      console.error("Response data:", error.response.data);
-      console.error("Response status:", error.response.status);
-      console.error("Response headers:", error.response.headers);
-      return {
-        success: false,
-        error: error.response.data.message || "Server error",
-      };
-    } else if (error.request) {
-      // The request was made but no response was received
-      console.error("No response received:", error.request);
-      return { success: false, error: "No response from server" };
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      console.error("Request error:", error.message);
-      return { success: false, error: "Request failed" };
-    }
-  }
-};
 
 module.exports = router;
