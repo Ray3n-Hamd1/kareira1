@@ -8,7 +8,6 @@ export default function ProfileSettings() {
   const [isLoading, setIsLoading] = useState(false);
   const [fetchingUserData, setFetchingUserData] = useState(true);
   const [message, setMessage] = useState({ type: "", text: "" });
-  const [debugInfo, setDebugInfo] = useState(null);
 
   // Initialize form data with empty values
   const [formData, setFormData] = useState({
@@ -22,72 +21,25 @@ export default function ProfileSettings() {
     postalCode: "",
   });
 
-  // Debug function to inspect objects in depth
-  const deepInspect = (obj, label = "Object Inspection") => {
-    console.group(label);
-
-    if (!obj) {
-      console.log("Object is null or undefined");
-      console.groupEnd();
-      return;
-    }
-
-    console.log("Object type:", typeof obj);
-    console.log("Full object:", obj);
-
-    if (typeof obj === "object") {
-      console.log("Keys:", Object.keys(obj));
-      console.log("Values by key:");
-      Object.entries(obj).forEach(([key, value]) => {
-        console.log(`  ${key}:`, value, `(type: ${typeof value})`);
-      });
-    }
-
-    console.groupEnd();
-  };
-
   // This useEffect will run once to fetch the most up-to-date user data
   useEffect(() => {
     const fetchUserData = async () => {
       setFetchingUserData(true);
-      console.group("🔍 PROFILE DATA DEBUGGING");
-      console.log("🔄 Starting user data fetch process...");
-
-      // Create an object to store all debugging information
-      const debug = {
-        contextUser: null,
-        apiUser: null,
-        mergedData: null,
-        formDataBefore: { ...formData },
-        formDataAfter: null,
-        errors: [],
-      };
 
       try {
         // First, check what's in the auth context
-        console.log("👤 Checking user data in auth context...");
         if (user) {
-          console.log("✅ User data found in auth context");
-          deepInspect(user, "Auth Context User Data");
-          debug.contextUser = { ...user };
-
           // Update form with context user data
           updateFormWithUserData(user, "auth context");
-        } else {
-          console.log("❌ No user data in auth context");
-          debug.errors.push("No user data in auth context");
         }
 
         // Now, make a direct API call to fetch the latest data
-        console.log("🔄 Fetching fresh user data from API...");
         const token = localStorage.getItem("token");
-        console.log("🔑 Token available:", !!token);
 
         if (token) {
           try {
             const API_URL =
               process.env.REACT_APP_API_URL || "http://localhost:5000/api";
-            console.log("🌐 API URL:", API_URL);
 
             const response = await axios.get(`${API_URL}/auth/me`, {
               headers: {
@@ -96,104 +48,25 @@ export default function ProfileSettings() {
               },
             });
 
-            console.log("✅ API response received:", response.status);
-            deepInspect(response.data, "API Response Data");
-
             // Extract user data from response
             let apiUserData = null;
             if (response.data?.user) {
               apiUserData = response.data.user;
-              console.log("📋 User data found in response.data.user");
             } else if (response.data) {
               apiUserData = response.data;
-              console.log("📋 User data found directly in response.data");
             }
-
-            debug.apiUser = apiUserData ? { ...apiUserData } : null;
 
             if (apiUserData) {
               // Update form with API user data
               updateFormWithUserData(apiUserData, "API");
-            } else {
-              console.log("❌ No user data found in API response");
-              debug.errors.push("No user data found in API response");
             }
           } catch (error) {
-            console.error("❌ Error fetching user data from API:", error);
-            debug.errors.push(`API error: ${error.message}`);
-
-            if (error.response) {
-              console.log("📋 Error response status:", error.response.status);
-              console.log("📋 Error response data:", error.response.data);
-            }
+            console.error("Error fetching user data from API:", error);
           }
-        } else {
-          console.log("❌ No token available for API request");
-          debug.errors.push("No authentication token available");
         }
       } catch (error) {
-        console.error("❌ Unexpected error:", error);
-        debug.errors.push(`Unexpected error: ${error.message}`);
+        console.error("Unexpected error:", error);
       } finally {
-        debug.formDataAfter = { ...formData };
-
-        // Compare what was set in the form to what was in the user data
-        console.group("🔍 Final Form Data Analysis");
-
-        const userSource = debug.apiUser || debug.contextUser || {};
-        const fieldMappings = [
-          { form: "firstName", user: ["firstName", "first_name"] },
-          { form: "lastName", user: ["lastName", "last_name"] },
-          { form: "email", user: ["email"] },
-          { form: "phone", user: ["phone", "phoneNumber", "mobile"] },
-          {
-            form: "profession",
-            user: ["profession", "occupation", "jobTitle"],
-          },
-          { form: "city", user: ["city", "cityCountry", "location"] },
-          { form: "district", user: ["district", "area", "region"] },
-          { form: "postalCode", user: ["postalCode", "zipCode", "zip"] },
-        ];
-
-        // Check each form field against possible user fields
-        for (const mapping of fieldMappings) {
-          console.group(`Field: ${mapping.form}`);
-          console.log(`Form value: "${formData[mapping.form]}"`);
-
-          // Check each possible user field
-          let foundInUser = false;
-          for (const userField of mapping.user) {
-            const userValue = userSource[userField];
-            if (userValue !== undefined) {
-              console.log(`User value (${userField}): "${userValue}"`);
-              foundInUser = true;
-
-              // Check if values match
-              if (formData[mapping.form] !== userValue) {
-                console.warn(
-                  `⚠️ Value mismatch! Form has "${
-                    formData[mapping.form]
-                  }" but user has "${userValue}"`
-                );
-              }
-            }
-          }
-
-          if (!foundInUser) {
-            console.log("❌ No matching field found in user data");
-          }
-
-          console.groupEnd();
-        }
-
-        console.groupEnd();
-
-        // Store all debug info
-        setDebugInfo(debug);
-        console.log("🔍 All debug information:", debug);
-        console.log("🏁 User data fetch process completed");
-        console.groupEnd();
-
         setFetchingUserData(false);
       }
     };
@@ -204,12 +77,8 @@ export default function ProfileSettings() {
   // Helper function to update form data with user data
   const updateFormWithUserData = (userData, source = "unknown") => {
     if (!userData) {
-      console.log(`❌ No user data provided from ${source}`);
       return;
     }
-
-    console.group(`📝 Updating form with data from ${source}`);
-    console.log("📋 User data:", userData);
 
     // Extract name parts if the user only has a full name but no first/last name
     let firstName = userData.firstName || userData.first_name || "";
@@ -217,13 +86,9 @@ export default function ProfileSettings() {
 
     // If we have a name but no first/last name, split the name
     if (!firstName && !lastName && userData.name) {
-      console.log(`📋 Splitting full name: "${userData.name}"`);
       const nameParts = userData.name.split(" ");
       firstName = nameParts[0] || "";
       lastName = nameParts.slice(1).join(" ") || "";
-      console.log(
-        `📋 Split result - First name: "${firstName}", Last name: "${lastName}"`
-      );
     }
 
     // Check for different possible field names in the backend response
@@ -249,30 +114,11 @@ export default function ProfileSettings() {
       postalCode,
     };
 
-    console.log("📝 Setting form data with values:", newFormData);
-
-    // Log comparison between old and new values
-    console.group("📊 Value Changes");
-    for (const [key, newValue] of Object.entries(newFormData)) {
-      const oldValue = formData[key] || "";
-      if (oldValue !== newValue) {
-        console.log(`Field "${key}": "${oldValue}" -> "${newValue}"`);
-      } else if (newValue) {
-        console.log(`Field "${key}": "${newValue}" (unchanged)`);
-      } else {
-        console.log(`Field "${key}": empty (unchanged)`);
-      }
-    }
-    console.groupEnd();
-
     setFormData(newFormData);
-    console.log("✅ Form data updated");
-    console.groupEnd();
   };
 
   const handleChange = (e) => {
     const { id, value } = e.target;
-    console.log(`🖊️ Field "${id}" changed to: "${value}"`);
 
     setFormData((prev) => ({
       ...prev,
@@ -289,7 +135,6 @@ export default function ProfileSettings() {
     const file = e.target.files[0];
     if (file) {
       // Handle photo upload logic here
-      console.log("🖼️ Photo selected:", file);
       // You would typically upload this to your server or cloud storage
     }
   };
@@ -298,9 +143,6 @@ export default function ProfileSettings() {
     e.preventDefault();
     setIsLoading(true);
     setMessage({ type: "", text: "" });
-
-    console.group("💾 Saving Profile Data");
-    console.log("📝 Form data being submitted:", formData);
 
     try {
       // Prepare data for backend
@@ -316,12 +158,9 @@ export default function ProfileSettings() {
         postalCode: formData.postalCode,
       };
 
-      console.log("📤 Sending profile update request:", profileData);
-
       // Update profile on backend
       if (updateUserProfile) {
         const result = await updateUserProfile(profileData);
-        console.log("📥 Profile update response:", result);
 
         // Handle successful update
         if (result && result.success) {
@@ -330,22 +169,14 @@ export default function ProfileSettings() {
             text: result.message || "Profile updated successfully!",
           });
 
-          console.log("✅ Profile updated successfully");
-
           // Update form data with the newly saved values to ensure consistency
           if (result.user) {
-            console.log("📝 Updating form with newly saved user data");
-            deepInspect(result.user, "Updated User Data from API");
             updateFormWithUserData(result.user, "update response");
           } else {
-            console.log(
-              "⚠️ No user data in update response, using submitted data"
-            );
             updateFormWithUserData({ ...profileData }, "submitted data");
           }
         } else {
           // Handle error from updateUserProfile
-          console.error("❌ Profile update failed:", result?.error);
           setMessage({
             type: "error",
             text:
@@ -353,14 +184,11 @@ export default function ProfileSettings() {
           });
         }
       } else {
-        console.log(
-          "⚠️ No updateUserProfile function available, using mock success"
-        );
         // Mock success for demo when no updateUserProfile function exists
         setMessage({ type: "success", text: "Profile updated successfully!" });
       }
     } catch (error) {
-      console.error("❌ Error updating profile:", error);
+      console.error("Error updating profile:", error);
 
       // Handle different error formats
       let errorMessage = "Failed to update profile. Please try again.";
@@ -380,8 +208,6 @@ export default function ProfileSettings() {
         text: errorMessage,
       });
     } finally {
-      console.log("🏁 Profile update process completed");
-      console.groupEnd();
       setIsLoading(false);
     }
   };
@@ -607,103 +433,6 @@ export default function ProfileSettings() {
             />
           </div>
         </div>
-
-        {/* Debug Information */}
-        {debugInfo && (
-          <div className="mb-8 p-4 bg-gray-800 rounded-lg border border-gray-700">
-            <h3 className="text-lg font-medium text-purple-400 mb-2">
-              Debug Information
-            </h3>
-            <div
-              className="text-xs text-gray-300 font-mono overflow-auto"
-              style={{ maxHeight: "200px" }}
-            >
-              <p>
-                Auth context user data:{" "}
-                {debugInfo.contextUser ? "✅ Available" : "❌ Not available"}
-              </p>
-              <p>
-                API user data:{" "}
-                {debugInfo.apiUser ? "✅ Available" : "❌ Not available"}
-              </p>
-
-              {debugInfo.errors.length > 0 && (
-                <div className="mt-2">
-                  <p className="text-red-400">Errors detected:</p>
-                  <ul className="list-disc pl-4 text-red-300">
-                    {debugInfo.errors.map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <div className="mt-2">
-                <p className="text-purple-300">Field values:</p>
-                <table className="w-full text-left mt-1">
-                  <thead>
-                    <tr>
-                      <th className="pr-4">Field</th>
-                      <th className="pr-4">Form Value</th>
-                      <th>From DB</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(formData).map(([field, value]) => {
-                      // Find value in user data
-                      const userObj =
-                        debugInfo.apiUser || debugInfo.contextUser || {};
-                      let dbValue = null;
-
-                      // Check various field names
-                      if (field === "firstName")
-                        dbValue = userObj.firstName || userObj.first_name;
-                      else if (field === "lastName")
-                        dbValue = userObj.lastName || userObj.last_name;
-                      else if (field === "phone")
-                        dbValue =
-                          userObj.phone ||
-                          userObj.phoneNumber ||
-                          userObj.mobile;
-                      else if (field === "profession")
-                        dbValue =
-                          userObj.profession ||
-                          userObj.occupation ||
-                          userObj.jobTitle;
-                      else if (field === "city")
-                        dbValue =
-                          userObj.city ||
-                          userObj.cityCountry ||
-                          userObj.location;
-                      else if (field === "district")
-                        dbValue =
-                          userObj.district || userObj.area || userObj.region;
-                      else if (field === "postalCode")
-                        dbValue =
-                          userObj.postalCode || userObj.zipCode || userObj.zip;
-                      else dbValue = userObj[field];
-
-                      return (
-                        <tr key={field}>
-                          <td className="pr-4">{field}</td>
-                          <td className="pr-4">{value || "(empty)"}</td>
-                          <td>{dbValue || "(not found)"}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              <button
-                onClick={() => console.log("Full debug info:", debugInfo)}
-                className="mt-4 px-2 py-1 bg-gray-700 text-xs text-white rounded hover:bg-gray-600 transition-colors"
-              >
-                Log full debug info to console
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Save Button */}
         <div className="flex justify-center">
