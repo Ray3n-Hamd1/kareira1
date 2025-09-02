@@ -13,11 +13,27 @@ export default function Settings() {
     <ErrorBoundary>
       <SettingsLayout>
         <Routes>
+          {/* Default route redirects to profile settings */}
+          <Route
+            path="/"
+            element={<Navigate to="/settings/profile" replace />}
+          />
+
+          {/* Profile settings */}
           <Route path="profile" element={<ProfileSettings />} />
+
+          {/* Security settings */}
           <Route path="security" element={<SecuritySettings />} />
           <Route path="security/change-password" element={<ChangePassword />} />
+
+          {/* Notification settings */}
           <Route path="notification" element={<NotificationSettings />} />
-          <Route path="*" element={<Navigate to="/settings/profile" replace />} />
+
+          {/* Catch all - redirect to profile */}
+          <Route
+            path="*"
+            element={<Navigate to="/settings/profile" replace />}
+          />
         </Routes>
       </SettingsLayout>
     </ErrorBoundary>

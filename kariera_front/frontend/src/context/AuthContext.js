@@ -142,6 +142,13 @@ export function AuthProvider({ children }) {
   };
 
   // Update user profile - IMPROVED VERSION
+  // This is the key part of the AuthContext.js file that needs improvement
+  // Replace the existing updateUserProfile function with this implementation
+
+  // Then, improve the updateUserProfile function:
+  // Enhanced updateUserProfile function for AuthContext.js
+  // This function properly handles all profile fields including phone, profession, city, district, and postalCode
+
   const updateUserProfile = async (profileData) => {
     try {
       console.log("AuthContext: Sending profile update request:", profileData);
@@ -151,6 +158,10 @@ export function AuthProvider({ children }) {
         throw new Error("No authentication token available");
       }
 
+      // Create a copy of the current user data to work with
+      const currentUserData = { ...user };
+
+      // Make the API request
       const response = await axios.put(
         `${API_URL}/users/profile`,
         profileData,
@@ -169,7 +180,7 @@ export function AuthProvider({ children }) {
 
       // Handle successful response (200-299 status codes)
       if (response.status >= 200 && response.status < 300) {
-        // Check for different possible response formats
+        // Extract the updated user data from the response
         let updatedUser = null;
         let successMessage = "Profile updated successfully!";
 
@@ -201,31 +212,82 @@ export function AuthProvider({ children }) {
         // Format 5: { message: "success" } - no user data returned
         else if (response.data && response.data.message) {
           successMessage = response.data.message;
-          // Keep current user data, just assume it was updated
-          updatedUser = { ...user, ...profileData };
-        } else {
+          // Use profile data as the update
+          updatedUser = { ...currentUserData, ...profileData };
+        }
+        // Default case - use profile data as the update
+        else {
           console.warn(
-            "AuthContext: Unexpected response format, treating as success:",
+            "AuthContext: Unexpected response format:",
             response.data
           );
-          // Assume success and merge the sent data with current user
-          updatedUser = { ...user, ...profileData };
+          updatedUser = { ...currentUserData, ...profileData };
         }
 
-        // Update local user state if we have user data
-        if (updatedUser) {
-          setUser(updatedUser);
-          console.log("AuthContext: User updated successfully:", updatedUser);
+        // Create a merged user object that preserves existing fields
+        // while updating with new profile data
+        const mergedUser = { ...currentUserData };
+
+        // Explicitly update each field to ensure they're all handled correctly
+        if (profileData.firstName) mergedUser.firstName = profileData.firstName;
+        if (profileData.lastName) mergedUser.lastName = profileData.lastName;
+        if (profileData.email) mergedUser.email = profileData.email;
+
+        // Handle phone number (could be stored under different names)
+        if (profileData.phone) {
+          mergedUser.phone = profileData.phone;
+          mergedUser.phoneNumber = profileData.phone; // Alternative field name
         }
+
+        // Handle profession
+        if (profileData.profession) {
+          mergedUser.profession = profileData.profession;
+          mergedUser.occupation = profileData.profession; // Alternative field name
+          mergedUser.jobTitle = profileData.profession; // Alternative field name
+        }
+
+        // Handle city-country
+        if (profileData.city) {
+          mergedUser.city = profileData.city;
+          mergedUser.cityCountry = profileData.city; // Alternative field name
+          mergedUser.location = profileData.city; // Alternative field name
+        }
+
+        // Handle district
+        if (profileData.district) {
+          mergedUser.district = profileData.district;
+          mergedUser.area = profileData.district; // Alternative field name
+          mergedUser.region = profileData.district; // Alternative field name
+        }
+
+        // Handle postal code
+        if (profileData.postalCode) {
+          mergedUser.postalCode = profileData.postalCode;
+          mergedUser.zipCode = profileData.postalCode; // Alternative field name
+          mergedUser.zip = profileData.postalCode; // Alternative field name
+        }
+
+        // If backend returned a user object, apply those updates as well
+        if (updatedUser) {
+          // Loop through all properties in the updated user object
+          Object.keys(updatedUser).forEach((key) => {
+            // Only override if the property exists and isn't null/undefined
+            if (updatedUser[key] !== null && updatedUser[key] !== undefined) {
+              mergedUser[key] = updatedUser[key];
+            }
+          });
+        }
+
+        // Update the user state
+        setUser(mergedUser);
+        console.log("AuthContext: User updated successfully:", mergedUser);
 
         return {
           success: true,
-          user: updatedUser,
+          user: mergedUser,
           message: successMessage,
         };
-      }
-      // Handle non-2xx status codes
-      else {
+      } else {
         console.error("AuthContext: Non-success status code:", response.status);
         return {
           success: false,
@@ -237,11 +299,8 @@ export function AuthProvider({ children }) {
 
       // Handle different types of errors
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         console.error("AuthContext: Response data:", error.response.data);
         console.error("AuthContext: Response status:", error.response.status);
-        console.error("AuthContext: Response headers:", error.response.headers);
 
         const errorMessage =
           error.response.data?.message ||
@@ -253,14 +312,12 @@ export function AuthProvider({ children }) {
           error: errorMessage,
         };
       } else if (error.request) {
-        // The request was made but no response was received
         console.error("AuthContext: No response received:", error.request);
         return {
           success: false,
           error: "No response from server. Please check your connection.",
         };
       } else {
-        // Something happened in setting up the request that triggered an Error
         console.error("AuthContext: Request setup error:", error.message);
         return {
           success: false,
@@ -269,7 +326,6 @@ export function AuthProvider({ children }) {
       }
     }
   };
-
   // Change password - Updated for your specific backend
   const changePassword = async (oldPassword, newPassword) => {
     try {
