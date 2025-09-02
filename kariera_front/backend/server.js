@@ -12,7 +12,8 @@ const coverLetterRoutes = require("./routes/coverLetterRoutes");
 const authRoutes = require("./routes/authRoutes");
 const { scrapeJobs } = require("./services/jobScraperService");
 const userRoutes = require("./routes/users");
-
+const twoFactorRoutes = require("./routes/twoFactorRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 // Load environment variables
 dotenv.config();
 
@@ -43,6 +44,8 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api/resume", resumeRoutes);
 app.use("/api/cover-letter", coverLetterRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/2fa", twoFactorRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
