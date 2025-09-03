@@ -20,8 +20,16 @@ router.get("/profile", auth, async (req, res) => {
 // Update user profile - KEEP ONLY THIS ONE
 router.put("/profile", auth, async (req, res) => {
   try {
-    const { name, email, phone, profession, district, city, postalCode } =
-      req.body;
+    const {
+      name,
+      email,
+      phone,
+      profession,
+      district,
+      city,
+      postalCode,
+      country,
+    } = req.body;
 
     // Check if email already exists for another user
     if (email) {
@@ -46,6 +54,7 @@ router.put("/profile", auth, async (req, res) => {
           district,
           city,
           postalCode,
+          country, // Add this line
         },
       },
       { new: true }

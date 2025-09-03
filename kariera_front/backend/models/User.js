@@ -48,6 +48,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  country: {
+    type: String,
+    trim: true,
+  },
 
   // 2FA Fields
   twoFactorEnabled: {
