@@ -17,6 +17,7 @@ const ValidatedInput = ({
   onBlur,
   onKeyDown,
   error = "",
+  success = "",
   className = "",
   ...props
 }) => (
@@ -37,10 +38,16 @@ const ValidatedInput = ({
       onKeyDown={onKeyDown}
       placeholder={placeholder}
       className={`w-full px-4 py-3 bg-gray-800 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors ${
-        error ? "border-red-500" : "border-gray-700"
+        error
+          ? "border-red-500"
+          : success
+          ? "border-green-500"
+          : "border-gray-700"
       } ${className}`}
       aria-invalid={!!error}
-      aria-describedby={error ? `${id}-error` : undefined}
+      aria-describedby={
+        error ? `${id}-error` : success ? `${id}-success` : undefined
+      }
       autoComplete="off"
       {...props}
     />
@@ -61,6 +68,25 @@ const ValidatedInput = ({
           />
         </svg>
         {error}
+      </p>
+    )}
+    {success && !error && (
+      <p
+        id={`${id}-success`}
+        className="mt-1 text-sm text-green-400 flex items-center"
+      >
+        <svg
+          className="w-4 h-4 mr-1 flex-shrink-0"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clipRule="evenodd"
+          />
+        </svg>
+        {success}
       </p>
     )}
   </div>
@@ -107,11 +133,12 @@ const CountryDropdown = ({
   </div>
 );
 
-// Hoisted CountryCodeSelect component
+// Fixed CountryCodeSelect component - shows country code instead of name
 const CountryCodeSelect = ({ value, onChange, error = "", countries }) => {
   // Helper to get possible dial code property
   const getDial = (c) =>
     c.dial_code || c.dialCode || c.callingCode || c.phone || "";
+
   return (
     <div className="mb-6">
       <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -121,28 +148,20 @@ const CountryCodeSelect = ({ value, onChange, error = "", countries }) => {
         id="phoneCountryCode"
         value={value || ""}
         onChange={onChange}
-        className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-          error ? "border-red-500" : "border-gray-700"
-        }`}
-        aria-invalid={!!error}
-        aria-describedby={error ? "phone-error" : undefined}
+        className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent border-gray-700`}
       >
-        <option value="">Code</option>
+        <option value="">Select code</option>
         {countries.map((country) => {
           const dial = getDial(country);
           return (
             <option key={country.code} value={dial}>
               {country.flag ? `${country.flag} ` : ""}
-              {country.name} {dial ? `(${dial})` : ""}
+              {country.code} {dial ? `${dial}` : ""}
             </option>
           );
         })}
       </select>
-      {error && (
-        <p id="phone-error" className="mt-1 text-sm text-red-400">
-          {error}
-        </p>
-      )}
+      {/* Don't show error under country code field */}
     </div>
   );
 };
@@ -153,6 +172,7 @@ export default function ProfileSettings() {
   const [fetchingUserData, setFetchingUserData] = useState(true);
   const [message, setMessage] = useState({ type: "", text: "" });
   const [validationErrors, setValidationErrors] = useState({});
+  const [validationSuccess, setValidationSuccess] = useState({});
   const [initialFormData, setInitialFormData] = useState(null);
 
   // Consolidated form data (added phoneCountryCode & phoneLocal)
@@ -258,6 +278,20 @@ export default function ProfileSettings() {
     }
   };
 
+  // Get success message for valid fields
+  const getSuccessMessage = (fieldName, value) => {
+    switch (fieldName) {
+      case "phone":
+        return "✓ Phone number format is valid";
+      case "email":
+        return "✓ Email format is valid";
+      case "postalCode":
+        return "✓ Postal code format is valid";
+      default:
+        return "";
+    }
+  };
+
   // Validate individual field (phone combines parts)
   const validateField = (name, value) => {
     let validation = { isValid: true, message: "" };
@@ -281,16 +315,56 @@ export default function ProfileSettings() {
         validation = validationUtils.email.validate(value);
         break;
       case "phone":
-        {
-          const full =
-            (formData.phoneCountryCode ? formData.phoneCountryCode + " " : "") +
-            (formData.phoneLocal || value || formData.phone || "");
-          if (full.trim()) {
-            validation = validationUtils.phone.validate(full.trim());
-          } else {
+        // Only validate the combined phone when we have both parts
+        const countryCode = formData.phoneCountryCode || "";
+        const localNumber = formData.phoneLocal || value || "";
+
+        // If neither field has a value, it's valid (optional field)
+        if (!countryCode && !localNumber) {
+          validation = { isValid: true, message: "" };
+          break;
+        }
+
+        // If we have a country code but no local number, show error
+        if (countryCode && !localNumber) {
+          validation = {
+            isValid: false,
+            message: "Please enter a phone number",
+          };
+          break;
+        }
+
+        // If we have a local number but no country code, show error
+        if (!countryCode && localNumber) {
+          validation = {
+            isValid: false,
+            message: "Please select a country code",
+          };
+          break;
+        }
+
+        // Validate the complete phone number - be more lenient
+        const fullPhone = `${countryCode} ${localNumber}`.trim();
+        if (fullPhone) {
+          // Simple validation - just check if we have digits
+          const digitsOnly = fullPhone.replace(/\D/g, "");
+          if (digitsOnly.length >= 7 && digitsOnly.length <= 15) {
             validation = { isValid: true, message: "" };
+          } else {
+            validation = {
+              isValid: false,
+              message: "Phone number should be 7-15 digits",
+            };
           }
         }
+        break;
+      case "phoneCountryCode":
+        // Don't validate country code by itself - only when combined with local number
+        validation = { isValid: true, message: "" };
+        break;
+      case "phoneLocal":
+        // Don't validate local number by itself - only when combined with country code
+        validation = { isValid: true, message: "" };
         break;
       case "postalCode":
         if (value) {
@@ -353,6 +427,13 @@ export default function ProfileSettings() {
   // Handle input change without formatting
   const handleChange = (e) => {
     const { id, value } = e.target;
+
+    // For phone fields, handle them with special care
+    if (id === "phoneLocal" || id === "phoneCountryCode") {
+      // Don't use this handler for phone fields - they have their own handlers
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [id]: value,
@@ -365,6 +446,12 @@ export default function ProfileSettings() {
       [id]: validation.isValid ? "" : validation.message,
     }));
 
+    // Set success message for valid fields
+    setValidationSuccess((prev) => ({
+      ...prev,
+      [id]: validation.isValid && value ? getSuccessMessage(id, value) : "",
+    }));
+
     // Clear messages when user starts typing
     if (message.text) {
       setMessage({ type: "", text: "" });
@@ -374,6 +461,7 @@ export default function ProfileSettings() {
     if (id === "country") {
       setFormData((prev) => ({ ...prev, city: "", postalCode: "" }));
       setValidationErrors((prev) => ({ ...prev, city: "", postalCode: "" }));
+      setValidationSuccess((prev) => ({ ...prev, city: "", postalCode: "" }));
     }
   };
 
@@ -385,12 +473,22 @@ export default function ProfileSettings() {
       phoneCountryCode: value,
     }));
 
-    // Update combined phone and validate
+    // Validate the combined phone number
     const combinedPhone = value + " " + (formData.phoneLocal || "");
     const validation = validateField("phone", combinedPhone.trim());
     setValidationErrors((prev) => ({
       ...prev,
       phone: validation.isValid ? "" : validation.message,
+      phoneCountryCode: "", // Clear any previous error on country code field
+    }));
+
+    // Set success message for valid phone
+    setValidationSuccess((prev) => ({
+      ...prev,
+      phone:
+        validation.isValid && combinedPhone.trim()
+          ? getSuccessMessage("phone", combinedPhone.trim())
+          : "",
     }));
 
     // Clear messages when user starts typing
@@ -407,12 +505,22 @@ export default function ProfileSettings() {
       phoneLocal: value,
     }));
 
-    // Update combined phone and validate
+    // Validate the combined phone number
     const combinedPhone = (formData.phoneCountryCode || "") + " " + value;
     const validation = validateField("phone", combinedPhone.trim());
     setValidationErrors((prev) => ({
       ...prev,
       phone: validation.isValid ? "" : validation.message,
+      phoneLocal: "", // Clear any previous error on local number field
+    }));
+
+    // Set success message for valid phone
+    setValidationSuccess((prev) => ({
+      ...prev,
+      phone:
+        validation.isValid && combinedPhone.trim()
+          ? getSuccessMessage("phone", combinedPhone.trim())
+          : "",
     }));
 
     // Clear messages when user starts typing
@@ -491,6 +599,15 @@ export default function ProfileSettings() {
       ...prev,
       [id]: validation.isValid ? "" : validation.message,
     }));
+
+    // Set success message for valid fields
+    setValidationSuccess((prev) => ({
+      ...prev,
+      [id]:
+        validation.isValid && formattedValue
+          ? getSuccessMessage(id, formattedValue)
+          : "",
+    }));
   };
 
   // Handle city change from dropdown
@@ -504,6 +621,12 @@ export default function ProfileSettings() {
     setValidationErrors((prev) => ({
       ...prev,
       city: validation.isValid ? "" : validation.message,
+    }));
+
+    // Set success message for valid city
+    setValidationSuccess((prev) => ({
+      ...prev,
+      city: validation.isValid && cityName ? "✓ City selected" : "",
     }));
 
     if (message.text) {
@@ -552,6 +675,7 @@ export default function ProfileSettings() {
   // Validate all fields
   const validateAllFields = () => {
     const errors = {};
+    const success = {};
     let isValid = true;
     Object.keys(formData).forEach((key) => {
       if (
@@ -564,10 +688,13 @@ export default function ProfileSettings() {
         if (!validation.isValid) {
           errors[key] = validation.message;
           isValid = false;
+        } else if (formData[key]) {
+          success[key] = getSuccessMessage(key, formData[key]);
         }
       }
     });
     setValidationErrors(errors);
+    setValidationSuccess(success);
     return isValid;
   };
 
@@ -644,6 +771,7 @@ export default function ProfileSettings() {
       setFormData(initialFormData);
     }
     setValidationErrors({});
+    setValidationSuccess({});
     setMessage({ type: "", text: "" });
   };
 
@@ -744,6 +872,7 @@ export default function ProfileSettings() {
             onBlur={handleBlur}
             placeholder="Enter first name"
             error={validationErrors.firstName}
+            success={validationSuccess.firstName}
           />
           <ValidatedInput
             id="lastName"
@@ -754,6 +883,7 @@ export default function ProfileSettings() {
             onBlur={handleBlur}
             placeholder="Enter last name"
             error={validationErrors.lastName}
+            success={validationSuccess.lastName}
           />
         </div>
 
@@ -768,6 +898,7 @@ export default function ProfileSettings() {
           onBlur={handleBlur}
           placeholder="Enter your email address"
           error={validationErrors.email}
+          success={validationSuccess.email}
         />
 
         {/* Phone Number split: country code + local number */}
@@ -776,7 +907,7 @@ export default function ProfileSettings() {
             <CountryCodeSelect
               value={formData.phoneCountryCode}
               onChange={handlePhoneCountryChange}
-              error={validationErrors.phone}
+              error="" // Don't pass phone error to country code field
               countries={countries}
             />
           </div>
@@ -792,17 +923,40 @@ export default function ProfileSettings() {
               onBlur={handleBlur}
               onKeyDown={(e) => handleKeyDown(e, "phone")}
               placeholder="Enter phone number without country code"
-              className={`w-full px-4 py-3 bg-gray-800 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                validationErrors.phone ? "border-red-500" : "border-gray-700"
-              }`}
-              aria-invalid={!!validationErrors.phone}
-              aria-describedby={
-                validationErrors.phone ? "phone-error" : undefined
-              }
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
+            {/* Show the phone validation error only once, under the local number field */}
             {validationErrors.phone && (
-              <p id="phone-error" className="mt-1 text-sm text-red-400">
+              <p className="mt-1 text-sm text-red-400 flex items-center">
+                <svg
+                  className="w-4 h-4 mr-1 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
                 {validationErrors.phone}
+              </p>
+            )}
+            {/* Show success message when phone is valid */}
+            {validationSuccess.phone && !validationErrors.phone && (
+              <p className="mt-1 text-sm text-green-400 flex items-center">
+                <svg
+                  className="w-4 h-4 mr-1 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                {validationSuccess.phone}
               </p>
             )}
           </div>
@@ -817,6 +971,7 @@ export default function ProfileSettings() {
           onBlur={handleBlur}
           placeholder="Enter your profession or job title"
           error={validationErrors.profession}
+          success={validationSuccess.profession}
         />
 
         {/* Location Fields */}
@@ -840,6 +995,23 @@ export default function ProfileSettings() {
               error={validationErrors.city}
               disabled={!formData.country}
             />
+            {/* Show success message for city */}
+            {validationSuccess.city && !validationErrors.city && (
+              <p className="mt-1 text-sm text-green-400 flex items-center">
+                <svg
+                  className="w-4 h-4 mr-1 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                {validationSuccess.city}
+              </p>
+            )}
           </div>
         </div>
 
@@ -852,6 +1024,7 @@ export default function ProfileSettings() {
             onBlur={handleBlur}
             placeholder="Enter district or state"
             error={validationErrors.district}
+            success={validationSuccess.district}
           />
           <ValidatedInput
             id="postalCode"
@@ -862,6 +1035,7 @@ export default function ProfileSettings() {
             onKeyDown={(e) => handleKeyDown(e, "postalCode")}
             placeholder="Enter postal code"
             error={validationErrors.postalCode}
+            success={validationSuccess.postalCode}
           />
         </div>
 
