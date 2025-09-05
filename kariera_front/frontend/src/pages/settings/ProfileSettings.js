@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { validationUtils, inputFormatters } from "../../utils/validationUtils";
 import { countries } from "../../data/countries";
 import CityDropdown from "../../components/CityDropdown";
 import axios from "axios";
 
-// Hoisted ValidatedInput component to prevent re-definition on re-renders
+// Hoisted ValidatedInput component
 const ValidatedInput = ({
   id,
   label,
@@ -133,9 +133,8 @@ const CountryDropdown = ({
   </div>
 );
 
-// Fixed CountryCodeSelect component - shows country code instead of name
-const CountryCodeSelect = ({ value, onChange, error = "", countries }) => {
-  // Helper to get possible dial code property
+// BULLETPROOF CountryCodeSelect component
+const CountryCodeSelect = ({ value, onChange, countries }) => {
   const getDial = (c) =>
     c.dial_code || c.dialCode || c.callingCode || c.phone || "";
 
@@ -145,10 +144,9 @@ const CountryCodeSelect = ({ value, onChange, error = "", countries }) => {
         Country code
       </label>
       <select
-        id="phoneCountryCode"
         value={value || ""}
         onChange={onChange}
-        className={`w-full px-3 py-2 bg-gray-800 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent border-gray-700`}
+        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
       >
         <option value="">Select code</option>
         {countries.map((country) => {
@@ -161,7 +159,6 @@ const CountryCodeSelect = ({ value, onChange, error = "", countries }) => {
           );
         })}
       </select>
-      {/* Don't show error under country code field */}
     </div>
   );
 };
@@ -175,14 +172,17 @@ export default function ProfileSettings() {
   const [validationSuccess, setValidationSuccess] = useState({});
   const [initialFormData, setInitialFormData] = useState(null);
 
-  // Consolidated form data (added phoneCountryCode & phoneLocal)
+  // SEPARATE phone state to prevent interference
+  const [phoneCountryCode, setPhoneCountryCode] = useState("");
+  const [phoneLocalNumber, setPhoneLocalNumber] = useState("");
+  const phoneCountryRef = useRef("");
+  const phoneLocalRef = useRef("");
+
+  // Form data WITHOUT phone fields
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
-    phone: "",
-    phoneCountryCode: "",
-    phoneLocal: "",
     profession: "",
     country: "",
     city: "",
@@ -226,9 +226,10 @@ export default function ProfileSettings() {
     fetchUserData();
   }, [user]);
 
-  // Update form data and save initial data for reset
+  // Update form data - PHONE HANDLING SEPARATED
   const updateFormWithUserData = (userData, source = "unknown") => {
     if (!userData) return;
+
     let firstName = userData.firstName || userData.first_name || "";
     let lastName = userData.lastName || userData.last_name || "";
     if (!firstName && !lastName && userData.name) {
@@ -236,35 +237,34 @@ export default function ProfileSettings() {
       firstName = nameParts[0] || "";
       lastName = nameParts.slice(1).join(" ") || "";
     }
+
+    // Handle phone separately and safely
     const rawPhone =
       userData.phone || userData.phoneNumber || userData.mobile || "";
-    // Try to parse a leading international code like "+234 ..." or "+1-..."
-    let phoneCountryCode = "";
-    let phoneLocal = rawPhone || "";
+    let countryCode = "";
+    let localNumber = "";
+
     if (rawPhone) {
       const match = rawPhone.match(/^(\+\d{1,4})\s*(.*)$/);
       if (match) {
-        phoneCountryCode = match[1];
-        phoneLocal = match[2] || "";
+        countryCode = match[1];
+        localNumber = match[2] || "";
       } else {
-        // fallback: if user has country, try to derive dial code from countries list
-        const found = countries.find(
-          (c) =>
-            c.code &&
-            (c.code.toUpperCase() === (userData.country || "").toUpperCase() ||
-              c.name?.toLowerCase() === (userData.country || "").toLowerCase())
-        );
-        phoneCountryCode = found ? found.dial_code || found.dialCode || "" : "";
+        localNumber = rawPhone;
       }
     }
 
+    // Set phone state separately
+    setPhoneCountryCode(countryCode);
+    setPhoneLocalNumber(localNumber);
+    phoneCountryRef.current = countryCode;
+    phoneLocalRef.current = localNumber;
+
+    // Set other form data
     const newFormData = {
       firstName,
       lastName,
       email: userData.email || "",
-      phone: rawPhone || "",
-      phoneCountryCode: phoneCountryCode || "",
-      phoneLocal: phoneLocal || "",
       profession:
         userData.profession || userData.occupation || userData.jobTitle || "",
       country: userData.country || userData.countryCode || "",
@@ -272,27 +272,99 @@ export default function ProfileSettings() {
       district: userData.district || userData.area || userData.region || "",
       postalCode: userData.postalCode || userData.zipCode || userData.zip || "",
     };
+
     setFormData(newFormData);
     if (!initialFormData) {
       setInitialFormData(newFormData);
     }
   };
 
+  // Phone validation function
+  const validatePhoneNumber = () => {
+    const countryCode = phoneCountryRef.current || phoneCountryCode;
+    const localNumber = phoneLocalRef.current || phoneLocalNumber;
+
+    if (!countryCode && !localNumber) {
+      return { isValid: true, message: "" };
+    }
+
+    if (countryCode && !localNumber) {
+      return { isValid: false, message: "Please enter a phone number" };
+    }
+
+    if (!countryCode && localNumber) {
+      return { isValid: false, message: "Please select a country code" };
+    }
+
+    const digitsOnly = (countryCode + localNumber).replace(/\D/g, "");
+    if (digitsOnly.length >= 7 && digitsOnly.length <= 15) {
+      return { isValid: true, message: "" };
+    }
+
+    return { isValid: false, message: "Phone number should be 7-15 digits" };
+  };
+
+  // BULLETPROOF phone country change
+  const handlePhoneCountryChange = (e) => {
+    const newValue = e.target.value;
+    console.log("Country code changing to:", newValue);
+
+    setPhoneCountryCode(newValue);
+    phoneCountryRef.current = newValue;
+
+    // Validate phone
+    setTimeout(() => {
+      const validation = validatePhoneNumber();
+      setValidationErrors((prev) => ({ ...prev, phone: validation.message }));
+      setValidationSuccess((prev) => ({
+        ...prev,
+        phone:
+          validation.isValid && newValue && phoneLocalNumber
+            ? "✓ Phone number format is valid"
+            : "",
+      }));
+    }, 0);
+  };
+
+  // BULLETPROOF phone local change
+  const handlePhoneLocalChange = (e) => {
+    const newValue = e.target.value;
+    console.log("Local number changing to:", newValue);
+
+    setPhoneLocalNumber(newValue);
+    phoneLocalRef.current = newValue;
+
+    // Validate phone
+    setTimeout(() => {
+      const validation = validatePhoneNumber();
+      setValidationErrors((prev) => ({ ...prev, phone: validation.message }));
+      setValidationSuccess((prev) => ({
+        ...prev,
+        phone:
+          validation.isValid && phoneCountryCode && newValue
+            ? "✓ Phone number format is valid"
+            : "",
+      }));
+    }, 0);
+  };
+
   // Get success message for valid fields
   const getSuccessMessage = (fieldName, value) => {
     switch (fieldName) {
-      case "phone":
-        return "✓ Phone number format is valid";
       case "email":
         return "✓ Email format is valid";
       case "postalCode":
         return "✓ Postal code format is valid";
+      case "firstName":
+        return "✓ Valid first name";
+      case "lastName":
+        return "✓ Valid last name";
       default:
         return "";
     }
   };
 
-  // Validate individual field (phone combines parts)
+  // Validate individual field (excluding phone)
   const validateField = (name, value) => {
     let validation = { isValid: true, message: "" };
     switch (name) {
@@ -313,58 +385,6 @@ export default function ProfileSettings() {
         break;
       case "email":
         validation = validationUtils.email.validate(value);
-        break;
-      case "phone":
-        // Only validate the combined phone when we have both parts
-        const countryCode = formData.phoneCountryCode || "";
-        const localNumber = formData.phoneLocal || value || "";
-
-        // If neither field has a value, it's valid (optional field)
-        if (!countryCode && !localNumber) {
-          validation = { isValid: true, message: "" };
-          break;
-        }
-
-        // If we have a country code but no local number, show error
-        if (countryCode && !localNumber) {
-          validation = {
-            isValid: false,
-            message: "Please enter a phone number",
-          };
-          break;
-        }
-
-        // If we have a local number but no country code, show error
-        if (!countryCode && localNumber) {
-          validation = {
-            isValid: false,
-            message: "Please select a country code",
-          };
-          break;
-        }
-
-        // Validate the complete phone number - be more lenient
-        const fullPhone = `${countryCode} ${localNumber}`.trim();
-        if (fullPhone) {
-          // Simple validation - just check if we have digits
-          const digitsOnly = fullPhone.replace(/\D/g, "");
-          if (digitsOnly.length >= 7 && digitsOnly.length <= 15) {
-            validation = { isValid: true, message: "" };
-          } else {
-            validation = {
-              isValid: false,
-              message: "Phone number should be 7-15 digits",
-            };
-          }
-        }
-        break;
-      case "phoneCountryCode":
-        // Don't validate country code by itself - only when combined with local number
-        validation = { isValid: true, message: "" };
-        break;
-      case "phoneLocal":
-        // Don't validate local number by itself - only when combined with country code
-        validation = { isValid: true, message: "" };
         break;
       case "postalCode":
         if (value) {
@@ -392,7 +412,7 @@ export default function ProfileSettings() {
     return validation;
   };
 
-  // Handle key down for phone and postalCode to restrict invalid characters
+  // Handle key down for postal code only
   const handleKeyDown = (e, field) => {
     const allowedKeys = [
       "Backspace",
@@ -403,19 +423,12 @@ export default function ProfileSettings() {
     ];
     if (allowedKeys.includes(e.key)) return;
 
-    if (field === "phone") {
-      // Allow digits, +, -, and space
-      if (!/[0-9+\-\s]/.test(e.key)) {
-        e.preventDefault();
-      }
-    } else if (field === "postalCode") {
-      // Restrict based on country-specific patterns
+    if (field === "postalCode") {
       const country = formData.country;
       const postalCodePatterns = {
-        US: /^[0-9]$/, // Only digits for US
-        CA: /^[A-Za-z0-9]$/, // Alphanumeric for CA
-        GB: /^[A-Za-z0-9]$/, // Alphanumeric for GB
-        // Add more country-specific patterns as needed
+        US: /^[0-9]$/,
+        CA: /^[A-Za-z0-9]$/,
+        GB: /^[A-Za-z0-9]$/,
       };
       const pattern = postalCodePatterns[country] || /^[A-Za-z0-9\s\-]$/;
       if (!pattern.test(e.key)) {
@@ -424,40 +437,32 @@ export default function ProfileSettings() {
     }
   };
 
-  // Handle input change without formatting
+  // Handle regular input changes (NOT phone)
   const handleChange = (e) => {
     const { id, value } = e.target;
-
-    // For phone fields, handle them with special care
-    if (id === "phoneLocal" || id === "phoneCountryCode") {
-      // Don't use this handler for phone fields - they have their own handlers
-      return;
-    }
 
     setFormData((prev) => ({
       ...prev,
       [id]: value,
     }));
 
-    // Validate field in real-time with raw value
+    // Validate field in real-time
     const validation = validateField(id, value);
     setValidationErrors((prev) => ({
       ...prev,
       [id]: validation.isValid ? "" : validation.message,
     }));
 
-    // Set success message for valid fields
     setValidationSuccess((prev) => ({
       ...prev,
       [id]: validation.isValid && value ? getSuccessMessage(id, value) : "",
     }));
 
-    // Clear messages when user starts typing
     if (message.text) {
       setMessage({ type: "", text: "" });
     }
 
-    // Handle country change - reset city and postalCode
+    // Handle country change
     if (id === "country") {
       setFormData((prev) => ({ ...prev, city: "", postalCode: "" }));
       setValidationErrors((prev) => ({ ...prev, city: "", postalCode: "" }));
@@ -465,79 +470,12 @@ export default function ProfileSettings() {
     }
   };
 
-  // Handle phone country code change
-  const handlePhoneCountryChange = (e) => {
-    const { value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      phoneCountryCode: value,
-    }));
-
-    // Validate the combined phone number
-    const combinedPhone = value + " " + (formData.phoneLocal || "");
-    const validation = validateField("phone", combinedPhone.trim());
-    setValidationErrors((prev) => ({
-      ...prev,
-      phone: validation.isValid ? "" : validation.message,
-      phoneCountryCode: "", // Clear any previous error on country code field
-    }));
-
-    // Set success message for valid phone
-    setValidationSuccess((prev) => ({
-      ...prev,
-      phone:
-        validation.isValid && combinedPhone.trim()
-          ? getSuccessMessage("phone", combinedPhone.trim())
-          : "",
-    }));
-
-    // Clear messages when user starts typing
-    if (message.text) {
-      setMessage({ type: "", text: "" });
-    }
-  };
-
-  // Handle phone local number change
-  const handlePhoneLocalChange = (e) => {
-    const { value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      phoneLocal: value,
-    }));
-
-    // Validate the combined phone number
-    const combinedPhone = (formData.phoneCountryCode || "") + " " + value;
-    const validation = validateField("phone", combinedPhone.trim());
-    setValidationErrors((prev) => ({
-      ...prev,
-      phone: validation.isValid ? "" : validation.message,
-      phoneLocal: "", // Clear any previous error on local number field
-    }));
-
-    // Set success message for valid phone
-    setValidationSuccess((prev) => ({
-      ...prev,
-      phone:
-        validation.isValid && combinedPhone.trim()
-          ? getSuccessMessage("phone", combinedPhone.trim())
-          : "",
-    }));
-
-    // Clear messages when user starts typing
-    if (message.text) {
-      setMessage({ type: "", text: "" });
-    }
-  };
-
-  // Handle blur for formatting and final validation
+  // Handle blur - NO PHONE FORMATTING
   const handleBlur = (e) => {
     const { id } = e.target;
     let formattedValue = formData[id];
 
     switch (id) {
-      case "phone":
-        formattedValue = inputFormatters.phone(formattedValue);
-        break;
       case "email":
         formattedValue = inputFormatters.email(formattedValue);
         break;
@@ -558,49 +496,20 @@ export default function ProfileSettings() {
       case "district":
         formattedValue = inputFormatters.titleCase(formattedValue);
         break;
-      case "phoneLocal":
-      case "phoneCountryCode":
-        // attempt to format & update combined phone
-        const combined =
-          (formData.phoneCountryCode ? formData.phoneCountryCode + " " : "") +
-          (formData.phoneLocal || "");
-        const formatted = inputFormatters.phone
-          ? inputFormatters.phone(combined)
-          : combined;
-        // try to split back into country + local
-        const match = formatted
-          ? formatted.match(/^(\+\d{1,4})\s*(.*)$/)
-          : null;
-        if (match) {
-          setFormData((prev) => ({
-            ...prev,
-            phoneCountryCode: match[1],
-            phoneLocal: match[2] || "",
-            phone: formatted,
-          }));
-        } else {
-          setFormData((prev) => ({ ...prev, phone: formatted || combined }));
-        }
-        return;
       default:
-        break;
+        return; // No formatting for other fields
     }
 
     if (formattedValue !== formData[id]) {
-      setFormData((prev) => ({
-        ...prev,
-        [id]: formattedValue,
-      }));
+      setFormData((prev) => ({ ...prev, [id]: formattedValue }));
     }
 
-    // Validate on blur with formatted value
     const validation = validateField(id, formattedValue);
     setValidationErrors((prev) => ({
       ...prev,
       [id]: validation.isValid ? "" : validation.message,
     }));
 
-    // Set success message for valid fields
     setValidationSuccess((prev) => ({
       ...prev,
       [id]:
@@ -610,12 +519,9 @@ export default function ProfileSettings() {
     }));
   };
 
-  // Handle city change from dropdown
+  // Handle city change
   const handleCityChange = (cityName) => {
-    setFormData((prev) => ({
-      ...prev,
-      city: cityName,
-    }));
+    setFormData((prev) => ({ ...prev, city: cityName }));
 
     const validation = validateField("city", cityName);
     setValidationErrors((prev) => ({
@@ -623,7 +529,6 @@ export default function ProfileSettings() {
       city: validation.isValid ? "" : validation.message,
     }));
 
-    // Set success message for valid city
     setValidationSuccess((prev) => ({
       ...prev,
       city: validation.isValid && cityName ? "✓ City selected" : "",
@@ -634,7 +539,7 @@ export default function ProfileSettings() {
     }
   };
 
-  // Handle photo change with upload
+  // Handle photo change
   const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -677,13 +582,10 @@ export default function ProfileSettings() {
     const errors = {};
     const success = {};
     let isValid = true;
+
+    // Validate regular fields
     Object.keys(formData).forEach((key) => {
-      if (
-        key !== "district" &&
-        key !== "postalCode" &&
-        key !== "phone" &&
-        key !== "profession"
-      ) {
+      if (key !== "district" && key !== "postalCode" && key !== "profession") {
         const validation = validateField(key, formData[key]);
         if (!validation.isValid) {
           errors[key] = validation.message;
@@ -693,6 +595,14 @@ export default function ProfileSettings() {
         }
       }
     });
+
+    // Validate phone separately
+    const phoneValidation = validatePhoneNumber();
+    if (!phoneValidation.isValid && phoneValidation.message) {
+      errors.phone = phoneValidation.message;
+      isValid = false;
+    }
+
     setValidationErrors(errors);
     setValidationSuccess(success);
     return isValid;
@@ -715,20 +625,19 @@ export default function ProfileSettings() {
 
     try {
       const fullPhone =
-        (formData.phoneCountryCode ? formData.phoneCountryCode + " " : "") +
-        (formData.phoneLocal || formData.phone || "");
+        phoneCountryCode && phoneLocalNumber
+          ? `${phoneCountryCode} ${phoneLocalNumber}`.trim()
+          : null;
+
       const profileData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        ...formData,
         name: `${formData.firstName} ${formData.lastName}`.trim(),
-        email: formData.email,
-        phone: fullPhone ? fullPhone.trim() : null,
+        phone: fullPhone,
         profession: formData.profession || null,
-        country: formData.country,
-        city: formData.city,
         district: formData.district || null,
         postalCode: formData.postalCode || null,
       };
+
       if (updateUserProfile) {
         const result = await updateUserProfile(profileData);
         if (result && result.success) {
@@ -736,11 +645,6 @@ export default function ProfileSettings() {
             type: "success",
             text: result.message || "Profile updated successfully!",
           });
-          if (result.user) {
-            updateFormWithUserData(result.user, "update response");
-          } else {
-            updateFormWithUserData({ ...profileData }, "submitted data");
-          }
         } else {
           throw new Error(result?.error || "Failed to update profile");
         }
@@ -749,17 +653,10 @@ export default function ProfileSettings() {
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      let errorMessage = "Failed to update profile. Please try again.";
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
-      } else if (error.message) {
-        errorMessage = error.message;
-      } else if (typeof error === "string") {
-        errorMessage = error;
-      }
-      setMessage({ type: "error", text: errorMessage });
+      setMessage({
+        type: "error",
+        text: "Failed to update profile. Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -770,18 +667,19 @@ export default function ProfileSettings() {
     if (initialFormData) {
       setFormData(initialFormData);
     }
+    setPhoneCountryCode("");
+    setPhoneLocalNumber("");
+    phoneCountryRef.current = "";
+    phoneLocalRef.current = "";
     setValidationErrors({});
     setValidationSuccess({});
     setMessage({ type: "", text: "" });
   };
 
-  // Get user initials for avatar
+  // Get user initials
   const getUserInitials = () => {
     if (formData.firstName && formData.lastName) {
       return `${formData.firstName[0]}${formData.lastName[0]}`.toUpperCase();
-    }
-    if (user?.firstName && user?.lastName) {
-      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
     }
     if (user?.name) {
       const names = user.name.split(" ");
@@ -901,13 +799,12 @@ export default function ProfileSettings() {
           success={validationSuccess.email}
         />
 
-        {/* Phone Number split: country code + local number */}
+        {/* BULLETPROOF Phone Number Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-1">
             <CountryCodeSelect
-              value={formData.phoneCountryCode}
+              value={phoneCountryCode}
               onChange={handlePhoneCountryChange}
-              error="" // Don't pass phone error to country code field
               countries={countries}
             />
           </div>
@@ -916,16 +813,12 @@ export default function ProfileSettings() {
               Phone Number
             </label>
             <input
-              id="phoneLocal"
               type="tel"
-              value={formData.phoneLocal}
+              value={phoneLocalNumber}
               onChange={handlePhoneLocalChange}
-              onBlur={handleBlur}
-              onKeyDown={(e) => handleKeyDown(e, "phone")}
               placeholder="Enter phone number without country code"
               className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
-            {/* Show the phone validation error only once, under the local number field */}
             {validationErrors.phone && (
               <p className="mt-1 text-sm text-red-400 flex items-center">
                 <svg
@@ -942,7 +835,6 @@ export default function ProfileSettings() {
                 {validationErrors.phone}
               </p>
             )}
-            {/* Show success message when phone is valid */}
             {validationSuccess.phone && !validationErrors.phone && (
               <p className="mt-1 text-sm text-green-400 flex items-center">
                 <svg
@@ -995,7 +887,6 @@ export default function ProfileSettings() {
               error={validationErrors.city}
               disabled={!formData.country}
             />
-            {/* Show success message for city */}
             {validationSuccess.city && !validationErrors.city && (
               <p className="mt-1 text-sm text-green-400 flex items-center">
                 <svg
