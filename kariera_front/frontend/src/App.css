@@ -60,3 +60,15 @@
     transform: rotate(360deg);
   }
 }
+/* Prose styles for job descriptions */
+.prose h3 {
+  @apply text-lg font-semibold text-white mt-6 mb-3 first:mt-0;
+}
+
+.prose ul {
+  @apply list-disc list-inside text-gray-300 space-y-1 mb-4;
+}
+
+.prose p {
+  @apply text-gray-300 mb-4 leading-relaxed;
+}

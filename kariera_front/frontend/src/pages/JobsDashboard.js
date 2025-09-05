@@ -1,25 +1,32 @@
-import React, { useState, useEffect } from "react";
-import { Search, MapPin, Filter, Grid3X3, List } from "lucide-react";
+// src/pages/JobsDashboard.js - Updated dashboard with enhanced components
+import React, { useState, useEffect, useCallback } from "react";
+import { Search, MapPin, Filter, Briefcase, TrendingUp } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-// We'll create these components in the next steps
-import FilterSidebar from "../components/jobs/FilterSidebar.js";
-import JobsList from "../components/jobs/JobsList";
-import BulkActionBar from "../components/jobs/BulkActionBar";
+// Enhanced components
+import FilterSidebar from "../components/jobs/FilterSidebar";
+import JobList from "../components/jobs/JobList";
 import ApplicationModal from "../components/jobs/ApplicationModal";
+
+// Mock job service (replace with real API)
+import {
+  generateMockJobs,
+  applyFiltersToJobs,
+} from "../services/mockJobService";
 
 export default function JobsDashboard() {
   const { user } = useAuth();
 
-  // Main state management
-  const [jobs, setJobs] = useState([]);
+  // Core state
+  const [allJobs, setAllJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
+  const [error, setError] = useState(null);
 
-  // Search and filter state
+  // Search and filters
   const [searchQuery, setSearchQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
+  const [sortBy, setSortBy] = useState("relevance");
   const [filters, setFilters] = useState({
     datePosted: "any",
     jobType: [],
@@ -28,107 +35,174 @@ export default function JobsDashboard() {
     experienceLevel: [],
   });
 
-  // Selection and bulk actions
-  const [selectedJobs, setSelectedJobs] = useState(new Set());
-  const [selectAll, setSelectAll] = useState(false);
+  // UI state
+  const [viewMode, setViewMode] = useState("grid");
+  const [showFilterSidebar, setShowFilterSidebar] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const jobsPerPage = 12;
 
-  // Modal states
+  // Selection state
+  const [selectedJobs, setSelectedJobs] = useState(new Set());
+
+  // Modal state
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [selectedJobForApplication, setSelectedJobForApplication] =
     useState(null);
-  const [showFilterSidebar, setShowFilterSidebar] = useState(true);
 
-  // Mock data for development - will be replaced with API calls
+  // User tier (mock data - replace with real user data)
+  const [userTier, setUserTier] = useState("free");
+  const [remainingApplications, setRemainingApplications] = useState(3);
+
+  // Load initial jobs
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      const mockJobs = generateMockJobs();
-      setJobs(mockJobs);
-      setFilteredJobs(mockJobs);
-      setLoading(false);
-    }, 1000);
+    const loadJobs = async () => {
+      setLoading(true);
+      try {
+        // Simulate API delay
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const jobs = generateMockJobs(100); // Generate 100 mock jobs
+        setAllJobs(jobs);
+        setError(null);
+      } catch (err) {
+        setError("Failed to load jobs. Please try again.");
+        console.error("Error loading jobs:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadJobs();
   }, []);
 
-  // Filter jobs based on search and filters
+  // Apply filters and search
   useEffect(() => {
-    let filtered = jobs.filter((job) => {
-      // Search filter
-      const matchesSearch =
-        !searchQuery ||
-        job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        job.company.toLowerCase().includes(searchQuery.toLowerCase());
-
-      // Location filter
-      const matchesLocation =
-        !locationQuery ||
-        job.location.toLowerCase().includes(locationQuery.toLowerCase());
-
-      // Date filter
-      const matchesDate =
-        filters.datePosted === "any" ||
-        checkDateFilter(job.posted, filters.datePosted);
-
-      // Job type filter
-      const matchesType =
-        filters.jobType.length === 0 || filters.jobType.includes(job.type);
-
-      // Work setting filter
-      const matchesWorkSetting =
-        filters.workSetting === "any" ||
-        (filters.workSetting === "remote" && job.remote) ||
-        (filters.workSetting === "on-site" && !job.remote);
-
-      // Salary filter
-      const matchesSalary =
-        job.salary.max >= filters.salaryRange.min &&
-        job.salary.min <= filters.salaryRange.max;
-
-      return (
-        matchesSearch &&
-        matchesLocation &&
-        matchesDate &&
-        matchesType &&
-        matchesWorkSetting &&
-        matchesSalary
-      );
+    const filtered = applyFiltersToJobs(allJobs, {
+      searchQuery,
+      locationQuery,
+      filters,
+      sortBy,
     });
-
     setFilteredJobs(filtered);
-  }, [jobs, searchQuery, locationQuery, filters]);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [allJobs, searchQuery, locationQuery, filters, sortBy]);
 
-  const handleJobSelect = (jobId, selected) => {
-    const newSelected = new Set(selectedJobs);
-    if (selected) {
-      newSelected.add(jobId);
-    } else {
-      newSelected.delete(jobId);
-    }
-    setSelectedJobs(newSelected);
-    setSelectAll(newSelected.size === filteredJobs.length);
-  };
+  // Handle job selection
+  const handleJobSelect = useCallback((jobId, selected) => {
+    setSelectedJobs((prev) => {
+      const newSet = new Set(prev);
+      if (selected) {
+        newSet.add(jobId);
+      } else {
+        newSet.delete(jobId);
+      }
+      return newSet;
+    });
+  }, []);
 
-  const handleSelectAll = (selected) => {
+  // Handle select all
+  const handleSelectAll = useCallback((selected, jobIds = []) => {
     if (selected) {
-      const allJobIds = new Set(filteredJobs.map((job) => job.id));
-      setSelectedJobs(allJobIds);
+      const currentPageJobs = getCurrentPageJobs();
+      const allJobIds =
+        jobIds.length > 0 ? jobIds : currentPageJobs.map((job) => job.id);
+      setSelectedJobs(new Set(allJobIds));
     } else {
       setSelectedJobs(new Set());
     }
-    setSelectAll(selected);
-  };
+  }, []);
 
-  const handleApplyToJob = (job) => {
+  // Handle bulk apply
+  const handleBulkApply = useCallback(async () => {
+    const selectedJobsList = Array.from(selectedJobs)
+      .map((id) => allJobs.find((job) => job.id === id))
+      .filter(Boolean);
+
+    console.log("Bulk applying to jobs:", selectedJobsList);
+
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Update applied status for selected jobs
+    setAllJobs((prev) =>
+      prev.map((job) =>
+        selectedJobs.has(job.id) ? { ...job, applied: true } : job
+      )
+    );
+
+    // Reduce remaining applications
+    setRemainingApplications((prev) => Math.max(0, prev - selectedJobs.size));
+
+    // Clear selection
+    setSelectedJobs(new Set());
+
+    alert(`Successfully applied to ${selectedJobs.size} jobs!`);
+  }, [selectedJobs, allJobs]);
+
+  // Handle bulk save
+  const handleBulkSave = useCallback(async () => {
+    console.log("Bulk saving jobs:", selectedJobs);
+
+    // Update saved status for selected jobs
+    setAllJobs((prev) =>
+      prev.map((job) =>
+        selectedJobs.has(job.id) ? { ...job, saved: true } : job
+      )
+    );
+
+    alert(`Successfully saved ${selectedJobs.size} jobs!`);
+  }, [selectedJobs]);
+
+  // Handle individual job save
+  const handleJobSave = useCallback((jobId) => {
+    setAllJobs((prev) =>
+      prev.map((job) =>
+        job.id === jobId ? { ...job, saved: !job.saved } : job
+      )
+    );
+  }, []);
+
+  // Handle individual job apply
+  const handleJobApply = useCallback((job) => {
     setSelectedJobForApplication(job);
     setShowApplicationModal(true);
-  };
+  }, []);
 
-  const handleBulkApply = () => {
-    const selectedJobsList = filteredJobs.filter((job) =>
-      selectedJobs.has(job.id)
-    );
-    console.log("Bulk apply to:", selectedJobsList);
-    // Will implement bulk application flow
-  };
+  // Handle application submission
+  const handleApplicationSubmit = useCallback(
+    async (applicationData) => {
+      console.log("Submitting application:", applicationData);
+
+      // Update applied status
+      setAllJobs((prev) =>
+        prev.map((job) =>
+          job.id === selectedJobForApplication.id
+            ? { ...job, applied: true }
+            : job
+        )
+      );
+
+      setRemainingApplications((prev) => Math.max(0, prev - 1));
+      setShowApplicationModal(false);
+      setSelectedJobForApplication(null);
+
+      alert("Application submitted successfully!");
+    },
+    [selectedJobForApplication]
+  );
+
+  // Get current page jobs
+  const getCurrentPageJobs = useCallback(() => {
+    const startIndex = (currentPage - 1) * jobsPerPage;
+    const endIndex = startIndex + jobsPerPage;
+    return filteredJobs.slice(startIndex, endIndex);
+  }, [filteredJobs, currentPage, jobsPerPage]);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
+  const hasNextPage = currentPage < totalPages;
+
+  // Get current page jobs for display
+  const currentPageJobs = getCurrentPageJobs();
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -139,11 +213,19 @@ export default function JobsDashboard() {
             {/* Welcome message */}
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-white">
-                Find your next opportunity
+                Find your next opportunity,{" "}
+                {user?.firstName || user?.name || "there"}
               </h1>
-              <p className="text-gray-400">
-                {filteredJobs.length} jobs available
-              </p>
+              <div className="flex items-center gap-4 mt-2">
+                <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <Briefcase className="w-4 h-4" />
+                  <span>{filteredJobs.length} jobs available</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-green-400">
+                  <TrendingUp className="w-4 h-4" />
+                  <span>{remainingApplications} applications remaining</span>
+                </div>
+              </div>
             </div>
 
             {/* Search bar */}
@@ -178,39 +260,6 @@ export default function JobsDashboard() {
                 Filters
               </button>
             </div>
-
-            {/* View controls and results count */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-lg ${
-                    viewMode === "grid"
-                      ? "bg-purple-600"
-                      : "bg-gray-800 hover:bg-gray-700"
-                  }`}
-                >
-                  <Grid3X3 className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-lg ${
-                    viewMode === "list"
-                      ? "bg-purple-600"
-                      : "bg-gray-800 hover:bg-gray-700"
-                  }`}
-                >
-                  <List className="w-5 h-5" />
-                </button>
-              </div>
-
-              {selectedJobs.size > 0 && (
-                <div className="text-sm text-gray-400">
-                  {selectedJobs.size} job{selectedJobs.size !== 1 ? "s" : ""}{" "}
-                  selected
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>
@@ -227,128 +276,47 @@ export default function JobsDashboard() {
 
           {/* Jobs List */}
           <div className="flex-1 min-w-0">
-            {/* Bulk actions bar */}
-            {selectedJobs.size > 0 && (
-              <BulkActionBar
-                selectedCount={selectedJobs.size}
-                onBulkApply={handleBulkApply}
-                onClearSelection={() => {
-                  setSelectedJobs(new Set());
-                  setSelectAll(false);
-                }}
-              />
-            )}
-
-            {/* Jobs list */}
-            <JobsList
-              jobs={filteredJobs}
+            <JobList
+              jobs={currentPageJobs}
               loading={loading}
+              error={error}
               viewMode={viewMode}
+              onViewModeChange={setViewMode}
               selectedJobs={selectedJobs}
-              selectAll={selectAll}
               onJobSelect={handleJobSelect}
               onSelectAll={handleSelectAll}
-              onApplyToJob={handleApplyToJob}
+              onBulkApply={handleBulkApply}
+              onBulkSave={handleBulkSave}
+              onJobSave={handleJobSave}
+              onJobApply={handleJobApply}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+              totalCount={filteredJobs.length}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+              hasNextPage={hasNextPage}
+              filters={filters}
+              onFilterChange={setFilters}
             />
           </div>
         </div>
       </div>
 
       {/* Application Modal */}
-      {showApplicationModal && (
+      {showApplicationModal && selectedJobForApplication && (
         <ApplicationModal
           job={selectedJobForApplication}
+          userTier={userTier}
+          remainingApplications={remainingApplications}
           onClose={() => {
             setShowApplicationModal(false);
             setSelectedJobForApplication(null);
           }}
-          onSubmit={(applicationData) => {
-            console.log("Application submitted:", applicationData);
-            setShowApplicationModal(false);
-            setSelectedJobForApplication(null);
-          }}
+          onSubmit={handleApplicationSubmit}
         />
       )}
     </div>
   );
-}
-
-// Helper functions
-function generateMockJobs() {
-  const companies = [
-    "Google",
-    "Microsoft",
-    "Apple",
-    "Amazon",
-    "Meta",
-    "Netflix",
-    "Tesla",
-    "Spotify",
-  ];
-  const titles = [
-    "Software Engineer",
-    "Frontend Developer",
-    "Backend Developer",
-    "Full Stack Developer",
-    "Data Scientist",
-    "Product Manager",
-    "UX Designer",
-    "DevOps Engineer",
-  ];
-  const locations = [
-    "San Francisco, CA",
-    "New York, NY",
-    "Seattle, WA",
-    "Austin, TX",
-    "Remote",
-    "London, UK",
-    "Toronto, CA",
-  ];
-  const types = ["full-time", "part-time", "contract", "internship"];
-
-  return Array.from({ length: 50 }, (_, i) => ({
-    id: `job-${i + 1}`,
-    title: titles[Math.floor(Math.random() * titles.length)],
-    company: companies[Math.floor(Math.random() * companies.length)],
-    location: locations[Math.floor(Math.random() * locations.length)],
-    salary: {
-      min: 80000 + Math.floor(Math.random() * 50000),
-      max: 120000 + Math.floor(Math.random() * 100000),
-      currency: "USD",
-    },
-    type: types[Math.floor(Math.random() * types.length)],
-    remote: Math.random() > 0.6,
-    description:
-      "We are looking for a talented professional to join our team...",
-    requirements: [
-      "Bachelor's degree",
-      "3+ years experience",
-      "Strong problem-solving skills",
-    ],
-    posted: new Date(
-      Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000
-    ),
-    applicationCount: Math.floor(Math.random() * 200),
-    companyLogo: `https://logo.clearbit.com/${companies[
-      Math.floor(Math.random() * companies.length)
-    ].toLowerCase()}.com`,
-    saved: Math.random() > 0.8,
-    applied: Math.random() > 0.9,
-  }));
-}
-
-function checkDateFilter(postedDate, filter) {
-  const now = new Date();
-  const posted = new Date(postedDate);
-
-  switch (filter) {
-    case "last-day":
-      return now - posted <= 24 * 60 * 60 * 1000;
-    case "last-week":
-      return now - posted <= 7 * 24 * 60 * 60 * 1000;
-    case "last-month":
-      return now - posted <= 30 * 24 * 60 * 60 * 1000;
-    default:
-      return true;
-  }
 }
