@@ -2,20 +2,26 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 import "./styles/Settings.css";
+
 // Auth Context
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 
 // Page components
 import ResumeBuilderPage from "./resumeBuilderPage";
-import JobSearchDashboard from "./JobSearchDashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Settings from "./pages/Settings";
+
+// NEW: Job-related components
+import JobsDashboard from "./pages/JobsDashboard";
+import JobDetailPage from "./pages/JobDetailPage";
+import UserDashboard from "./pages/UserDashboard";
 
 // Layout components
 import Navbar from "./components/Navbar";
-import Settings from "./pages/Settings";
-// Simple Landing Page Component (embedded to avoid import issues)
+
+// Landing Page Component
 const JobSearchLandingPage = () => {
   return (
     <div className="bg-black text-white min-h-screen">
@@ -40,7 +46,7 @@ const JobSearchLandingPage = () => {
               className="w-full px-6 py-4 pr-36 rounded-full border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-purple-600"
             />
             <a
-              href="/resume"
+              href="/jobs"
               className="absolute right-1 top-1 px-8 py-3 rounded-full bg-purple-600 hover:bg-purple-700 text-white"
             >
               Get started
@@ -119,6 +125,44 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
+            {/* UPDATED: New job-focused routes */}
+            <Route
+              path="/jobs"
+              element={
+                <PrivateRoute>
+                  <>
+                    <Navbar />
+                    <JobsDashboard />
+                  </>
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/jobs/:id"
+              element={
+                <PrivateRoute>
+                  <>
+                    <Navbar />
+                    <JobDetailPage />
+                  </>
+                </PrivateRoute>
+              }
+            />
+
+            {/* UPDATED: Dashboard now shows user overview, not job search */}
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <>
+                    <Navbar />
+                    <UserDashboard />
+                  </>
+                </PrivateRoute>
+              }
+            />
+
             {/* Resume builder - protected */}
             <Route
               path="/resume"
@@ -132,18 +176,7 @@ function App() {
               }
             />
 
-            {/* Dashboard - protected */}
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <JobSearchDashboard />
-                  </>
-                </PrivateRoute>
-              }
-            />
+            {/* Settings - protected */}
             <Route
               path="/settings/*"
               element={
