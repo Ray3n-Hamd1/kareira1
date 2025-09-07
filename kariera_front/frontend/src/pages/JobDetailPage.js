@@ -1,189 +1,84 @@
-// src/pages/JobDetailPage.js - Fixed version with consistent data
+// src/pages/JobDetailPage.js - Updated with consistent salary formatting
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   MapPin,
-  Clock,
   DollarSign,
-  Briefcase,
-  Users,
+  Clock,
   Building2,
-  BookmarkIcon,
-  Send,
+  Users,
+  Star,
+  Bookmark,
   Share2,
   ExternalLink,
+  Send,
+  AlertCircle,
   CheckCircle,
-  Star,
   Globe,
   Calendar,
-  Trophy,
-  Heart,
-  ChevronRight,
-  AlertCircle,
+  Briefcase,
 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import { getJobById, generateMockJobs } from "../services/mockJobService";
-import ApplicationModal from "../components/jobs/ApplicationModal";
+import { getJobById } from "../services/mockJobService";
+import { salaryUtils } from "../utils/salaryUtils";
 
 export default function JobDetailPage() {
-  const { id } = useParams();
+  const { jobId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-
   const [job, setJob] = useState(null);
-  const [similarJobs, setSimilarJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [applying, setApplying] = useState(false);
   const [saved, setSaved] = useState(false);
   const [applied, setApplied] = useState(false);
-  const [showApplicationModal, setShowApplicationModal] = useState(false);
-  const [activeTab, setActiveTab] = useState("description"); // description, company, reviews
 
-  // Load job details
   useEffect(() => {
-    const loadJobDetails = async () => {
-      setLoading(true);
+    const fetchJob = async () => {
       try {
-        console.log("Loading job with ID:", id); // Debug log
-
-        // Get the specific job by ID using the fixed service
-        const foundJob = getJobById(id);
-
-        if (!foundJob) {
-          console.log("Job not found, redirecting to jobs list");
-          navigate("/jobs");
-          return;
+        const jobData = getJobById(jobId);
+        if (jobData) {
+          setJob(jobData);
+          setSaved(jobData.saved);
+          setApplied(jobData.applied);
         }
-
-        console.log("Found job:", foundJob); // Debug log
-
-        // Enhance job with additional details for PDP
-        const enhancedJob = {
-          ...foundJob,
-          fullDescription: `
-<h3>About This Role</h3>
-<p>We're looking for a ${foundJob.title} to join our ${
-            foundJob.company
-          } team. This is an exciting opportunity to work on cutting-edge technology that impacts millions of users worldwide.</p>
-
-<h3>What You'll Do</h3>
-<ul>
-<li>Design and develop scalable software solutions</li>
-<li>Collaborate with cross-functional teams to deliver high-quality products</li>
-<li>Participate in code reviews and maintain coding standards</li>
-<li>Troubleshoot and debug applications</li>
-<li>Stay up-to-date with emerging technologies and best practices</li>
-</ul>
-
-<h3>What We're Looking For</h3>
-<ul>
-<li>${
-            foundJob.experienceLevel === "Entry"
-              ? "0-2"
-              : foundJob.experienceLevel === "Mid"
-              ? "2-5"
-              : "5+"
-          } years of experience in software development</li>
-<li>Strong proficiency in ${foundJob.skills.slice(0, 2).join(" and ")}</li>
-<li>Experience with ${foundJob.skills.slice(2).join(", ")}</li>
-<li>Bachelor's degree in Computer Science or related field</li>
-<li>Excellent problem-solving and communication skills</li>
-</ul>
-
-<h3>Nice to Have</h3>
-<ul>
-<li>Experience with cloud platforms (AWS, GCP, Azure)</li>
-<li>Knowledge of containerization technologies (Docker, Kubernetes)</li>
-<li>Understanding of CI/CD pipelines</li>
-<li>Open source contributions</li>
-</ul>
-          `,
-          companyInfo: {
-            description: `${foundJob.company} is a leading technology company that's revolutionizing how people connect and interact with technology. We're passionate about building products that make a meaningful impact on people's lives.`,
-            founded: 2000 + Math.floor(Math.random() * 23),
-            headquarters: foundJob.location.split(",")[0],
-            employees: foundJob.companySize,
-            website: `https://${foundJob.company
-              .toLowerCase()
-              .replace(/\s/g, "")}.com`,
-            industry: "Technology",
-            culture: [
-              "Innovation-driven environment",
-              "Work-life balance",
-              "Continuous learning",
-              "Diverse and inclusive",
-              "Collaborative teams",
-            ],
-          },
-          teamInfo: {
-            manager: "Sarah Johnson",
-            teamSize: "8-12 people",
-            reportingStructure:
-              "Engineering Manager → Director of Engineering → VP of Engineering",
-          },
-        };
-
-        setJob(enhancedJob);
-        setSaved(enhancedJob.saved);
-        setApplied(enhancedJob.applied);
-
-        // Generate similar jobs (get all jobs and filter for similar ones)
-        const allJobs = generateMockJobs(100);
-        const similar = allJobs
-          .filter(
-            (j) =>
-              j.id !== id &&
-              (j.company === foundJob.company ||
-                j.skills.some((skill) => foundJob.skills.includes(skill)) ||
-                j.experienceLevel === foundJob.experienceLevel)
-          )
-          .slice(0, 6);
-        setSimilarJobs(similar);
       } catch (error) {
-        console.error("Error loading job details:", error);
-        navigate("/jobs");
+        console.error("Error fetching job:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadJobDetails();
-  }, [id, navigate]);
+    fetchJob();
+  }, [jobId]);
+
+  const handleApply = async () => {
+    setApplying(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      setApplied(true);
+    } catch (error) {
+      console.error("Error applying to job:", error);
+    } finally {
+      setApplying(false);
+    }
+  };
 
   const handleSave = () => {
     setSaved(!saved);
-    // In real app: await jobService.toggleSave(job.id);
   };
 
-  const handleApply = () => {
-    setShowApplicationModal(true);
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    // You might want to show a toast notification here
   };
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${job.title} at ${job.company}`,
-          text: `Check out this job opportunity: ${job.title} at ${job.company}`,
-          url: window.location.href,
-        });
-      } catch (err) {
-        console.log("Error sharing:", err);
-      }
-    } else {
-      // Fallback to clipboard
-      navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
-    }
-  };
-
+  // Use centralized salary formatting
   const formatSalary = (salary) => {
-    if (salary?.min && salary?.max) {
-      return `$${(salary.min / 1000).toFixed(0)}k - $${(
-        salary.max / 1000
-      ).toFixed(0)}k`;
-    }
-    return "Competitive salary";
+    return salaryUtils.formatRange(salary, {
+      showRange: true,
+      separator: " - ",
+      fallbackText: "Competitive salary",
+    });
   };
 
   const formatPostedTime = (posted) => {
@@ -240,13 +135,12 @@ export default function JobDetailPage() {
           <p className="text-gray-400 mb-6">
             The job you're looking for doesn't exist or has been removed.
           </p>
-          <Link
-            to="/jobs"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          <button
+            onClick={() => navigate("/jobs")}
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Jobs
-          </Link>
+            Browse Jobs
+          </button>
         </div>
       </div>
     );
@@ -255,427 +149,325 @@ export default function JobDetailPage() {
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-gray-400 mb-8">
-          <Link to="/jobs" className="hover:text-white flex items-center gap-1">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Jobs
-          </Link>
-          <ChevronRight className="w-4 h-4" />
-          <span>{job.company}</span>
-          <ChevronRight className="w-4 h-4" />
-          <span className="text-white">{job.title}</span>
-        </div>
+        {/* Back Navigation */}
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-300 hover:text-white mb-8 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Back to jobs</span>
+        </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-8">
             {/* Job Header */}
             <div className="bg-gray-800 rounded-lg p-8">
-              <div className="flex items-start gap-6 mb-6">
-                <div className="flex-shrink-0">
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start gap-4">
                   {job.companyLogo ? (
                     <img
                       src={job.companyLogo}
                       alt={`${job.company} logo`}
-                      className="w-16 h-16 rounded-lg object-cover bg-gray-700"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                        e.target.nextSibling.style.display = "flex";
-                      }}
+                      className="w-16 h-16 rounded-lg object-cover"
                     />
-                  ) : null}
-                  <div
-                    className={`w-16 h-16 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold text-xl ${
-                      job.companyLogo ? "hidden" : "flex"
-                    }`}
-                  >
-                    {job.company.charAt(0)}
-                  </div>
-                </div>
-
-                <div className="flex-grow min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-3xl font-bold text-white">
+                  ) : (
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-xl">
+                      {job.company.charAt(0)}
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <h1 className="text-3xl font-bold text-white mb-2">
                       {job.title}
                     </h1>
-                    {job.featured && (
-                      <Star className="w-6 h-6 text-yellow-500 fill-current" />
-                    )}
-                    {job.urgentHiring && (
-                      <span className="px-3 py-1 text-sm bg-red-600 text-white rounded-full">
-                        Urgent Hiring
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-4 mb-4">
-                    <h2 className="text-xl font-semibold text-gray-300">
-                      {job.company}
-                    </h2>
-                    {job.rating && (
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                        <span className="text-sm text-gray-400">
-                          {job.rating}
+                    <div className="flex items-center gap-2 text-xl text-gray-300 mb-4">
+                      <Building2 className="w-5 h-5" />
+                      <span>{job.company}</span>
+                      {job.rating && (
+                        <>
+                          <span className="text-gray-500">•</span>
+                          <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                            <span>{job.rating}</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-6 text-gray-300">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-5 h-5" />
+                        <span>{job.location}</span>
+                        {job.remote && (
+                          <span className="bg-green-400/10 text-green-400 px-3 py-1 rounded-full text-sm ml-2">
+                            Remote
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="w-5 h-5" />
+                        <span className="font-semibold text-green-400 text-lg">
+                          {formatSalary(job.salary)}
                         </span>
                       </div>
-                    )}
-                  </div>
-
-                  {/* Job Meta */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-400">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      <span>{job.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="w-4 h-4" />
-                      <span>{job.type}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4" />
-                      <span className="text-green-400">
-                        {formatSalary(job.salary)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      <span>{formatPostedTime(job.posted)}</span>
                     </div>
                   </div>
                 </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleShare}
+                    className="p-3 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+                    title="Share job"
+                  >
+                    <Share2 className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className={`p-3 rounded-lg transition-colors ${
+                      saved
+                        ? "text-purple-400 bg-purple-400/10"
+                        : "text-gray-400 hover:text-purple-400 hover:bg-gray-700"
+                    }`}
+                    title={saved ? "Remove from saved" : "Save job"}
+                  >
+                    <Bookmark
+                      className={`w-5 h-5 ${saved ? "fill-current" : ""}`}
+                    />
+                  </button>
+                </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={handleApply}
-                  disabled={applied}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
-                    applied
-                      ? "bg-green-600 text-white cursor-not-allowed"
-                      : "bg-purple-600 hover:bg-purple-700 text-white"
-                  }`}
-                >
-                  {applied ? (
-                    <>
-                      <CheckCircle className="w-5 h-5" />
-                      Applied
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-5 h-5" />
-                      Apply Now
-                    </>
-                  )}
-                </button>
-
-                <button
-                  onClick={handleSave}
-                  className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-colors ${
-                    saved
-                      ? "border-yellow-500 text-yellow-500 bg-yellow-500/10"
-                      : "border-gray-600 text-gray-400 hover:border-gray-500 hover:text-white"
-                  }`}
-                >
-                  <BookmarkIcon
-                    className={`w-5 h-5 ${saved ? "fill-current" : ""}`}
-                  />
-                  {saved ? "Saved" : "Save"}
-                </button>
-
-                <button
-                  onClick={handleShare}
-                  className="flex items-center gap-2 px-4 py-3 rounded-lg border border-gray-600 text-gray-400 hover:border-gray-500 hover:text-white transition-colors"
-                >
-                  <Share2 className="w-5 h-5" />
-                  Share
-                </button>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="mt-6 pt-6 border-t border-gray-700">
-                <div className="grid grid-cols-3 gap-4 text-center">
+              {/* Job Meta Info */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="flex items-center gap-3 p-4 bg-gray-700 rounded-lg">
+                  <Briefcase className="w-5 h-5 text-purple-400" />
                   <div>
-                    <div className="text-lg font-semibold text-white">
-                      {job.applicationCount}
-                    </div>
-                    <div className="text-sm text-gray-400">Applicants</div>
+                    <div className="text-sm text-gray-400">Job Type</div>
+                    <div className="font-medium text-white">{job.type}</div>
                   </div>
+                </div>
+                <div className="flex items-center gap-3 p-4 bg-gray-700 rounded-lg">
+                  <Users className="w-5 h-5 text-blue-400" />
                   <div>
-                    <div className="text-lg font-semibold text-white">
+                    <div className="text-sm text-gray-400">Experience</div>
+                    <div className="font-medium text-white">
                       {job.experienceLevel}
                     </div>
-                    <div className="text-sm text-gray-400">Level</div>
                   </div>
+                </div>
+                <div className="flex items-center gap-3 p-4 bg-gray-700 rounded-lg">
+                  <Calendar className="w-5 h-5 text-green-400" />
                   <div>
-                    <div className="text-lg font-semibold text-white">
-                      {job.remote ? "Remote" : "On-site"}
+                    <div className="text-sm text-gray-400">Posted</div>
+                    <div className="font-medium text-white">
+                      {formatPostedTime(job.posted)}
                     </div>
-                    <div className="text-sm text-gray-400">Work Style</div>
                   </div>
                 </div>
               </div>
+
+              {/* Status Badges */}
+              <div className="flex flex-wrap gap-3 mb-6">
+                {applied && (
+                  <span className="bg-blue-400/10 text-blue-400 px-4 py-2 rounded-full text-sm flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4" />
+                    Applied
+                  </span>
+                )}
+                {job.featured && (
+                  <span className="bg-purple-400/10 text-purple-400 px-4 py-2 rounded-full text-sm flex items-center gap-2">
+                    <Star className="w-4 h-4" />
+                    Featured
+                  </span>
+                )}
+                {job.urgentHiring && (
+                  <span className="bg-red-400/10 text-red-400 px-4 py-2 rounded-full text-sm flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    Urgent Hiring
+                  </span>
+                )}
+              </div>
+
+              {/* Apply Button */}
+              <button
+                onClick={handleApply}
+                disabled={applying || applied}
+                className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors flex items-center justify-center gap-3 ${
+                  applied
+                    ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                    : applying
+                    ? "bg-purple-600 text-white cursor-not-allowed"
+                    : "bg-purple-600 text-white hover:bg-purple-700"
+                }`}
+              >
+                {applying ? (
+                  <>
+                    <div className="w-5 h-5 border-t-2 border-white rounded-full animate-spin" />
+                    Applying...
+                  </>
+                ) : applied ? (
+                  <>
+                    <CheckCircle className="w-5 h-5" />
+                    Applied
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5" />
+                    Apply Now
+                  </>
+                )}
+              </button>
             </div>
 
-            {/* Content Tabs */}
-            <div className="bg-gray-800 rounded-lg overflow-hidden">
-              <div className="border-b border-gray-700">
-                <nav className="flex">
-                  {[
-                    {
-                      id: "description",
-                      label: "Job Description",
-                      icon: Briefcase,
-                    },
-                    { id: "company", label: "About Company", icon: Building2 },
-                    { id: "reviews", label: "Reviews", icon: Star },
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                        activeTab === tab.id
-                          ? "border-purple-500 text-purple-400"
-                          : "border-transparent text-gray-400 hover:text-white"
-                      }`}
+            {/* Job Description */}
+            <div className="bg-gray-800 rounded-lg p-8">
+              <h2 className="text-2xl font-bold text-white mb-6">
+                Job Description
+              </h2>
+              <div className="prose prose-invert max-w-none">
+                <p className="text-gray-300 leading-relaxed mb-6">
+                  {job.description}
+                </p>
+              </div>
+            </div>
+
+            {/* Requirements */}
+            <div className="bg-gray-800 rounded-lg p-8">
+              <h2 className="text-2xl font-bold text-white mb-6">
+                Requirements
+              </h2>
+              <ul className="space-y-3">
+                {job.requirements.map((requirement, index) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-3 text-gray-300"
+                  >
+                    <div className="w-2 h-2 bg-purple-400 rounded-full mt-2 flex-shrink-0"></div>
+                    <span>{requirement}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Skills */}
+            {job.skills && job.skills.length > 0 && (
+              <div className="bg-gray-800 rounded-lg p-8">
+                <h2 className="text-2xl font-bold text-white mb-6">
+                  Required Skills
+                </h2>
+                <div className="flex flex-wrap gap-3">
+                  {job.skills.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-sm"
                     >
-                      <tab.icon className="w-4 h-4" />
-                      {tab.label}
-                    </button>
+                      {skill}
+                    </span>
                   ))}
-                </nav>
+                </div>
               </div>
+            )}
 
-              <div className="p-8">
-                {activeTab === "description" && (
-                  <div className="space-y-6">
-                    <div
-                      className="prose prose-invert max-w-none"
-                      dangerouslySetInnerHTML={{ __html: job.fullDescription }}
-                    />
-
-                    {/* Skills Required */}
-                    <div>
-                      <h3 className="text-lg font-semibold text-white mb-3">
-                        Skills & Technologies
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {job.skills.map((skill, index) => (
-                          <span
-                            key={index}
-                            className="px-3 py-1 bg-purple-600/20 text-purple-300 rounded-full text-sm"
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Benefits */}
-                    {job.benefits && job.benefits.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-3">
-                          Benefits & Perks
-                        </h3>
-                        <div className="grid grid-cols-2 gap-3">
-                          {job.benefits.map((benefit, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center gap-2 text-gray-300"
-                            >
-                              <Heart className="w-4 h-4 text-red-400" />
-                              <span>{benefit}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {activeTab === "company" && (
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-semibold text-white mb-3">
-                        About {job.company}
-                      </h3>
-                      <p className="text-gray-300 leading-relaxed">
-                        {job.companyInfo.description}
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-6">
-                      <div>
-                        <h4 className="font-medium text-white mb-2">
-                          Company Info
-                        </h4>
-                        <div className="space-y-2 text-sm text-gray-400">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
-                            <span>Founded {job.companyInfo.founded}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4" />
-                            <span>{job.companyInfo.employees}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4" />
-                            <span>{job.companyInfo.headquarters}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Globe className="w-4 h-4" />
-                            <a
-                              href={job.companyInfo.website}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-purple-400 hover:text-purple-300"
-                            >
-                              Company Website
-                              <ExternalLink className="w-3 h-3 inline ml-1" />
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h4 className="font-medium text-white mb-2">
-                          Culture & Values
-                        </h4>
-                        <div className="space-y-2">
-                          {job.companyInfo.culture.map((item, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center gap-2 text-sm text-gray-300"
-                            >
-                              <Trophy className="w-4 h-4 text-yellow-400" />
-                              <span>{item}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === "reviews" && (
-                  <div className="text-center py-8">
-                    <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-white mb-2">
-                      Reviews Coming Soon
-                    </h3>
-                    <p className="text-gray-400">
-                      Employee reviews and ratings will be available soon.
-                    </p>
-                  </div>
-                )}
+            {/* Benefits */}
+            {job.benefits && job.benefits.length > 0 && (
+              <div className="bg-gray-800 rounded-lg p-8">
+                <h2 className="text-2xl font-bold text-white mb-6">Benefits</h2>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {job.benefits.map((benefit, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center gap-3 text-gray-300"
+                    >
+                      <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+                      <span>{benefit}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Apply Card */}
-            <div className="bg-gray-800 rounded-lg p-6 sticky top-8">
-              <h3 className="text-lg font-semibold text-white mb-4">
-                Ready to Apply?
+            {/* Company Info */}
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h3 className="text-xl font-bold text-white mb-4">
+                About {job.company}
               </h3>
-
-              <div className="space-y-4 mb-6">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Salary Range</span>
-                  <span className="text-green-400 font-medium">
-                    {formatSalary(job.salary)}
-                  </span>
+              <div className="space-y-4">
+                {job.companySize && (
+                  <div className="flex items-center gap-3">
+                    <Users className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <div className="text-sm text-gray-400">Company Size</div>
+                      <div className="text-white">{job.companySize}</div>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <Globe className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <div className="text-sm text-gray-400">Industry</div>
+                    <div className="text-white">{job.industry}</div>
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Job Type</span>
-                  <span className="text-white">{job.type}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Experience</span>
-                  <span className="text-white">{job.experienceLevel}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Applications</span>
-                  <span className="text-white">
-                    {job.applicationCount} people applied
-                  </span>
+                <div className="flex items-center gap-3">
+                  <Briefcase className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <div className="text-sm text-gray-400">Function</div>
+                    <div className="text-white">{job.jobFunction}</div>
+                  </div>
                 </div>
               </div>
-
-              <button
-                onClick={handleApply}
-                disabled={applied}
-                className={`w-full py-3 rounded-lg font-medium transition-colors ${
-                  applied
-                    ? "bg-green-600 text-white cursor-not-allowed"
-                    : "bg-purple-600 hover:bg-purple-700 text-white"
-                }`}
-              >
-                {applied ? "Application Submitted" : "Apply for this Job"}
-              </button>
-
-              {!applied && (
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  Takes less than 2 minutes
-                </p>
-              )}
             </div>
 
-            {/* Similar Jobs */}
-            {similarJobs.length > 0 && (
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">
-                  Similar Jobs
-                </h3>
-                <div className="space-y-4">
-                  {similarJobs.slice(0, 3).map((similarJob) => (
-                    <Link
-                      key={similarJob.id}
-                      to={`/jobs/${similarJob.id}`}
-                      className="block p-4 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
-                    >
-                      <h4 className="font-medium text-white mb-1">
-                        {similarJob.title}
-                      </h4>
-                      <p className="text-sm text-gray-400 mb-2">
-                        {similarJob.company}
-                      </p>
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>{similarJob.location}</span>
-                        <span>{formatSalary(similarJob.salary)}</span>
-                      </div>
-                    </Link>
-                  ))}
+            {/* Job Stats */}
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h3 className="text-xl font-bold text-white mb-4">
+                Job Statistics
+              </h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Applications</span>
+                  <span className="text-white font-medium">
+                    {job.applicationCount}
+                  </span>
                 </div>
-
-                <Link
-                  to="/jobs"
-                  className="block text-center text-purple-400 hover:text-purple-300 text-sm mt-4"
-                >
-                  View All Jobs
-                </Link>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Posted</span>
+                  <span className="text-white font-medium">
+                    {formatPostedTime(job.posted)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Job ID</span>
+                  <span className="text-white font-medium font-mono text-sm">
+                    {job.id}
+                  </span>
+                </div>
               </div>
-            )}
+            </div>
+
+            {/* Similar Jobs CTA */}
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h3 className="text-xl font-bold text-white mb-4">
+                More Opportunities
+              </h3>
+              <p className="text-gray-400 mb-4">
+                Discover similar {job.experienceLevel.toLowerCase()} level
+                positions at {job.company} and other companies.
+              </p>
+              <button
+                onClick={() => navigate(`/jobs?company=${job.company}`)}
+                className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <ExternalLink className="w-4 h-4" />
+                View Similar Jobs
+              </button>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Application Modal */}
-      {showApplicationModal && (
-        <ApplicationModal
-          job={job}
-          onClose={() => setShowApplicationModal(false)}
-          onSubmit={(applicationData) => {
-            console.log("Application submitted:", applicationData);
-            setApplied(true);
-            setShowApplicationModal(false);
-            alert("Application submitted successfully!");
-          }}
-        />
-      )}
     </div>
   );
 }

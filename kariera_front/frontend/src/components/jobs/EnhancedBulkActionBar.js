@@ -1,4 +1,4 @@
-// src/components/jobs/EnhancedBulkActionBar.js - FIXED VERSION
+// src/components/jobs/EnhancedBulkActionBar.js - Updated with consistent salary formatting
 import React, { useState } from "react";
 import {
   Send,
@@ -25,6 +25,7 @@ import {
   Star,
   CheckSquare,
 } from "lucide-react";
+import { salaryUtils } from "../../utils/salaryUtils";
 
 export default function EnhancedBulkActionBar({
   selectionStats,
@@ -65,58 +66,12 @@ export default function EnhancedBulkActionBar({
     }
   };
 
-  // FIXED: Enhanced formatSalary function to handle different data types
-  const formatSalary = (salaryData) => {
-    // Handle null, undefined, or invalid data
-    if (!salaryData) return "$0";
-
-    // If it's already a number, format normally
-    if (typeof salaryData === "number") {
-      if (salaryData >= 1000000)
-        return `$${(salaryData / 1000000).toFixed(1)}M`;
-      if (salaryData >= 1000) return `$${(salaryData / 1000).toFixed(0)}k`;
-      return `$${Math.round(salaryData)}`;
-    }
-
-    // If it's an object with min, max, currency properties
-    if (typeof salaryData === "object" && salaryData.min !== undefined) {
-      const amount = salaryData.max
-        ? (salaryData.min + salaryData.max) / 2
-        : salaryData.min;
-      if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
-      if (amount >= 1000) return `$${(amount / 1000).toFixed(0)}k`;
-      return `$${Math.round(amount)}`;
-    }
-
-    // If it's a string, try to parse it
-    if (typeof salaryData === "string") {
-      const parsed = parseFloat(salaryData);
-      if (!isNaN(parsed)) {
-        return formatSalary(parsed);
-      }
-    }
-
-    // Default fallback
-    return "$0";
-  };
-
-  // FIXED: Safe salary extraction from selectionStats
+  // Calculate average salary using centralized utility
   const getAverageSalary = () => {
-    if (
-      !selectionStats ||
-      typeof selectionStats.averageSalary === "undefined"
-    ) {
-      return 0;
-    }
-    return selectionStats.averageSalary;
-  };
+    if (!selectedJobs || selectedJobs.length === 0) return "N/A";
 
-  // FIXED: Safe stats extraction
-  const getStatValue = (stat, defaultValue = 0) => {
-    if (!selectionStats || typeof selectionStats[stat] === "undefined") {
-      return defaultValue;
-    }
-    return selectionStats[stat];
+    const salaries = selectedJobs.map((job) => job.salary).filter(Boolean);
+    return salaryUtils.formatAverage(salaries, { compactFormat: true });
   };
 
   return (
@@ -132,133 +87,73 @@ export default function EnhancedBulkActionBar({
               </div>
               <div className="flex flex-col">
                 <span className="font-semibold text-white">
-                  {getStatValue("count")} job
-                  {getStatValue("count") !== 1 ? "s" : ""} selected
+                  {selectionStats.count} job
+                  {selectionStats.count !== 1 ? "s" : ""} selected
                 </span>
                 <span className="text-xs text-gray-400">
-                  {getStatValue("companies")} compan
-                  {getStatValue("companies") !== 1 ? "ies" : "y"} • Avg.{" "}
-                  {formatSalary(getAverageSalary())}
+                  {selectionStats.companies} compan
+                  {selectionStats.companies !== 1 ? "ies" : "y"} • Avg.{" "}
+                  {getAverageSalary()}
                 </span>
               </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="hidden md:flex items-center gap-4 text-sm text-gray-400">
-              <div className="flex items-center gap-1">
-                <Building2 className="w-4 h-4" />
-                <span>{getStatValue("companies")} companies</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
-                <span>{getStatValue("locations")} locations</span>
-              </div>
-              {getStatValue("hasRemoteJobs") && (
-                <div className="flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  <span>Remote jobs</span>
-                </div>
-              )}
-            </div>
-
-            {/* Upgrade Warning */}
-            {needsUpgrade && (
-              <div className="flex items-center gap-2 text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full">
-                <AlertCircle className="w-4 h-4" />
-                <span className="text-sm">
-                  {remainingApplications} applications remaining
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2">
-            {/* Quick Actions Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowQuickActions(!showQuickActions)}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                <Filter className="w-4 h-4" />
-                <span className="hidden sm:inline">Quick Select</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
-
-              {showQuickActions && (
-                <div className="absolute top-full mt-2 right-0 w-64 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
-                  <div className="p-3">
-                    <div className="text-sm font-medium text-white mb-2">
-                      Quick Selection
-                    </div>
-                    <div className="space-y-1">
-                      <button
-                        onClick={() => onQuickSelect?.("remote")}
-                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded"
-                      >
-                        Remote jobs only
-                      </button>
-                      <button
-                        onClick={() => onQuickSelect?.("high-salary")}
-                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded"
-                      >
-                        High salary ($100k+)
-                      </button>
-                      <button
-                        onClick={() => onQuickSelect?.("recent")}
-                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded"
-                      >
-                        Posted this week
-                      </button>
-                      <button
-                        onClick={() => onQuickSelect?.("featured")}
-                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded"
-                      >
-                        Featured jobs
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Quick Actions Toggle */}
+            <button
+              onClick={() => setShowQuickActions(!showQuickActions)}
+              className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+            >
+              <Filter className="w-4 h-4" />
+              <span className="text-sm">Quick Actions</span>
+              <ChevronDown
+                className={`w-4 h-4 transform transition-transform ${
+                  showQuickActions ? "rotate-180" : ""
+                }`}
+              />
+            </button>
 
             {/* Analytics Toggle */}
             <button
               onClick={() => setShowAnalytics(!showAnalytics)}
-              className={`p-2 rounded-lg transition-colors ${
-                showAnalytics
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-              }`}
-              title="Show analytics"
+              className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
             >
               <BarChart3 className="w-4 h-4" />
+              <span className="text-sm">Analytics</span>
+              <ChevronDown
+                className={`w-4 h-4 transform transition-transform ${
+                  showAnalytics ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Main Actions */}
+          <div className="flex items-center gap-3">
+            {/* Save Button */}
+            <button
+              onClick={() => handleAction(onBulkSave, "bulk save")}
+              disabled={isProcessing}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white hover:bg-gray-600 rounded-lg transition-colors"
+            >
+              <Bookmark className="w-4 h-4" />
+              <span>Save All</span>
             </button>
 
-            {/* Secondary Actions */}
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => handleAction(onBulkSave, "bulk save")}
-                className="p-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                title="Save all selected"
-              >
-                <Bookmark className="w-4 h-4" />
-              </button>
+            {/* Export Button */}
+            <button
+              onClick={() => handleAction(onExportSelection, "export")}
+              disabled={isProcessing}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white hover:bg-gray-600 rounded-lg transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export</span>
+            </button>
 
-              <button
-                onClick={() => handleAction(onExportSelection, "export")}
-                className="p-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                title="Export selection"
-              >
-                <Download className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Primary Apply Button */}
+            {/* Apply Button */}
             <button
               onClick={() => handleAction(onBulkApply, "bulk apply")}
               disabled={isProcessing}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+              className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-colors ${
                 needsUpgrade || exceedsFreeTier
                   ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
                   : "bg-purple-600 text-white hover:bg-purple-700"
@@ -272,7 +167,7 @@ export default function EnhancedBulkActionBar({
               <span>
                 {needsUpgrade || exceedsFreeTier
                   ? "Upgrade & Apply"
-                  : `Apply to ${getStatValue("count")}`}
+                  : `Apply to ${selectionStats.count}`}
               </span>
               {(needsUpgrade || exceedsFreeTier) && (
                 <Zap className="w-4 h-4 text-yellow-400" />
@@ -291,48 +186,199 @@ export default function EnhancedBulkActionBar({
         </div>
       </div>
 
+      {/* Quick Actions Dropdown */}
+      {showQuickActions && (
+        <div className="border-t border-gray-700 px-6 py-4 bg-gray-800/50">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <button
+              onClick={() =>
+                handleAction(onGenerateCoverLetters, "generate cover letters")
+              }
+              className="flex items-center gap-2 p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-left"
+            >
+              <FileText className="w-4 h-4 text-blue-400" />
+              <div>
+                <div className="text-sm font-medium text-white">
+                  Cover Letters
+                </div>
+                <div className="text-xs text-gray-400">Generate AI letters</div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => handleAction(onShareSelection, "share")}
+              className="flex items-center gap-2 p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-left"
+            >
+              <Share2 className="w-4 h-4 text-green-400" />
+              <div>
+                <div className="text-sm font-medium text-white">Share</div>
+                <div className="text-xs text-gray-400">Share selection</div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => handleAction(onArchiveJobs, "archive")}
+              className="flex items-center gap-2 p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-left"
+            >
+              <Archive className="w-4 h-4 text-orange-400" />
+              <div>
+                <div className="text-sm font-medium text-white">Archive</div>
+                <div className="text-xs text-gray-400">Archive jobs</div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => handleAction(onDeleteJobs, "delete")}
+              className="flex items-center gap-2 p-3 bg-gray-700 hover:bg-red-600 rounded-lg transition-colors text-left"
+            >
+              <Trash2 className="w-4 h-4 text-red-400" />
+              <div>
+                <div className="text-sm font-medium text-white">Delete</div>
+                <div className="text-xs text-gray-400">Remove from list</div>
+              </div>
+            </button>
+          </div>
+
+          {/* Quick Select Options */}
+          <div className="mt-4 pt-4 border-t border-gray-700">
+            <div className="text-sm text-gray-400 mb-2">Quick Select:</div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => onQuickSelect?.("remote")}
+                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs text-gray-300 transition-colors"
+              >
+                All Remote
+              </button>
+              <button
+                onClick={() => onQuickSelect?.("senior")}
+                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs text-gray-300 transition-colors"
+              >
+                Senior Level
+              </button>
+              <button
+                onClick={() => onQuickSelect?.("highSalary")}
+                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs text-gray-300 transition-colors"
+              >
+                High Salary (100k+)
+              </button>
+              <button
+                onClick={() => onQuickSelect?.("recent")}
+                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs text-gray-300 transition-colors"
+              >
+                Posted Recently
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Analytics Dropdown */}
       {showAnalytics && (
         <div className="border-t border-gray-700 px-6 py-4 bg-gray-800/50">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-400">
-                {formatSalary(getAverageSalary())}
+                {getAverageSalary()}
               </div>
               <div className="text-gray-400">Avg. Salary</div>
             </div>
+
             <div className="text-center">
               <div className="text-2xl font-bold text-green-400">
-                {getStatValue("companies")}
+                {selectedJobs?.filter((job) => job.remote).length || 0}
+              </div>
+              <div className="text-gray-400">Remote Jobs</div>
+            </div>
+
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-400">
+                {selectionStats.companies || 0}
               </div>
               <div className="text-gray-400">Companies</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-400">
-                {getStatValue("locations")}
-              </div>
-              <div className="text-gray-400">Locations</div>
-            </div>
+
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-400">
-                {getStatValue("jobTypes")}
+                {selectedJobs?.filter((job) => job.urgentHiring).length || 0}
               </div>
-              <div className="text-gray-400">Job Types</div>
+              <div className="text-gray-400">Urgent</div>
             </div>
           </div>
 
-          {/* Additional Analytics */}
-          <div className="mt-4 pt-4 border-t border-gray-600">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-400">Remote positions:</span>
-              <span className="text-green-400">
-                {selectedJobs?.filter((job) => job?.remote)?.length || 0}
-              </span>
+          {/* Salary Distribution */}
+          {selectedJobs && selectedJobs.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-gray-700">
+              <div className="text-sm text-gray-400 mb-2">
+                Salary Distribution:
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-xs">
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-green-400">
+                    {(() => {
+                      const salaries = selectedJobs
+                        .map((job) => job.salary)
+                        .filter(Boolean);
+                      const amounts = salaries
+                        .map((s) => s.min || s.amount || 0)
+                        .filter((a) => a > 0);
+                      const min = amounts.length > 0 ? Math.min(...amounts) : 0;
+                      return salaryUtils.formatAmount(min, {
+                        compactFormat: true,
+                      });
+                    })()}
+                  </div>
+                  <div className="text-gray-400">Minimum</div>
+                </div>
+
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-purple-400">
+                    {getAverageSalary()}
+                  </div>
+                  <div className="text-gray-400">Average</div>
+                </div>
+
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-blue-400">
+                    {(() => {
+                      const salaries = selectedJobs
+                        .map((job) => job.salary)
+                        .filter(Boolean);
+                      const amounts = salaries
+                        .map((s) => s.max || s.amount || 0)
+                        .filter((a) => a > 0);
+                      const max = amounts.length > 0 ? Math.max(...amounts) : 0;
+                      return salaryUtils.formatAmount(max, {
+                        compactFormat: true,
+                      });
+                    })()}
+                  </div>
+                  <div className="text-gray-400">Maximum</div>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center justify-between text-sm mt-2">
-              <span className="text-gray-400">On-site positions:</span>
-              <span className="text-blue-400">
-                {selectedJobs?.filter((job) => !job?.remote)?.length || 0}
+          )}
+        </div>
+      )}
+
+      {/* Upgrade Notice */}
+      {(needsUpgrade || exceedsFreeTier) && (
+        <div className="border-t border-gray-700 px-6 py-3 bg-gradient-to-r from-purple-900/30 to-pink-900/30">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-yellow-400" />
+            <div className="flex-1">
+              <div className="text-sm font-medium text-white">
+                {exceedsFreeTier
+                  ? `Upgrade to apply to more than ${maxFreeApplications} jobs`
+                  : `You have ${remainingApplications} applications remaining`}
+              </div>
+              <div className="text-xs text-gray-400">
+                Get unlimited applications with Pro
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-purple-400" />
+              <span className="text-sm text-purple-400 font-medium">
+                $9.99/month
               </span>
             </div>
           </div>
