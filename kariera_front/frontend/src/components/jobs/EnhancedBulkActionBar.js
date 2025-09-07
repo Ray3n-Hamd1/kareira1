@@ -93,7 +93,7 @@ export default function EnhancedBulkActionBar({
                 <span className="text-xs text-gray-400">
                   {selectionStats.companies} compan
                   {selectionStats.companies !== 1 ? "ies" : "y"} • Avg.{" "}
-                  {getAverageSalary()}
+                  {formatSalary(selectionStats.avgSalary)}
                 </span>
               </div>
             </div>
