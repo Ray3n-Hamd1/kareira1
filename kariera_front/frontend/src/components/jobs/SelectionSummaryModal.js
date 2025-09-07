@@ -1,4 +1,4 @@
-// src/components/jobs/SelectionSummaryModal.js
+// src/components/jobs/SelectionSummaryModal.js - FIXED VERSION
 import React, { useState, useMemo } from "react";
 import {
   X,
@@ -40,6 +40,79 @@ export default function SelectionSummaryModal({
   const [showHiddenJobs, setShowHiddenJobs] = useState(true);
   const [hiddenJobIds, setHiddenJobIds] = useState(new Set());
 
+  // FIXED: Enhanced formatSalary function to handle different salary structures
+  const formatSalary = (salaryData) => {
+    if (!salaryData) return "$0";
+
+    // If it's a number, format normally
+    if (typeof salaryData === "number") {
+      if (salaryData >= 1000000)
+        return `$${(salaryData / 1000000).toFixed(1)}M`;
+      if (salaryData >= 1000) return `$${(salaryData / 1000).toFixed(0)}k`;
+      return `$${Math.round(salaryData)}`;
+    }
+
+    // If it's an object with min, max, currency
+    if (typeof salaryData === "object") {
+      let amount = 0;
+      if (salaryData.min && salaryData.max) {
+        amount = (salaryData.min + salaryData.max) / 2;
+      } else if (salaryData.max) {
+        amount = salaryData.max;
+      } else if (salaryData.min) {
+        amount = salaryData.min;
+      } else if (salaryData.amount) {
+        amount = salaryData.amount;
+      }
+
+      if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
+      if (amount >= 1000) return `$${(amount / 1000).toFixed(0)}k`;
+      return `$${Math.round(amount)}`;
+    }
+
+    return "$0";
+  };
+
+  // FIXED: Safe salary range rendering
+  const renderSalaryRange = (salary) => {
+    if (!salary) return "Salary not specified";
+
+    if (typeof salary === "object") {
+      if (salary.min && salary.max) {
+        return `${formatSalary(salary.min)} - ${formatSalary(salary.max)}`;
+      } else if (salary.amount) {
+        return formatSalary(salary.amount);
+      }
+    }
+
+    if (typeof salary === "number") {
+      return formatSalary(salary);
+    }
+
+    return "Salary not specified";
+  };
+
+  // FIXED: Safe salary extraction for calculations
+  const getSalaryValue = (salary) => {
+    if (!salary) return 0;
+
+    if (typeof salary === "number") return salary;
+
+    if (typeof salary === "object") {
+      if (salary.min && salary.max) {
+        return (salary.min + salary.max) / 2;
+      } else if (salary.max) {
+        return salary.max;
+      } else if (salary.min) {
+        return salary.min;
+      } else if (salary.amount) {
+        return salary.amount;
+      }
+    }
+
+    return 0;
+  };
+
   // Sort jobs based on selected criteria
   const sortedJobs = useMemo(() => {
     const visibleJobs = showHiddenJobs
@@ -51,8 +124,8 @@ export default function SelectionSummaryModal({
         case "company":
           return a.company.localeCompare(b.company);
         case "salary":
-          const aSalary = a.salary?.max || 0;
-          const bSalary = b.salary?.max || 0;
+          const aSalary = getSalaryValue(a.salary);
+          const bSalary = getSalaryValue(b.salary);
           return bSalary - aSalary;
         case "date":
           return new Date(b.posted) - new Date(a.posted);
@@ -64,7 +137,7 @@ export default function SelectionSummaryModal({
     });
   }, [selectedJobs, sortBy, showHiddenJobs, hiddenJobIds]);
 
-  // Group jobs by company for analytics
+  // FIXED: Group jobs by company for analytics with safe salary calculation
   const jobsByCompany = useMemo(() => {
     const grouped = selectedJobs.reduce((acc, job) => {
       if (!acc[job.company]) {
@@ -80,23 +153,16 @@ export default function SelectionSummaryModal({
         jobs,
         count: jobs.length,
         avgSalary:
-          jobs.reduce((sum, job) => {
-            const avg = job.salary?.max
-              ? (job.salary.min + job.salary.max) / 2
-              : 0;
-            return sum + avg;
-          }, 0) / jobs.length,
+          jobs.length > 0
+            ? jobs.reduce((sum, job) => {
+                return sum + getSalaryValue(job.salary);
+              }, 0) / jobs.length
+            : 0,
         hasRemote: jobs.some((job) => job.remote),
         locations: [...new Set(jobs.map((job) => job.location))],
       }))
       .sort((a, b) => b.count - a.count);
   }, [selectedJobs]);
-
-  const formatSalary = (amount) => {
-    if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
-    if (amount >= 1000) return `$${(amount / 1000).toFixed(0)}k`;
-    return `$${Math.round(amount)}`;
-  };
 
   const getActionTitle = () => {
     switch (actionType) {
@@ -116,15 +182,23 @@ export default function SelectionSummaryModal({
   const getActionDescription = () => {
     switch (actionType) {
       case "apply":
-        return `Submit applications to ${selectionStats.count} selected jobs. Your profile and resume will be automatically customized for each application.`;
+        return `Submit applications to ${
+          selectionStats?.count || 0
+        } selected jobs. Your profile and resume will be automatically customized for each application.`;
       case "save":
-        return `Add ${selectionStats.count} jobs to your saved jobs list for future reference.`;
+        return `Add ${
+          selectionStats?.count || 0
+        } jobs to your saved jobs list for future reference.`;
       case "export":
-        return `Download a detailed report of ${selectionStats.count} selected jobs in PDF format.`;
+        return `Download a detailed report of ${
+          selectionStats?.count || 0
+        } selected jobs in PDF format.`;
       case "generate_letters":
-        return `Create personalized cover letters for ${selectionStats.count} jobs using AI.`;
+        return `Create personalized cover letters for ${
+          selectionStats?.count || 0
+        } jobs using AI.`;
       default:
-        return `Process ${selectionStats.count} selected jobs.`;
+        return `Process ${selectionStats?.count || 0} selected jobs.`;
     }
   };
 
@@ -200,25 +274,25 @@ export default function SelectionSummaryModal({
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-gray-700 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-purple-400">
-                    {selectionStats.count}
+                    {selectionStats?.count || 0}
                   </div>
                   <div className="text-sm text-gray-400">Jobs Selected</div>
                 </div>
                 <div className="bg-gray-700 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-green-400">
-                    {formatSalary(selectionStats.averageSalary)}
+                    {formatSalary(selectionStats?.averageSalary || 0)}
                   </div>
                   <div className="text-sm text-gray-400">Avg. Salary</div>
                 </div>
                 <div className="bg-gray-700 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-blue-400">
-                    {selectionStats.companies}
+                    {selectionStats?.companies || 0}
                   </div>
                   <div className="text-sm text-gray-400">Companies</div>
                 </div>
                 <div className="bg-gray-700 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-orange-400">
-                    {selectionStats.locations}
+                    {selectionStats?.locations || 0}
                   </div>
                   <div className="text-sm text-gray-400">Locations</div>
                 </div>
@@ -261,7 +335,7 @@ export default function SelectionSummaryModal({
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-400">
-                        {selectionStats.count} job applications
+                        {selectionStats?.count || 0} job applications
                       </span>
                       <span className="text-white">
                         ${estimatedCost.toFixed(2)}
@@ -289,17 +363,19 @@ export default function SelectionSummaryModal({
                   Companies Included
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {selectionStats.uniqueCompanies.slice(0, 8).map((company) => (
-                    <span
-                      key={company}
-                      className="px-3 py-1 bg-purple-600/20 text-purple-300 rounded-full text-sm"
-                    >
-                      {company}
-                    </span>
-                  ))}
-                  {selectionStats.uniqueCompanies.length > 8 && (
+                  {(selectionStats?.uniqueCompanies || [])
+                    .slice(0, 8)
+                    .map((company) => (
+                      <span
+                        key={company}
+                        className="px-3 py-1 bg-purple-600/20 text-purple-300 rounded-full text-sm"
+                      >
+                        {company}
+                      </span>
+                    ))}
+                  {(selectionStats?.uniqueCompanies?.length || 0) > 8 && (
                     <span className="px-3 py-1 bg-gray-600/20 text-gray-400 rounded-full text-sm">
-                      +{selectionStats.uniqueCompanies.length - 8} more
+                      +{(selectionStats?.uniqueCompanies?.length || 0) - 8} more
                     </span>
                   )}
                 </div>
@@ -358,11 +434,7 @@ export default function SelectionSummaryModal({
                           {job.company} • {job.location}
                         </div>
                         <div className="text-sm text-green-400">
-                          {job.salary?.max
-                            ? `${formatSalary(job.salary.min)} - ${formatSalary(
-                                job.salary.max
-                              )}`
-                            : "Salary not specified"}
+                          {renderSalaryRange(job.salary)}
                         </div>
                       </div>
                     </div>
@@ -461,7 +533,9 @@ export default function SelectionSummaryModal({
                     <div className="space-y-2">
                       {[
                         ...new Set(
-                          selectedJobs.map((job) => job.experienceLevel)
+                          selectedJobs
+                            .map((job) => job.experienceLevel)
+                            .filter(Boolean)
                         ),
                       ].map((level) => (
                         <div
@@ -489,15 +563,7 @@ export default function SelectionSummaryModal({
         {/* Footer */}
         <div className="flex items-center justify-between p-6 border-t border-gray-700">
           <div className="text-sm text-gray-400">
-            {actionType === "apply" && (
-              <span>Applications will be processed within 24 hours</span>
-            )}
-            {actionType === "save" && (
-              <span>Jobs will be added to your saved list</span>
-            )}
-            {actionType === "export" && (
-              <span>Report will be downloaded as PDF</span>
-            )}
+            {selectionStats?.count || 0} jobs selected
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -507,17 +573,10 @@ export default function SelectionSummaryModal({
               Cancel
             </button>
             <button
-              onClick={() =>
-                onProceedWithAction(
-                  sortedJobs.filter((job) => !hiddenJobIds.has(job.id))
-                )
-              }
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+              onClick={onProceedWithAction}
+              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
             >
-              {actionType === "apply" && "Apply to All"}
-              {actionType === "save" && "Save All"}
-              {actionType === "export" && "Download Report"}
-              {actionType === "generate_letters" && "Generate Letters"}
+              {actionType === "apply" ? "Apply to Jobs" : "Continue"}
             </button>
           </div>
         </div>

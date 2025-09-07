@@ -12,6 +12,7 @@ import {
   Star,
   ExternalLink,
 } from "lucide-react";
+import { formatSalary } from "../../utils/formatSalary"; // Import shared utility
 
 export default function JobCard({
   job,
@@ -45,19 +46,6 @@ export default function JobCard({
     companySize,
     rating,
   } = job;
-
-  // Format salary display
-  const formatSalary = () => {
-    if (salary?.min && salary?.max) {
-      return `$${(salary.min / 1000).toFixed(0)}k - $${(
-        salary.max / 1000
-      ).toFixed(0)}k`;
-    }
-    if (salary?.amount) {
-      return `$${(salary.amount / 1000).toFixed(0)}k`;
-    }
-    return "Salary not specified";
-  };
 
   // Format posting time
   const formatPostedTime = () => {
@@ -212,7 +200,9 @@ export default function JobCard({
               </div>
               <div className="flex items-center gap-1">
                 <DollarSign className="w-4 h-4" />
-                <span>{formatSalary()}</span>
+                <span className="font-medium text-green-400">
+                  {formatSalary(salary)}
+                </span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
@@ -372,7 +362,9 @@ export default function JobCard({
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-400">
           <DollarSign className="w-4 h-4" />
-          <span className="font-medium text-green-400">{formatSalary()}</span>
+          <span className="font-medium text-green-400">
+            {formatSalary(salary)}
+          </span>
         </div>
       </div>
 
