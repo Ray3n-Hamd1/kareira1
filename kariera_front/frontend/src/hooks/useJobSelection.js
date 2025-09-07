@@ -1,172 +1,79 @@
-// src/hooks/useJobSelection.js - Enhanced selection management
-import { useState, useCallback, useMemo } from "react";
+// src/hooks/useJobSelection.js - Simple version for immediate use
+import { useState, useEffect, useMemo } from "react";
 
 export const useJobSelection = (jobs = []) => {
   const [selectedJobIds, setSelectedJobIds] = useState(new Set());
-  const [lastSelectedId, setLastSelectedId] = useState(null);
 
-  // Get selected jobs data
+  // Clear selection when jobs change significantly
+  useEffect(() => {
+    if (jobs.length === 0) {
+      setSelectedJobIds(new Set());
+    }
+  }, [jobs]);
+
+  // Get selected job objects
   const selectedJobs = useMemo(() => {
     return jobs.filter((job) => selectedJobIds.has(job.id));
   }, [jobs, selectedJobIds]);
 
-  // Selection stats
+  // Calculate basic selection statistics
   const selectionStats = useMemo(() => {
     const selected = selectedJobs;
     const totalSalary = selected.reduce((sum, job) => {
-      const avgSalary = job.salary?.max
-        ? (job.salary.min + job.salary.max) / 2
-        : 0;
-      return sum + avgSalary;
+      const salary =
+        typeof job.salary === "string"
+          ? parseInt(job.salary.replace(/[^\d]/g, "")) || 0
+          : job.salary || 0;
+      return sum + salary;
     }, 0);
 
-    const companies = [...new Set(selected.map((job) => job.company))];
-    const jobTypes = [...new Set(selected.map((job) => job.type))];
-    const locations = [...new Set(selected.map((job) => job.location))];
-
     return {
-      count: selected.length,
-      averageSalary:
-        selected.length > 0 ? Math.round(totalSalary / selected.length) : 0,
-      companies: companies.length,
-      uniqueCompanies: companies,
-      jobTypes: jobTypes.length,
-      uniqueJobTypes: jobTypes,
-      locations: locations.length,
-      uniqueLocations: locations,
-      hasRemoteJobs: selected.some((job) => job.remote),
-      hasOnsiteJobs: selected.some((job) => !job.remote),
+      totalJobs: selected.length,
+      totalSalary,
+      averageSalary: selected.length > 0 ? totalSalary / selected.length : 0,
+      estimatedApplicationCost: selected.length * 10, // $10 per application
     };
   }, [selectedJobs]);
 
-  // Single job selection
-  const toggleJobSelection = useCallback(
-    (jobId, event = null) => {
-      setSelectedJobIds((prev) => {
-        const newSet = new Set(prev);
+  // Toggle individual job selection
+  const toggleJobSelection = (jobId) => {
+    setSelectedJobIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(jobId)) {
+        newSet.delete(jobId);
+      } else {
+        newSet.add(jobId);
+      }
+      return newSet;
+    });
+  };
 
-        // Handle shift+click for range selection
-        if (event?.shiftKey && lastSelectedId && lastSelectedId !== jobId) {
-          const currentIndex = jobs.findIndex((job) => job.id === jobId);
-          const lastIndex = jobs.findIndex((job) => job.id === lastSelectedId);
+  // Select all jobs
+  const selectAllJobs = () => {
+    const allJobIds = new Set(jobs.map((job) => job.id));
+    setSelectedJobIds(allJobIds);
+  };
 
-          if (currentIndex !== -1 && lastIndex !== -1) {
-            const start = Math.min(currentIndex, lastIndex);
-            const end = Math.max(currentIndex, lastIndex);
-
-            // Add all jobs in range
-            for (let i = start; i <= end; i++) {
-              newSet.add(jobs[i].id);
-            }
-
-            setLastSelectedId(jobId);
-            return newSet;
-          }
-        }
-
-        // Normal toggle
-        if (newSet.has(jobId)) {
-          newSet.delete(jobId);
-        } else {
-          newSet.add(jobId);
-          setLastSelectedId(jobId);
-        }
-
-        return newSet;
-      });
-    },
-    [jobs, lastSelectedId]
-  );
-
-  // Select all visible jobs
-  const selectAllJobs = useCallback(
-    (jobsToSelect = jobs) => {
-      const newSelectedIds = new Set([...selectedJobIds]);
-      jobsToSelect.forEach((job) => newSelectedIds.add(job.id));
-      setSelectedJobIds(newSelectedIds);
-    },
-    [jobs, selectedJobIds]
-  );
-
-  // Deselect all jobs
-  const clearSelection = useCallback(() => {
+  // Clear all selections
+  const clearSelection = () => {
     setSelectedJobIds(new Set());
-    setLastSelectedId(null);
-  }, []);
+  };
 
-  // Select by criteria
-  const selectByFilter = useCallback(
-    (filterFn) => {
-      const filteredJobs = jobs.filter(filterFn);
-      const newSelectedIds = new Set([...selectedJobIds]);
-      filteredJobs.forEach((job) => newSelectedIds.add(job.id));
-      setSelectedJobIds(newSelectedIds);
-    },
-    [jobs, selectedJobIds]
-  );
+  // Check if all jobs are selected
+  const isAllSelected = jobs.length > 0 && selectedJobIds.size === jobs.length;
 
-  // Quick selection methods
-  const selectRemoteJobs = useCallback(() => {
-    selectByFilter((job) => job.remote);
-  }, [selectByFilter]);
-
-  const selectByCompany = useCallback(
-    (companyName) => {
-      selectByFilter((job) => job.company === companyName);
-    },
-    [selectByFilter]
-  );
-
-  const selectByJobType = useCallback(
-    (jobType) => {
-      selectByFilter((job) => job.type === jobType);
-    },
-    [selectByFilter]
-  );
-
-  const selectBySalaryRange = useCallback(
-    (minSalary, maxSalary) => {
-      selectByFilter((job) => {
-        const avgSalary = job.salary?.max
-          ? (job.salary.min + job.salary.max) / 2
-          : 0;
-        return avgSalary >= minSalary && avgSalary <= maxSalary;
-      });
-    },
-    [selectByFilter]
-  );
-
-  // Check if job is selected
-  const isJobSelected = useCallback(
-    (jobId) => {
-      return selectedJobIds.has(jobId);
-    },
-    [selectedJobIds]
-  );
-
-  // Check selection states
-  const isAllSelected = useMemo(() => {
-    return jobs.length > 0 && jobs.every((job) => selectedJobIds.has(job.id));
-  }, [jobs, selectedJobIds]);
-
-  const isPartiallySelected = useMemo(() => {
-    return selectedJobIds.size > 0 && !isAllSelected;
-  }, [selectedJobIds.size, isAllSelected]);
+  // Check if some jobs are selected
+  const isSomeSelected =
+    selectedJobIds.size > 0 && selectedJobIds.size < jobs.length;
 
   return {
     selectedJobIds,
     selectedJobs,
     selectionStats,
+    isAllSelected,
+    isSomeSelected,
     toggleJobSelection,
     selectAllJobs,
     clearSelection,
-    selectByFilter,
-    selectRemoteJobs,
-    selectByCompany,
-    selectByJobType,
-    selectBySalaryRange,
-    isJobSelected,
-    isAllSelected,
-    isPartiallySelected,
   };
 };

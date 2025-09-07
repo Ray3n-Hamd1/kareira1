@@ -1,324 +1,375 @@
-// src/components/jobs/EnhancedBulkActionBar.js
-import React, { useState } from "react";
+// src/components/jobs/EnhancedBulkActionBar.js - Enhanced bulk action bar matching screenshots
+import React, { useState, useEffect } from "react";
 import {
+  Check,
+  X,
   Send,
   Bookmark,
-  X,
-  Check,
-  AlertCircle,
-  CreditCard,
-  Zap,
-  Users,
-  FileText,
-  Download,
-  ChevronDown,
-  Filter,
-  DollarSign,
-  MapPin,
-  Building2,
-  Clock,
-  Share2,
-  Archive,
   Trash2,
-  BarChart3,
+  Download,
+  Share2,
   Eye,
-  Star,
-  CheckSquare,
+  Calendar,
+  DollarSign,
+  Building2,
+  MapPin,
+  Clock,
+  Zap,
+  AlertTriangle,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 
-export default function EnhancedBulkActionBar({
-  selectionStats,
-  selectedJobs,
-  onBulkApply,
-  onBulkSave,
+const EnhancedBulkActionBar = ({
+  selectedCount = 0,
+  selectedJobs = [],
+  selectionStats = {},
+  onAction,
   onClearSelection,
-  onGenerateCoverLetters,
-  onExportSelection,
-  onArchiveJobs,
-  onDeleteJobs,
-  onShareSelection,
-  onQuickSelect,
   userTier = "free",
   remainingApplications = 0,
-  maxFreeApplications = 5,
-  isVisible = true,
-}) {
-  const [showQuickActions, setShowQuickActions] = useState(false);
-  const [showAnalytics, setShowAnalytics] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  className = "",
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showUpgradeWarning, setShowUpgradeWarning] = useState(false);
 
-  if (!isVisible || selectionStats.count === 0) return null;
+  // Check if user can apply to all selected jobs
+  const canApplyToAll =
+    userTier === "premium" || remainingApplications >= selectedCount;
+  const applicationsNeeded = Math.max(0, selectedCount - remainingApplications);
 
-  const needsUpgrade =
-    userTier === "free" && selectionStats.count > remainingApplications;
-  const exceedsFreeTier =
-    userTier === "free" && selectionStats.count > maxFreeApplications;
-
-  const handleAction = async (actionFn, actionName) => {
-    setIsProcessing(true);
-    try {
-      await actionFn?.();
-    } catch (error) {
-      console.error(`Error in ${actionName}:`, error);
-    } finally {
-      setIsProcessing(false);
+  useEffect(() => {
+    if (selectedCount > remainingApplications && userTier === "free") {
+      setShowUpgradeWarning(true);
+    } else {
+      setShowUpgradeWarning(false);
     }
+  }, [selectedCount, remainingApplications, userTier]);
+
+  if (selectedCount === 0) return null;
+
+  const handleAction = (actionType) => {
+    if (actionType === "apply" && !canApplyToAll) {
+      onAction("showUpgrade");
+      return;
+    }
+    onAction(actionType);
   };
 
-  const formatSalary = (amount) => {
-    if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
-    if (amount >= 1000) return `$${(amount / 1000).toFixed(0)}k`;
-    return `$${amount}`;
+  const getEstimatedCost = () => {
+    const applicationCost = 10; // $10 per application
+    return selectedCount * applicationCost;
+  };
+
+  const formatSalaryRange = () => {
+    if (!selectedJobs.length) return "N/A";
+
+    const salaries = selectedJobs
+      .map((job) => {
+        const salary =
+          typeof job.salary === "string"
+            ? parseInt(job.salary.replace(/[^\d]/g, "")) || 0
+            : job.salary || 0;
+        return salary;
+      })
+      .filter((salary) => salary > 0);
+
+    if (salaries.length === 0) return "N/A";
+
+    const min = Math.min(...salaries);
+    const max = Math.max(...salaries);
+
+    if (min === max) {
+      return `$${min.toLocaleString()}`;
+    }
+    return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
+  };
+
+  const getUniqueCompanies = () => {
+    return [...new Set(selectedJobs.map((job) => job.company))];
+  };
+
+  const getUniqueLocations = () => {
+    return [...new Set(selectedJobs.map((job) => job.location))];
   };
 
   return (
-    <div className="sticky top-0 z-40 bg-gray-900 border border-purple-500/50 rounded-lg shadow-2xl backdrop-blur-sm">
+    <>
       {/* Main Action Bar */}
-      <div className="px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Selection Info */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-                <CheckSquare className="w-4 h-4 text-white" />
+      <div
+        className={`fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 shadow-lg z-40 ${className}`}
+      >
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Left Side - Selection Info */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                  {selectedCount}
+                </div>
+                <div>
+                  <div className="text-white font-medium">
+                    {selectedCount} job{selectedCount !== 1 ? "s" : ""} selected
+                  </div>
+                  <div className="text-gray-400 text-sm">
+                    Please select an action
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="font-semibold text-white">
-                  {selectionStats.count} job
-                  {selectionStats.count !== 1 ? "s" : ""} selected
-                </span>
-                <span className="text-xs text-gray-400">
-                  {selectionStats.companies} compan
-                  {selectionStats.companies !== 1 ? "ies" : "y"} • Avg.{" "}
-                  {formatSalary(selectionStats.averageSalary)}
-                </span>
+
+              {/* Quick Stats */}
+              <div className="hidden md:flex items-center gap-6 text-sm">
+                <div className="flex items-center gap-1 text-gray-400">
+                  <Building2 className="w-4 h-4" />
+                  <span>{getUniqueCompanies().length} companies</span>
+                </div>
+                <div className="flex items-center gap-1 text-gray-400">
+                  <DollarSign className="w-4 h-4" />
+                  <span>{formatSalaryRange()}</span>
+                </div>
+                <div className="flex items-center gap-1 text-gray-400">
+                  <MapPin className="w-4 h-4" />
+                  <span>{getUniqueLocations().length} locations</span>
+                </div>
               </div>
+
+              {/* Expand/Collapse Button */}
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="p-2 text-gray-400 hover:text-white transition-colors"
+              >
+                {isExpanded ? (
+                  <ChevronDown className="w-4 h-4" />
+                ) : (
+                  <ChevronUp className="w-4 h-4" />
+                )}
+              </button>
             </div>
 
-            {/* Quick Stats */}
-            <div className="hidden md:flex items-center gap-4 text-sm text-gray-400">
-              <div className="flex items-center gap-1">
-                <Building2 className="w-4 h-4" />
-                <span>{selectionStats.companies} companies</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
-                <span>{selectionStats.locations} locations</span>
-              </div>
-              {selectionStats.hasRemoteJobs && (
-                <div className="flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  <span>Remote jobs</span>
+            {/* Right Side - Actions */}
+            <div className="flex items-center gap-3">
+              {/* Free Tier Warning */}
+              {showUpgradeWarning && (
+                <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-yellow-900/30 border border-yellow-500/30 rounded-lg">
+                  <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                  <span className="text-yellow-200 text-sm">
+                    Need {applicationsNeeded} more applications
+                  </span>
                 </div>
               )}
-            </div>
 
-            {/* Upgrade Warning */}
-            {needsUpgrade && (
-              <div className="flex items-center gap-2 text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full">
-                <AlertCircle className="w-4 h-4" />
-                <span className="text-sm">
-                  {remainingApplications} applications remaining
-                </span>
+              {/* Secondary Actions */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleAction("save")}
+                  className="p-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 hover:text-white transition-colors"
+                  title="Save selected jobs"
+                >
+                  <Bookmark className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={() => handleAction("export")}
+                  className="p-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 hover:text-white transition-colors"
+                  title="Export selected jobs"
+                >
+                  <Download className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={() => handleAction("share")}
+                  className="p-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 hover:text-white transition-colors"
+                  title="Share selected jobs"
+                >
+                  <Share2 className="w-4 h-4" />
+                </button>
               </div>
-            )}
+
+              {/* Primary Actions */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={onClearSelection}
+                  className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 hover:text-white transition-colors"
+                >
+                  Cancel selection
+                </button>
+
+                <button
+                  onClick={() => handleAction("apply")}
+                  disabled={!canApplyToAll}
+                  className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                    canApplyToAll
+                      ? "bg-purple-600 text-white hover:bg-purple-700"
+                      : "bg-gray-600 text-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  {canApplyToAll ? (
+                    <>
+                      <Send className="w-4 h-4 inline mr-2" />
+                      Apply to all
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4 inline mr-2" />
+                      Upgrade to apply
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => handleAction("subscribe")}
+                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                >
+                  Subscribe
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2">
-            {/* Quick Actions Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowQuickActions(!showQuickActions)}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                <Filter className="w-4 h-4" />
-                <span className="hidden sm:inline">Quick Select</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
+          {/* Expanded Details */}
+          {isExpanded && (
+            <div className="mt-4 pt-4 border-t border-gray-700">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Selection Summary */}
+                <div className="space-y-3">
+                  <h4 className="text-white font-medium text-sm">
+                    Selection Summary
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Total Jobs:</span>
+                      <span className="text-white">{selectedCount}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Est. Cost:</span>
+                      <span className="text-white">${getEstimatedCost()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Companies:</span>
+                      <span className="text-white">
+                        {getUniqueCompanies().length}
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-              {showQuickActions && (
-                <div className="absolute top-full mt-2 right-0 w-64 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
-                  <div className="p-3">
-                    <div className="text-sm font-medium text-white mb-2">
-                      Quick Selection
+                {/* Top Companies */}
+                <div className="space-y-3">
+                  <h4 className="text-white font-medium text-sm">
+                    Top Companies
+                  </h4>
+                  <div className="space-y-1">
+                    {getUniqueCompanies()
+                      .slice(0, 3)
+                      .map((company, index) => {
+                        const count = selectedJobs.filter(
+                          (job) => job.company === company
+                        ).length;
+                        return (
+                          <div
+                            key={index}
+                            className="flex justify-between text-sm"
+                          >
+                            <span className="text-gray-400 truncate">
+                              {company}
+                            </span>
+                            <span className="text-white">{count}</span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* Salary Insights */}
+                <div className="space-y-3">
+                  <h4 className="text-white font-medium text-sm">
+                    Salary Range
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Range:</span>
+                      <span className="text-white">{formatSalaryRange()}</span>
                     </div>
-                    <div className="space-y-1">
-                      <button
-                        onClick={() => onQuickSelect?.("remote")}
-                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded"
-                      >
-                        Remote jobs only
-                      </button>
-                      <button
-                        onClick={() => onQuickSelect?.("high-salary")}
-                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded"
-                      >
-                        High salary jobs (${formatSalary(100000)}+)
-                      </button>
-                      <button
-                        onClick={() => onQuickSelect?.("recent")}
-                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded"
-                      >
-                        Posted this week
-                      </button>
-                      <button
-                        onClick={() => onQuickSelect?.("featured")}
-                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded"
-                      >
-                        Featured jobs
-                      </button>
-                    </div>
+                    {selectionStats.averageSalary > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Average:</span>
+                        <span className="text-white">
+                          $
+                          {Math.round(
+                            selectionStats.averageSalary
+                          ).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="space-y-3">
+                  <h4 className="text-white font-medium text-sm">
+                    Quick Actions
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => handleAction("viewAll")}
+                      className="p-2 bg-gray-700 text-gray-300 rounded text-xs hover:bg-gray-600 hover:text-white transition-colors"
+                    >
+                      <Eye className="w-3 h-3 inline mr-1" />
+                      View All
+                    </button>
+                    <button
+                      onClick={() => handleAction("schedule")}
+                      className="p-2 bg-gray-700 text-gray-300 rounded text-xs hover:bg-gray-600 hover:text-white transition-colors"
+                    >
+                      <Calendar className="w-3 h-3 inline mr-1" />
+                      Schedule
+                    </button>
+                    <button
+                      onClick={() => handleAction("compare")}
+                      className="p-2 bg-gray-700 text-gray-300 rounded text-xs hover:bg-gray-600 hover:text-white transition-colors"
+                    >
+                      <DollarSign className="w-3 h-3 inline mr-1" />
+                      Compare
+                    </button>
+                    <button
+                      onClick={() => handleAction("notes")}
+                      className="p-2 bg-gray-700 text-gray-300 rounded text-xs hover:bg-gray-600 hover:text-white transition-colors"
+                    >
+                      <Edit className="w-3 h-3 inline mr-1" />
+                      Notes
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Application Limits Info */}
+              {userTier === "free" && (
+                <div className="mt-4 p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                    <span className="text-yellow-200 font-medium text-sm">
+                      Free Plan Limits
+                    </span>
+                  </div>
+                  <div className="text-yellow-200 text-sm">
+                    You have {remainingApplications} applications remaining.
+                    {applicationsNeeded > 0 && (
+                      <span className="ml-1">
+                        Upgrade to apply to all {selectedCount} selected jobs.
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
             </div>
-
-            {/* Analytics Button */}
-            <button
-              onClick={() => setShowAnalytics(!showAnalytics)}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Analytics</span>
-            </button>
-
-            {/* Secondary Actions */}
-            <button
-              onClick={() => handleAction(onBulkSave, "bulk save")}
-              disabled={isProcessing}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 transition-colors"
-            >
-              <Bookmark className="w-4 h-4" />
-              <span className="hidden sm:inline">Save All</span>
-            </button>
-
-            <button
-              onClick={() =>
-                handleAction(onGenerateCoverLetters, "generate cover letters")
-              }
-              disabled={isProcessing}
-              className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-            >
-              <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">Cover Letters</span>
-              {userTier === "free" && selectionStats.count > 3 && (
-                <Zap className="w-4 h-4 text-yellow-400" />
-              )}
-            </button>
-
-            {/* Primary Apply Button */}
-            <button
-              onClick={() => handleAction(onBulkApply, "bulk apply")}
-              disabled={isProcessing}
-              className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-all disabled:opacity-50 ${
-                needsUpgrade || exceedsFreeTier
-                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
-                  : "bg-purple-600 text-white hover:bg-purple-700"
-              }`}
-            >
-              {isProcessing ? (
-                <div className="w-4 h-4 border-t-2 border-white rounded-full animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-              <span>
-                {needsUpgrade || exceedsFreeTier
-                  ? "Upgrade & Apply"
-                  : `Apply to ${selectionStats.count}`}
-              </span>
-              {(needsUpgrade || exceedsFreeTier) && (
-                <Zap className="w-4 h-4 text-yellow-400" />
-              )}
-            </button>
-
-            {/* Close Button */}
-            <button
-              onClick={onClearSelection}
-              className="p-2 text-gray-400 hover:text-white transition-colors"
-              title="Clear selection"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Analytics Dropdown */}
-      {showAnalytics && (
-        <div className="border-t border-gray-700 px-6 py-4 bg-gray-800/50">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-400">
-                {formatSalary(selectionStats.averageSalary)}
-              </div>
-              <div className="text-gray-400">Avg. Salary</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-400">
-                {selectionStats.companies}
-              </div>
-              <div className="text-gray-400">Companies</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">
-                {selectionStats.jobTypes}
-              </div>
-              <div className="text-gray-400">Job Types</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-400">
-                {selectionStats.locations}
-              </div>
-              <div className="text-gray-400">Locations</div>
-            </div>
-          </div>
-
-          {/* Company Breakdown */}
-          <div className="mt-4">
-            <div className="text-sm font-medium text-white mb-2">
-              Selected Companies:
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {selectionStats.uniqueCompanies
-                .slice(0, 5)
-                .map((company, index) => {
-                  const count = selectedJobs.filter(
-                    (job) => job.company === company
-                  ).length;
-                  return (
-                    <span
-                      key={company}
-                      className="px-2 py-1 bg-purple-600/20 text-purple-300 rounded-full text-xs"
-                    >
-                      {company} ({count})
-                    </span>
-                  );
-                })}
-              {selectionStats.uniqueCompanies.length > 5 && (
-                <span className="px-2 py-1 bg-gray-600/20 text-gray-400 rounded-full text-xs">
-                  +{selectionStats.uniqueCompanies.length - 5} more
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Usage Stats for Free Users */}
-      {userTier === "free" && (
-        <div className="border-t border-gray-700 px-6 py-3 bg-gray-800/30">
-          <div className="flex items-center justify-between text-sm">
-            <div className="text-purple-200">
-              Free plan: {remainingApplications} of {maxFreeApplications}{" "}
-              applications remaining
-            </div>
-            <button className="text-purple-300 hover:text-white underline">
-              Upgrade for unlimited applications
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+      {/* Spacer to prevent content from being hidden behind the fixed bar */}
+      <div className={`h-20 ${isExpanded ? "md:h-64" : ""}`} />
+    </>
   );
-}
+};
+
+export default EnhancedBulkActionBar;

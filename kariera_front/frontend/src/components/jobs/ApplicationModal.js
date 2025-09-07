@@ -1,4 +1,4 @@
-// src/components/jobs/ApplicationModal.js - Enhanced with complete flow
+// src/components/jobs/ApplicationModal.js
 import React, { useState, useEffect, useRef } from "react";
 import {
   X,
@@ -19,12 +19,10 @@ import {
   Save,
   ArrowLeft,
   ArrowRight,
-  Camera,
-  Paperclip,
-  Globe,
   Calendar,
   DollarSign,
   Clock,
+  Globe,
   Building2,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -182,23 +180,17 @@ I am excited to apply for the ${job.title} position at ${
 
 In my previous experience, I have developed strong skills in ${
         job.skills?.join(", ") || "relevant technologies"
-      } and have worked on projects that align closely with your requirements. I am particularly drawn to ${
+      } and have worked on projects that align closely with your requirements.
+
+I am particularly drawn to ${
         job.company
-      }'s mission and would love the opportunity to contribute to your innovative team.
+      }'s mission of delivering seamless, visually appealing interfaces aligned with your brand. My background in user research, prototyping, and collaboration with cross-functional teams has equipped me to create designs that are not only aesthetically pleasing but also user-centered.
 
-Key highlights of my qualifications include:
-• Proficiency in ${
-        job.skills?.slice(0, 3).join(", ") || "relevant technologies"
-      }
-• ${job.experienceLevel || "Mid"} level experience in software development
-• Strong problem-solving and collaboration skills
-• Passion for ${job.company.toLowerCase()} technologies and innovation
-
-I am excited about the opportunity to discuss how my skills and experience can benefit ${
+I would love the opportunity to bring my expertise to your team and contribute to the continued success of ${
         job.company
       }. Thank you for considering my application.
 
-Best regards,
+Sincerely,
 ${formData.firstName} ${formData.lastName}`;
 
       handleInputChange("coverLetter", generatedLetter);
@@ -296,6 +288,7 @@ ${formData.firstName} ${formData.lastName}`;
     }
   };
 
+  // Render the current step content
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -305,7 +298,8 @@ ${formData.firstName} ${formData.lastName}`;
               Personal Information
             </h3>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* Name */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   First Name *
@@ -316,12 +310,12 @@ ${formData.firstName} ${formData.lastName}`;
                   onChange={(e) =>
                     handleInputChange("firstName", e.target.value)
                   }
-                  className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                  className={`w-full px-4 py-3 bg-gray-700 border ${
                     validationErrors.firstName
                       ? "border-red-500"
                       : "border-gray-600"
-                  }`}
-                  placeholder="Enter your first name"
+                  } rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500`}
+                  placeholder="Your first name"
                 />
                 {validationErrors.firstName && (
                   <p className="text-red-400 text-sm mt-1">
@@ -329,7 +323,6 @@ ${formData.firstName} ${formData.lastName}`;
                   </p>
                 )}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Last Name *
@@ -340,12 +333,12 @@ ${formData.firstName} ${formData.lastName}`;
                   onChange={(e) =>
                     handleInputChange("lastName", e.target.value)
                   }
-                  className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                  className={`w-full px-4 py-3 bg-gray-700 border ${
                     validationErrors.lastName
                       ? "border-red-500"
                       : "border-gray-600"
-                  }`}
-                  placeholder="Enter your last name"
+                  } rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500`}
+                  placeholder="Your last name"
                 />
                 {validationErrors.lastName && (
                   <p className="text-red-400 text-sm mt-1">
@@ -355,19 +348,25 @@ ${formData.firstName} ${formData.lastName}`;
               </div>
             </div>
 
+            {/* Contact Info */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Email Address *
               </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-                className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                  validationErrors.email ? "border-red-500" : "border-gray-600"
-                }`}
-                placeholder="Enter your email address"
-              />
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  className={`w-full pl-10 pr-4 py-3 bg-gray-700 border ${
+                    validationErrors.email
+                      ? "border-red-500"
+                      : "border-gray-600"
+                  } rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500`}
+                  placeholder="Your email address"
+                />
+              </div>
               {validationErrors.email && (
                 <p className="text-red-400 text-sm mt-1">
                   {validationErrors.email}
@@ -375,37 +374,43 @@ ${formData.firstName} ${formData.lastName}`;
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Phone Number
-                </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Phone Number
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Enter your phone number"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Your phone number"
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Location
-                </label>
+            {/* Location */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Location
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   value={formData.location}
                   onChange={(e) =>
                     handleInputChange("location", e.target.value)
                   }
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="City, State"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="City, Country"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* Social and Portfolio Links */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   LinkedIn URL
@@ -417,10 +422,9 @@ ${formData.firstName} ${formData.lastName}`;
                     handleInputChange("linkedinUrl", e.target.value)
                   }
                   className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="https://linkedin.com/in/yourprofile"
+                  placeholder="https://linkedin.com/in/username"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Portfolio URL
@@ -487,17 +491,20 @@ ${formData.firstName} ${formData.lastName}`;
                         PDF format, max 10MB
                       </p>
                     </div>
-                    <label className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => fileInputRef.current.click()}
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                    >
                       <Upload className="w-4 h-4" />
                       Choose File
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".pdf,.doc,.docx"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                    </label>
+                    </button>
                   </div>
                 )}
               </div>
@@ -508,77 +515,91 @@ ${formData.firstName} ${formData.lastName}`;
               )}
             </div>
 
-            {/* Additional Details */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Additional Job Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Available Start Date
                 </label>
-                <input
-                  type="date"
-                  value={formData.availableStartDate}
-                  onChange={(e) =>
-                    handleInputChange("availableStartDate", e.target.value)
-                  }
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="date"
+                    value={formData.availableStartDate}
+                    onChange={(e) =>
+                      handleInputChange("availableStartDate", e.target.value)
+                    }
+                    className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Expected Salary
                 </label>
-                <input
-                  type="text"
-                  value={formData.expectedSalary}
-                  onChange={(e) =>
-                    handleInputChange("expectedSalary", e.target.value)
-                  }
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="e.g., $80,000 - $100,000"
-                />
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={formData.expectedSalary}
+                    onChange={(e) =>
+                      handleInputChange("expectedSalary", e.target.value)
+                    }
+                    className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="e.g. $70,000 - $90,000"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Notice Period
                 </label>
-                <select
-                  value={formData.noticePeriod}
-                  onChange={(e) =>
-                    handleInputChange("noticePeriod", e.target.value)
-                  }
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="">Select notice period</option>
-                  <option value="immediate">Immediate</option>
-                  <option value="2-weeks">2 weeks</option>
-                  <option value="1-month">1 month</option>
-                  <option value="2-months">2 months</option>
-                  <option value="3-months">3 months</option>
-                </select>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <select
+                    value={formData.noticePeriod}
+                    onChange={(e) =>
+                      handleInputChange("noticePeriod", e.target.value)
+                    }
+                    className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none"
+                  >
+                    <option value="">Select notice period</option>
+                    <option value="immediate">Immediate</option>
+                    <option value="1week">1 week</option>
+                    <option value="2weeks">2 weeks</option>
+                    <option value="1month">1 month</option>
+                    <option value="2months">2 months</option>
+                    <option value="3months+">3+ months</option>
+                  </select>
+                </div>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Work Authorization
                 </label>
-                <select
-                  value={formData.workAuthorization}
-                  onChange={(e) =>
-                    handleInputChange("workAuthorization", e.target.value)
-                  }
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="">Select authorization status</option>
-                  <option value="citizen">US Citizen</option>
-                  <option value="permanent-resident">Permanent Resident</option>
-                  <option value="work-visa">Work Visa</option>
-                  <option value="student-visa">Student Visa (OPT/CPT)</option>
-                  <option value="sponsor-required">Requires Sponsorship</option>
-                </select>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <select
+                    value={formData.workAuthorization}
+                    onChange={(e) =>
+                      handleInputChange("workAuthorization", e.target.value)
+                    }
+                    className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none"
+                  >
+                    <option value="">Select authorization status</option>
+                    <option value="citizen">
+                      Citizen / Permanent Resident
+                    </option>
+                    <option value="workVisa">Work Visa</option>
+                    <option value="needSponsorship">
+                      Need Visa Sponsorship
+                    </option>
+                    <option value="studentVisa">Student Visa</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -587,66 +608,68 @@ ${formData.firstName} ${formData.lastName}`;
       case 3:
         return (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-white">Cover Letter</h3>
-              {!coverLetterGenerated && (
-                <button
-                  onClick={generateCoverLetter}
-                  disabled={isGeneratingCoverLetter}
-                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
-                >
-                  {isGeneratingCoverLetter ? (
-                    <>
-                      <div className="w-4 h-4 border-t-2 border-white rounded-full animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      Generate with AI
-                    </>
-                  )}
-                </button>
+              {coverLetterGenerated && (
+                <span className="inline-flex items-center gap-1 text-xs bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full">
+                  <Sparkles className="w-3 h-3" />
+                  Enhanced with AI
+                </span>
               )}
             </div>
 
-            {coverLetterGenerated && (
-              <div className="bg-green-900/20 border border-green-500 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-green-400 mb-2">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="font-medium">
-                    AI Cover Letter Generated!
-                  </span>
+            {/* AI Generation Option */}
+            {!coverLetterGenerated && (
+              <div className="bg-purple-900/20 border border-purple-500 rounded-lg p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="w-6 h-6 text-purple-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-medium text-white mb-1">
+                      Generate AI Cover Letter
+                    </h4>
+                    <p className="text-gray-300 text-sm mb-3">
+                      Let our AI create a personalized cover letter for this job
+                      based on your resume and the job description.
+                    </p>
+                    <button
+                      onClick={generateCoverLetter}
+                      disabled={isGeneratingCoverLetter}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isGeneratingCoverLetter ? (
+                        <>
+                          <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          Generate Cover Letter
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-300">
-                  Your personalized cover letter has been created. Feel free to
-                  customize it further.
-                </p>
               </div>
             )}
 
+            {/* Cover Letter Text Area */}
             <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Cover Letter *
+              </label>
               <textarea
                 value={formData.coverLetter}
                 onChange={(e) =>
                   handleInputChange("coverLetter", e.target.value)
                 }
-                placeholder="Write your cover letter here, or generate one using AI..."
-                rows={15}
-                className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none ${
+                className={`w-full h-64 px-4 py-3 bg-gray-700 border ${
                   validationErrors.coverLetter
                     ? "border-red-500"
                     : "border-gray-600"
-                }`}
-              />
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-sm text-gray-400">
-                  {formData.coverLetter.length} characters
-                </span>
-                {coverLetterGenerated && (
-                  <span className="text-sm text-blue-400">✓ AI Generated</span>
-                )}
-              </div>
+                } rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500`}
+                placeholder="Write your cover letter or generate one with AI..."
+              ></textarea>
               {validationErrors.coverLetter && (
                 <p className="text-red-400 text-sm mt-1">
                   {validationErrors.coverLetter}
@@ -654,6 +677,7 @@ ${formData.firstName} ${formData.lastName}`;
               )}
             </div>
 
+            {/* Additional Notes */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Additional Notes (Optional)
@@ -663,10 +687,41 @@ ${formData.firstName} ${formData.lastName}`;
                 onChange={(e) =>
                   handleInputChange("additionalNotes", e.target.value)
                 }
+                className="w-full h-24 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Any additional information you'd like to share..."
-                rows={4}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
+              ></textarea>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex justify-between">
+              <div className="space-x-2">
+                <button
+                  onClick={() => fileInputRef.current.click()}
+                  className="inline-flex items-center gap-1 text-sm text-gray-300 hover:text-white"
+                >
+                  <Upload className="w-4 h-4" />
+                  Upload cover letter
+                </button>
+                <button
+                  onClick={() => {
+                    // Logic to download cover letter as TXT/PDF
+                    const blob = new Blob([formData.coverLetter], {
+                      type: "text/plain",
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `${job.title} - Cover Letter.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                  }}
+                  className="inline-flex items-center gap-1 text-sm text-gray-300 hover:text-white"
+                >
+                  <Download className="w-4 h-4" />
+                  Download
+                </button>
+              </div>
             </div>
           </div>
         );
@@ -675,92 +730,91 @@ ${formData.firstName} ${formData.lastName}`;
         return (
           <div className="space-y-6">
             <h3 className="text-xl font-semibold text-white mb-4">
-              Additional Questions
+              Application Questions
             </h3>
-
-            <p className="text-gray-400 text-sm mb-6">
-              Please answer these questions to help us understand your fit for
-              this role.
+            <p className="text-gray-400 mb-6">
+              Please answer the following questions to complete your application
+              for {job.title} at {job.company}.
             </p>
 
-            {customQuestions.map((question) => (
-              <div key={question.id} className="space-y-3">
-                <label className="block text-sm font-medium text-gray-300">
-                  {question.question}
-                  {question.required && (
-                    <span className="text-red-400 ml-1">*</span>
+            {/* Custom Questions from Job Listing */}
+            <div className="space-y-6">
+              {customQuestions.map((question) => (
+                <div key={question.id} className="space-y-2">
+                  <label className="block text-sm font-medium text-white">
+                    {question.question}{" "}
+                    {question.required && (
+                      <span className="text-red-400">*</span>
+                    )}
+                  </label>
+
+                  {question.type === "select" && (
+                    <select
+                      value={formData.customQuestions[question.id] || ""}
+                      onChange={(e) =>
+                        handleCustomQuestionChange(question.id, e.target.value)
+                      }
+                      className={`w-full px-4 py-3 bg-gray-700 border ${
+                        validationErrors[`question_${question.id}`]
+                          ? "border-red-500"
+                          : "border-gray-600"
+                      } rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none`}
+                    >
+                      <option value="">Select an option</option>
+                      {question.options.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
                   )}
-                </label>
 
-                {question.type === "select" && (
-                  <select
-                    value={formData.customQuestions[question.id] || ""}
-                    onChange={(e) =>
-                      handleCustomQuestionChange(question.id, e.target.value)
-                    }
-                    className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                      validationErrors[`question_${question.id}`]
-                        ? "border-red-500"
-                        : "border-gray-600"
-                    }`}
-                  >
-                    <option value="">Select an option</option>
-                    {question.options.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                  {question.type === "radio" && (
+                    <div className="space-y-2">
+                      {question.options.map((option) => (
+                        <label
+                          key={option}
+                          className="flex items-center space-x-3"
+                        >
+                          <input
+                            type="radio"
+                            checked={
+                              formData.customQuestions[question.id] === option
+                            }
+                            onChange={() =>
+                              handleCustomQuestionChange(question.id, option)
+                            }
+                            className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-600 bg-gray-700"
+                          />
+                          <span className="text-gray-300">{option}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
 
-                {question.type === "radio" && (
-                  <div className="space-y-2">
-                    {question.options.map((option) => (
-                      <label key={option} className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name={question.id}
-                          value={option}
-                          checked={
-                            formData.customQuestions[question.id] === option
-                          }
-                          onChange={(e) =>
-                            handleCustomQuestionChange(
-                              question.id,
-                              e.target.value
-                            )
-                          }
-                          className="text-purple-600 focus:ring-purple-500"
-                        />
-                        <span className="text-gray-300">{option}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
+                  {question.type === "textarea" && (
+                    <textarea
+                      value={formData.customQuestions[question.id] || ""}
+                      onChange={(e) =>
+                        handleCustomQuestionChange(question.id, e.target.value)
+                      }
+                      className={`w-full h-32 px-4 py-3 bg-gray-700 border ${
+                        validationErrors[`question_${question.id}`]
+                          ? "border-red-500"
+                          : "border-gray-600"
+                      } rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500`}
+                      placeholder={question.placeholder || ""}
+                    ></textarea>
+                  )}
 
-                {question.type === "textarea" && (
-                  <textarea
-                    value={formData.customQuestions[question.id] || ""}
-                    onChange={(e) =>
-                      handleCustomQuestionChange(question.id, e.target.value)
-                    }
-                    placeholder={question.placeholder}
-                    rows={4}
-                    className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                      validationErrors[`question_${question.id}`]
-                        ? "border-red-500"
-                        : "border-gray-600"
-                    }`}
-                  />
-                )}
-
-                {validationErrors[`question_${question.id}`] && (
-                  <p className="text-red-400 text-sm">
-                    {validationErrors[`question_${question.id}`]}
-                  </p>
-                )}
-              </div>
-            ))}
+                  {validationErrors[`question_${question.id}`] && (
+                    <p className="text-red-400 text-sm mt-1">
+                      {validationErrors[`question_${question.id}`]}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         );
 
@@ -768,50 +822,109 @@ ${formData.firstName} ${formData.lastName}`;
         return (
           <div className="space-y-6">
             <h3 className="text-xl font-semibold text-white mb-4">
-              Review & Submit Application
+              Review & Submit
             </h3>
 
+            {/* Job Summary */}
+            <div className="bg-gray-700 rounded-lg p-4">
+              <div className="flex items-start gap-4">
+                <div className="bg-purple-900 w-12 h-12 rounded-md flex items-center justify-center text-lg font-bold flex-shrink-0">
+                  {job.company.charAt(0)}
+                </div>
+                <div>
+                  <h4 className="text-lg font-medium text-white">
+                    {job.title}
+                  </h4>
+                  <p className="text-gray-400">{job.company}</p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <span className="inline-flex items-center gap-1 text-xs bg-gray-600 px-2 py-1 rounded-full">
+                      <MapPin className="w-3 h-3" />
+                      {job.location}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-xs bg-gray-600 px-2 py-1 rounded-full">
+                      <DollarSign className="w-3 h-3" />
+                      {job.salary}
+                    </span>
+                    {job.isRemote && (
+                      <span className="inline-flex items-center gap-1 text-xs bg-purple-900 px-2 py-1 rounded-full">
+                        Remote
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Application Summary */}
-            <div className="bg-gray-700 rounded-lg p-6 space-y-4">
-              <div>
-                <h4 className="font-medium text-white mb-2">
-                  Personal Information
-                </h4>
-                <div className="text-sm text-gray-300 space-y-1">
-                  <p>
-                    {formData.firstName} {formData.lastName}
-                  </p>
-                  <p>{formData.email}</p>
-                  {formData.phone && <p>{formData.phone}</p>}
-                  {formData.location && <p>{formData.location}</p>}
+            <div className="space-y-4">
+              {/* Personal Info */}
+              <div className="bg-gray-700 rounded-lg p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="font-medium text-white">Personal Info</h4>
+                  <button
+                    onClick={() => setCurrentStep(1)}
+                    className="text-purple-400 hover:text-purple-300 text-sm"
+                  >
+                    Edit
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-gray-400">Name:</span>{" "}
+                    <span className="text-white">
+                      {formData.firstName} {formData.lastName}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Email:</span>{" "}
+                    <span className="text-white">{formData.email}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Phone:</span>{" "}
+                    <span className="text-white">
+                      {formData.phone || "Not provided"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Location:</span>{" "}
+                    <span className="text-white">
+                      {formData.location || "Not provided"}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <h4 className="font-medium text-white mb-2">
-                  Resume & Details
-                </h4>
-                <div className="text-sm text-gray-300">
-                  {formData.resumeFile ? (
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4" />
-                      <span>{formData.resumeFile.name}</span>
-                    </div>
-                  ) : (
-                    <span className="text-red-400">No resume uploaded</span>
-                  )}
-                  {formData.expectedSalary && (
-                    <p>Expected Salary: {formData.expectedSalary}</p>
-                  )}
-                  {formData.availableStartDate && (
-                    <p>Available: {formData.availableStartDate}</p>
-                  )}
+              {/* Resume */}
+              <div className="bg-gray-700 rounded-lg p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="font-medium text-white">Resume</h4>
+                  <button
+                    onClick={() => setCurrentStep(2)}
+                    className="text-purple-400 hover:text-purple-300 text-sm"
+                  >
+                    Edit
+                  </button>
+                </div>
+                <div className="flex items-center gap-3">
+                  <FileText className="w-5 h-5 text-gray-400" />
+                  <span className="text-white">
+                    {formData.resumeFile?.name || "No resume uploaded"}
+                  </span>
                 </div>
               </div>
 
-              <div>
-                <h4 className="font-medium text-white mb-2">Cover Letter</h4>
-                <div className="text-sm text-gray-300 bg-gray-800 p-3 rounded max-h-32 overflow-y-auto">
+              {/* Cover Letter */}
+              <div className="bg-gray-700 rounded-lg p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="font-medium text-white">Cover Letter</h4>
+                  <button
+                    onClick={() => setCurrentStep(3)}
+                    className="text-purple-400 hover:text-purple-300 text-sm"
+                  >
+                    Edit
+                  </button>
+                </div>
+                <div className="text-sm text-gray-300 line-clamp-3">
                   {formData.coverLetter
                     ? formData.coverLetter.substring(0, 200) +
                       (formData.coverLetter.length > 200 ? "..." : "")
@@ -844,7 +957,7 @@ ${formData.firstName} ${formData.lastName}`;
                 </div>
               </label>
               {validationErrors.agreedToTerms && (
-                <p className="text-red-400 text-sm mt-2">
+                <p className="text-red-400 text-sm mt-1">
                   {validationErrors.agreedToTerms}
                 </p>
               )}
@@ -877,135 +990,135 @@ ${formData.firstName} ${formData.lastName}`;
             applying to jobs.
           </p>
 
-          <div className="space-y-3">
-            <button className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-medium">
-              Upgrade to Premium - $19/month
+          <div className="space-y-4">
+            <button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-lg text-white font-medium hover:from-purple-700 hover:to-pink-700">
+              Upgrade to Premium – $19/month
             </button>
-            <button
-              onClick={() => setShowUpgradePrompt(false)}
-              className="w-full bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700"
-            >
-              Maybe Later
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
+              <span>Or</span>
+            </div>
+            <button className="w-full bg-gray-700 py-3 rounded-lg text-white font-medium hover:bg-gray-600">
+              Buy Single Application – $4.99
             </button>
           </div>
+
+          <button
+            onClick={() => setShowUpgradePrompt(false)}
+            className="mt-6 text-gray-400 hover:text-white text-sm"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
   );
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[95vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-80 z-50 overflow-y-auto">
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="bg-gray-900 rounded-xl max-w-4xl w-full relative">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-700">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
-                {job.company.charAt(0)}
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-white">
-                  Apply to {job.company}
-                </h2>
-                <p className="text-gray-400">{job.title}</p>
-              </div>
-            </div>
+            <h2 className="text-2xl font-bold text-white">
+              Apply to {job.title}
+            </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white"
+              className="text-gray-400 hover:text-white transition-colors"
             >
               <X className="w-6 h-6" />
             </button>
           </div>
 
-          {/* Progress Steps */}
-          <div className="px-6 py-4 border-b border-gray-700">
-            <div className="flex items-center justify-between">
+          {/* Progress steps */}
+          <div className="px-6 pt-6">
+            <div className="flex items-center mb-8">
               {steps.map((step, index) => (
-                <div key={step.id} className="flex items-center">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                        step.id < currentStep
-                          ? "bg-green-600 text-white"
-                          : step.id === currentStep
-                          ? "bg-purple-600 text-white"
-                          : "bg-gray-600 text-gray-300"
-                      }`}
-                    >
-                      {step.id < currentStep ? (
-                        <CheckCircle className="w-5 h-5" />
-                      ) : (
-                        <step.icon className="w-5 h-5" />
-                      )}
-                    </div>
-                    <span className="text-xs text-gray-400 mt-1 text-center">
-                      {step.title}
-                    </span>
+                <div key={step.id} className="flex items-center flex-1">
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      currentStep >= step.id
+                        ? "bg-purple-600 text-white"
+                        : "bg-gray-700 text-gray-400"
+                    }`}
+                  >
+                    <step.icon className="w-4 h-4" />
                   </div>
-                  {index < steps.length - 1 && (
-                    <div
-                      className={`flex-1 h-0.5 mx-4 ${
-                        step.id < currentStep ? "bg-green-600" : "bg-gray-600"
-                      }`}
-                    />
-                  )}
+                  <div
+                    className={`h-1 flex-grow mx-2 ${
+                      index === steps.length - 1
+                        ? "hidden"
+                        : currentStep > step.id
+                        ? "bg-purple-600"
+                        : "bg-gray-700"
+                    }`}
+                  ></div>
+                  <div
+                    className={`text-xs hidden md:block ${
+                      currentStep >= step.id
+                        ? "text-purple-400"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {step.title}
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Content */}
-          <div className="p-6 overflow-y-auto max-h-[60vh]">
+          {/* Content area */}
+          <div className="p-6 max-h-[calc(80vh-150px)] overflow-y-auto">
             {renderStepContent()}
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between p-6 border-t border-gray-700">
-            <button
-              onClick={handlePrevious}
-              disabled={currentStep === 1}
-              className="flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Previous
-            </button>
+          {/* Footer with navigation buttons */}
+          <div className="p-6 border-t border-gray-700 flex justify-between">
+            {currentStep > 1 ? (
+              <button
+                onClick={handlePrevious}
+                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-600 rounded-lg text-white hover:bg-gray-700"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Previous
+              </button>
+            ) : (
+              <div></div> // Empty div to maintain flex justify-between
+            )}
 
-            <div className="flex items-center gap-3">
-              {currentStep === 5 ? (
-                <button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="flex items-center gap-2 px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="w-4 h-4 border-t-2 border-white rounded-full animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      Submit Application
-                    </>
-                  )}
-                </button>
-              ) : (
-                <button
-                  onClick={handleNext}
-                  className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
-                >
-                  Next
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              )}
-            </div>
+            {currentStep < 5 ? (
+              <button
+                onClick={handleNext}
+                className="inline-flex items-center gap-2 px-6 py-2 bg-purple-600 rounded-lg text-white hover:bg-purple-700"
+              >
+                Next
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-2 px-6 py-2 bg-purple-600 rounded-lg text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    Submit Application
+                    <Send className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Upgrade Prompt */}
+      {/* Upgrade Prompt Modal */}
       {showUpgradePrompt && <UpgradePrompt />}
-    </>
+    </div>
   );
 }
