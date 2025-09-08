@@ -1,246 +1,125 @@
-// src/utils/salaryUtils.js - Centralized salary formatting utilities
+// src/utils/salaryUtils.js
+export const formatSalary = (salary) => {
+  if (!salary) return "Competitive";
 
-/**
- * Formats salary data into a human-readable string
- * Handles all possible salary data structures safely
- * @param {*} salaryData - The salary data to format
- * @param {Object} options - Formatting options
- * @returns {string} - Formatted salary string
- */
-export const formatSalary = (salaryData, options = {}) => {
-  const {
-    defaultCurrency = "$",
-    showCurrency = true,
-    abbreviated = true,
-    fallbackText = "Competitive salary",
-  } = options;
-
-  // Handle null/undefined
-  if (!salaryData) {
-    return fallbackText;
+  if (typeof salary === "number") {
+    return `$${salary.toLocaleString()}`;
   }
 
-  // Handle if salary is already a string (fallback)
-  if (typeof salaryData === "string") {
-    return salaryData;
-  }
-
-  // Handle if salary is a number (direct amount)
-  if (typeof salaryData === "number") {
-    return formatAmount(salaryData, {
-      defaultCurrency,
-      showCurrency,
-      abbreviated,
-    });
-  }
-
-  // Handle object with different structures
-  if (typeof salaryData === "object") {
-    const currency = getCurrency(
-      salaryData.currency,
-      defaultCurrency,
-      showCurrency
-    );
-
-    // Range: min and max
-    if (salaryData.min && salaryData.max) {
-      const minFormatted = formatAmount(salaryData.min, {
-        currency,
-        showCurrency,
-        abbreviated,
-      });
-      const maxFormatted = formatAmount(salaryData.max, {
-        currency,
-        showCurrency,
-        abbreviated,
-      });
-      return `${minFormatted} - ${maxFormatted}`;
+  if (typeof salary === "object") {
+    if (salary.min && salary.max) {
+      return `$${salary.min.toLocaleString()} - $${salary.max.toLocaleString()}`;
     }
-
-    // Single amount
-    if (salaryData.amount) {
-      return formatAmount(salaryData.amount, {
-        currency,
-        showCurrency,
-        abbreviated,
-      });
-    }
-
-    // Minimum only
-    if (salaryData.min && !salaryData.max) {
-      const minFormatted = formatAmount(salaryData.min, {
-        currency,
-        showCurrency,
-        abbreviated,
-      });
-      return `${minFormatted}+`;
-    }
-
-    // Maximum only
-    if (salaryData.max && !salaryData.min) {
-      const maxFormatted = formatAmount(salaryData.max, {
-        currency,
-        showCurrency,
-        abbreviated,
-      });
-      return `Up to ${maxFormatted}`;
-    }
-
-    // Hourly rate
-    if (salaryData.hourly) {
-      const hourlyFormatted = formatAmount(salaryData.hourly, {
-        currency,
-        showCurrency,
-        abbreviated: false,
-      });
-      return `${hourlyFormatted}/hour`;
+    if (salary.amount) {
+      return `$${salary.amount.toLocaleString()}`;
     }
   }
 
-  return fallbackText;
+  if (typeof salary === "string") {
+    return salary;
+  }
+
+  return "Competitive";
 };
 
-/**
- * Helper function to format individual amounts
- */
-const formatAmount = (
-  amount,
-  { currency = "$", showCurrency = true, abbreviated = true }
-) => {
-  if (!amount || amount <= 0) return "0";
+export const getSalaryAverage = (salary) => {
+  if (!salary) return 0;
 
-  const currencySymbol = showCurrency ? currency : "";
-
-  if (abbreviated && amount >= 1000) {
-    if (amount >= 1000000) {
-      return `${currencySymbol}${(amount / 1000000).toFixed(1)}M`;
-    }
-    return `${currencySymbol}${(amount / 1000).toFixed(0)}k`;
+  if (typeof salary === "number") {
+    return salary;
   }
 
-  return `${currencySymbol}${amount.toLocaleString()}`;
+  if (typeof salary === "object" && salary.min && salary.max) {
+    return (salary.min + salary.max) / 2;
+  }
+
+  if (typeof salary === "object" && salary.amount) {
+    return salary.amount;
+  }
+
+  return 0;
 };
 
-/**
- * Helper function to get currency symbol
- */
-const getCurrency = (currencyCode, defaultCurrency, showCurrency) => {
-  if (!showCurrency) return "";
+export const getSalaryForComparison = (salary) => {
+  if (!salary) return 0;
 
-  const currencyMap = {
-    USD: "$",
-    EUR: "€",
-    GBP: "£",
-    JPY: "¥",
-    CAD: "C$",
-    AUD: "A$",
-  };
+  // Convert any salary format to a comparable number
+  if (typeof salary === "number") {
+    return salary;
+  }
 
-  return currencyMap[currencyCode] || defaultCurrency;
+  if (typeof salary === "object") {
+    if (salary.max) return salary.max; // Use max for comparison
+    if (salary.amount) return salary.amount;
+    if (salary.min) return salary.min;
+  }
+
+  if (typeof salary === "string") {
+    // Try to extract number from string
+    const match = salary.match(/[\d,]+/);
+    if (match) {
+      return parseInt(match[0].replace(/,/g, ""), 10);
+    }
+  }
+
+  return 0;
 };
 
-/**
- * Validates salary data structure
- * @param {*} salaryData
- * @returns {boolean}
- */
-export const isValidSalaryData = (salaryData) => {
-  if (!salaryData) return false;
+export const isValidSalaryData = (salary) => {
+  if (!salary) return false;
 
-  if (typeof salaryData === "string" || typeof salaryData === "number") {
+  if (typeof salary === "number" && salary > 0) {
     return true;
   }
 
-  if (typeof salaryData === "object") {
-    return !!(
-      salaryData.min ||
-      salaryData.max ||
-      salaryData.amount ||
-      salaryData.hourly
-    );
+  if (typeof salary === "object") {
+    if (salary.min && salary.max && salary.min > 0 && salary.max > 0) {
+      return true;
+    }
+    if (salary.amount && salary.amount > 0) {
+      return true;
+    }
+  }
+
+  if (typeof salary === "string" && salary.trim() !== "") {
+    return true;
   }
 
   return false;
 };
 
-/**
- * Converts salary range to average for calculations
- * @param {*} salaryData
- * @returns {number}
- */
-export const getSalaryAverage = (salaryData) => {
-  if (!salaryData) return 0;
-
-  if (typeof salaryData === "number") {
-    return salaryData;
-  }
-
-  if (typeof salaryData === "object") {
-    if (salaryData.min && salaryData.max) {
-      return (salaryData.min + salaryData.max) / 2;
-    }
-
-    if (salaryData.amount) {
-      return salaryData.amount;
-    }
-
-    if (salaryData.min) {
-      return salaryData.min;
-    }
-
-    if (salaryData.max) {
-      return salaryData.max;
-    }
-  }
-
-  return 0;
+// Helper function to format salary ranges
+export const formatSalaryRange = (min, max) => {
+  if (!min || !max) return "Competitive";
+  return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
 };
 
-/**
- * Formats salary for comparison purposes (always returns a number)
- * @param {*} salaryData
- * @returns {number}
- */
-export const getSalaryForComparison = (salaryData) => {
-  if (!salaryData) return 0;
+// Helper function to convert salary to annual if needed
+export const convertToAnnual = (amount, period = "annual") => {
+  if (!amount || typeof amount !== "number") return 0;
 
-  if (typeof salaryData === "number") {
-    return salaryData;
+  switch (period.toLowerCase()) {
+    case "hourly":
+      return amount * 40 * 52; // 40 hours/week, 52 weeks/year
+    case "monthly":
+      return amount * 12;
+    case "weekly":
+      return amount * 52;
+    case "annual":
+    case "yearly":
+    default:
+      return amount;
   }
-
-  if (typeof salaryData === "object") {
-    // Use max for comparison to get the highest potential
-    if (salaryData.max) {
-      return salaryData.max;
-    }
-
-    if (salaryData.amount) {
-      return salaryData.amount;
-    }
-
-    if (salaryData.min) {
-      return salaryData.min;
-    }
-  }
-
-  return 0;
 };
 
-/**
- * Example usage in components:
- *
- * import { formatSalary } from '@/utils/salaryUtils';
- *
- * // Basic usage
- * const salaryString = formatSalary(job.salary);
- *
- * // With options
- * const salaryString = formatSalary(job.salary, {
- *   defaultCurrency: "€",
- *   abbreviated: false,
- *   fallbackText: "Salary negotiable"
- * });
- *
- * // In JSX (ALWAYS SAFE)
- * <span>{formatSalary(job.salary)}</span>
- */
+// Default export for backward compatibility (though we should use named exports)
+const salaryUtils = {
+  formatSalary,
+  getSalaryAverage,
+  getSalaryForComparison,
+  isValidSalaryData,
+  formatSalaryRange,
+  convertToAnnual,
+};
+
+export default salaryUtils;

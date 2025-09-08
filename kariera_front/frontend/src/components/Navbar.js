@@ -1,84 +1,74 @@
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
+  const { isAuthenticated, user, logout } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
-  const { isAuthenticated, logout, user } = useAuth();
-
-  // Determine if link is active
-  const isActive = (path) => {
-    if (path === "/" && location.pathname === "/") return true;
-    if (path !== "/" && location.pathname.startsWith(path)) return true;
-    return false;
-  };
 
   const handleLogout = () => {
     logout();
-    navigate("/");
   };
 
   return (
-    <header className="container mx-auto px-4 py-6">
-      <div className="border border-gray-800 rounded-full px-6 py-3 flex justify-between items-center">
-        <div className="flex items-center">
-          <Link to="/" className="flex items-center">
-            <img
-              src="/logoKarieraWhite.svg"
-              alt="Kariera Logo"
-              className="w-8 h-8 mr-2"
-            />
-            <span className="font-bold text-xl">Kariera</span>
-          </Link>
-        </div>
+    <header className="bg-black border-b border-gray-800 px-4 py-4">
+      <div className="container mx-auto flex items-center justify-between">
+        <Link to="/" className="flex items-center">
+          <div className="w-8 h-8 bg-purple-600 rounded-full mr-2"></div>
+          <span className="font-bold text-xl">Kariera</span>
+        </Link>
+
         <nav className="hidden md:flex space-x-8">
-          <Link
-            to="/"
-            className={`${
-              isActive("/") ? "text-purple-400" : "hover:text-purple-400"
-            }`}
-          >
-            Home
-          </Link>
-          <Link
-            to="/resume"
-            className={`${
-              isActive("/resume") ? "text-purple-400" : "hover:text-purple-400"
-            }`}
-          >
-            Resume
-          </Link>
-          <Link
-            to="/dashboard"
-            className={`${
-              isActive("/dashboard")
-                ? "text-purple-400"
-                : "hover:text-purple-400"
-            }`}
-          >
-            Dashboard
-          </Link>
-          {/* Add Settings link only for authenticated users */}
           {isAuthenticated && (
-            <Link
-              to="/settings/profile"
-              className={`${
-                isActive("/settings")
-                  ? "text-purple-400"
-                  : "hover:text-purple-400"
-              }`}
-            >
-              Settings
-            </Link>
+            <>
+              <Link
+                to="/jobs"
+                className={`hover:text-purple-400 ${
+                  location.pathname === "/jobs" ||
+                  location.pathname.startsWith("/jobs/")
+                    ? "text-purple-400"
+                    : "hover:text-purple-400"
+                }`}
+              >
+                Jobs
+              </Link>
+              <Link
+                to="/dashboard"
+                className={`hover:text-purple-400 ${
+                  location.pathname === "/dashboard"
+                    ? "text-purple-400"
+                    : "hover:text-purple-400"
+                }`}
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/settings"
+                className={`hover:text-purple-400 ${
+                  location.pathname.startsWith("/settings")
+                    ? "text-purple-400"
+                    : "hover:text-purple-400"
+                }`}
+              >
+                Settings
+              </Link>
+            </>
           )}
-          <a href="#" className="hover:text-purple-400">
+          {/* FIXED: Changed from anchor tags to buttons for accessibility */}
+          <button
+            className="hover:text-purple-400 bg-transparent border-none cursor-pointer text-white"
+            onClick={() => console.log("Features coming soon")}
+          >
             Features
-          </a>
-          <a href="#" className="hover:text-purple-400">
-            Testimonial
-          </a>
+          </button>
+          <button
+            className="hover:text-purple-400 bg-transparent border-none cursor-pointer text-white"
+            onClick={() => console.log("Testimonials coming soon")}
+          >
+            Testimonials
+          </button>
         </nav>
+
         <div className="flex space-x-4">
           {isAuthenticated ? (
             <>
@@ -87,28 +77,29 @@ export default function Navbar() {
               </span>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 rounded-full border border-gray-700 text-white hover:bg-gray-800"
+                className="px-4 py-2 rounded-full border border-gray-700 text-white hover:bg-gray-800 transition-colors"
               >
                 Logout
               </button>
               <Link
-                to="/dashboard"
-                className="px-4 py-2 rounded-full bg-purple-600 hover:bg-purple-700"
+                to="/jobs"
+                className="px-4 py-2 rounded-full bg-purple-600 hover:bg-purple-700 transition-colors"
               >
-                Dashboard
+                Find Jobs
               </Link>
             </>
           ) : (
             <>
               <Link
                 to="/login"
-                className="px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700"
+                className="px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
               >
-                Sign-In
+                Sign In
               </Link>
+              {/* FIXED: Get Started now goes to login instead of resume */}
               <Link
-                to="/resume"
-                className="px-4 py-2 rounded-full bg-purple-600 hover:bg-purple-700"
+                to="/login"
+                className="px-4 py-2 rounded-full bg-purple-600 hover:bg-purple-700 transition-colors"
               >
                 Get Started
               </Link>

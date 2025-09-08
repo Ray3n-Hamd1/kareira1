@@ -117,7 +117,7 @@ export default function JobsDashboard() {
       .map((id) => allJobs.find((job) => job.id === id))
       .filter(Boolean);
 
-    console.log("Bulk applying to jobs:", selectedJobsList);
+    console.log("Bulk applying to", selectedJobs.size, "jobs");
 
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -140,7 +140,7 @@ export default function JobsDashboard() {
 
   // Handle bulk save
   const handleBulkSave = useCallback(async () => {
-    console.log("Bulk saving jobs:", selectedJobs);
+    console.log("Bulk saving", selectedJobs.size, "jobs");
 
     // Update saved status for selected jobs
     setAllJobs((prev) =>
@@ -170,7 +170,7 @@ export default function JobsDashboard() {
   // Handle application submission
   const handleApplicationSubmit = useCallback(
     async (applicationData) => {
-      console.log("Submitting application:", applicationData);
+      console.log("Submitting application for job:", selectedJobForApplication?.id);
 
       // Update applied status
       setAllJobs((prev) =>

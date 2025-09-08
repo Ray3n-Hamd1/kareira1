@@ -1,4 +1,3 @@
-// src/pages/Register.js - Fixed to redirect to jobs
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -14,7 +13,7 @@ export default function Register() {
   const navigate = useNavigate();
   const { register, error, isAuthenticated } = useAuth();
 
-  // Redirect if already authenticated - GO TO JOBS DASHBOARD
+  // FIXED: Redirect to jobs dashboard if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/jobs");
@@ -65,23 +64,31 @@ export default function Register() {
 
     try {
       const result = await register({
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim(),
         password,
       });
 
       if (result.success) {
-        navigate("/jobs"); // REDIRECT TO JOBS DASHBOARD
+        // FIXED: Redirect to jobs dashboard after successful registration
+        navigate("/jobs");
       } else {
         setFormError(result.error || "Registration failed");
       }
     } catch (err) {
+      console.error("Registration error:", err);
       setFormError("An unexpected error occurred");
-      console.error("Register form error:", err);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Show auth context errors
+  useEffect(() => {
+    if (error) {
+      setFormError(error);
+    }
+  }, [error]);
 
   return (
     <div className="bg-black min-h-screen text-white flex flex-col items-center justify-center p-4">
@@ -104,12 +111,6 @@ export default function Register() {
             </div>
           )}
 
-          {error && formError !== error && (
-            <div className="mb-4 p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
-              {error}
-            </div>
-          )}
-
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label
@@ -123,9 +124,9 @@ export default function Register() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
                 placeholder="Enter your full name"
                 required
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               />
             </div>
 
@@ -141,9 +142,9 @@ export default function Register() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
                 placeholder="Enter your email"
                 required
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               />
             </div>
 
@@ -159,9 +160,9 @@ export default function Register() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
-                placeholder="Create a password"
+                placeholder="Enter your password (min 6 characters)"
                 required
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               />
             </div>
 
@@ -177,18 +178,25 @@ export default function Register() {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
                 placeholder="Confirm your password"
                 required
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               />
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg text-white font-medium focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isSubmitting ? "Creating Account..." : "Create Account"}
+              {isSubmitting ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-t-2 border-r-2 border-white rounded-full animate-spin mr-2"></div>
+                  <span>Creating Account...</span>
+                </div>
+              ) : (
+                "Create Account"
+              )}
             </button>
           </form>
 
@@ -199,7 +207,7 @@ export default function Register() {
                 to="/login"
                 className="text-purple-400 hover:text-purple-300"
               >
-                Sign In
+                Sign in here
               </Link>
             </p>
           </div>

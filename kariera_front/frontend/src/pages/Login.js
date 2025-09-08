@@ -1,4 +1,3 @@
-// src/pages/Login.js - Fixed to redirect to jobs
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -12,7 +11,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { login, isAuthenticated, error: authError } = useAuth();
 
-  // Redirect if already authenticated - GO TO JOBS DASHBOARD
+  // FIXED: Redirect to jobs dashboard if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/jobs");
@@ -41,7 +40,8 @@ export default function Login() {
       const result = await login({ email, password });
 
       if (result.success) {
-        navigate("/jobs"); // REDIRECT TO JOBS DASHBOARD
+        // FIXED: Redirect to jobs dashboard after login
+        navigate("/jobs");
       } else {
         setError(result.error || "Failed to log in");
       }
@@ -85,9 +85,9 @@ export default function Login() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
                 placeholder="Enter your email"
                 required
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               />
             </div>
 
@@ -103,18 +103,25 @@ export default function Login() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
                 placeholder="Enter your password"
                 required
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               />
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg text-white font-medium focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isLoading ? "Signing In..." : "Sign In"}
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-t-2 border-r-2 border-white rounded-full animate-spin mr-2"></div>
+                  <span>Signing In...</span>
+                </div>
+              ) : (
+                "Sign In"
+              )}
             </button>
           </form>
 
@@ -125,7 +132,7 @@ export default function Login() {
                 to="/register"
                 className="text-purple-400 hover:text-purple-300"
               >
-                Create Account
+                Sign up here
               </Link>
             </p>
           </div>
