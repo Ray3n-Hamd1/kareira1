@@ -1,389 +1,299 @@
-// src/components/jobs/EnhancedBulkActionBar.js - Updated with consistent salary formatting
-import React, { useState } from "react";
-import {
-  Send,
-  Bookmark,
-  X,
-  Check,
-  AlertCircle,
-  CreditCard,
-  Zap,
-  Users,
-  FileText,
-  Download,
-  ChevronDown,
-  Filter,
-  DollarSign,
-  MapPin,
-  Building2,
-  Clock,
-  Share2,
-  Archive,
-  Trash2,
-  BarChart3,
-  Eye,
-  Star,
-  CheckSquare,
-} from "lucide-react";
-import { salaryUtils } from "../../utils/salaryUtils";
+// DEBUG VERSION - useJobSelection.js
+import { useState, useCallback, useMemo } from "react";
 
-export default function EnhancedBulkActionBar({
-  selectionStats,
-  selectedJobs,
-  onBulkApply,
-  onBulkSave,
-  onClearSelection,
-  onGenerateCoverLetters,
-  onExportSelection,
-  onArchiveJobs,
-  onDeleteJobs,
-  onShareSelection,
-  onQuickSelect,
-  userTier = "free",
-  remainingApplications = 0,
-  maxFreeApplications = 5,
-  isVisible = true,
-}) {
-  const [showQuickActions, setShowQuickActions] = useState(false);
-  const [showAnalytics, setShowAnalytics] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+export const useJobSelection = (jobs = []) => {
+  console.log("🔧 useJobSelection called with jobs:", jobs?.length || 0);
 
-  if (!isVisible || selectionStats.count === 0) return null;
+  const [selectedJobIds, setSelectedJobIds] = useState(new Set());
+  const [lastSelectedId, setLastSelectedId] = useState(null);
 
-  const needsUpgrade =
-    userTier === "free" && selectionStats.count > remainingApplications;
-  const exceedsFreeTier =
-    userTier === "free" && selectionStats.count > maxFreeApplications;
+  // Get selected jobs data
+  const selectedJobs = useMemo(() => {
+    const result = jobs.filter((job) => selectedJobIds.has(job.id));
+    console.log("🔧 selectedJobs calculated:", result?.length || 0);
+    return result;
+  }, [jobs, selectedJobIds]);
 
-  const handleAction = async (actionFn, actionName) => {
-    setIsProcessing(true);
-    try {
-      await actionFn?.();
-    } catch (error) {
-      console.error(`Error in ${actionName}:`, error);
-    } finally {
-      setIsProcessing(false);
+  // DEBUGGING: Selection stats with extensive logging
+  const selectionStats = useMemo(() => {
+    console.log("🔧 ========== CALCULATING SELECTION STATS ==========");
+    console.log("🔧 selectedJobs input:", selectedJobs);
+    console.log("🔧 selectedJobs length:", selectedJobs?.length || 0);
+
+    const selected = selectedJobs;
+
+    // SAFETY CHECK: Return safe defaults if no jobs selected
+    if (!selected || selected.length === 0) {
+      console.log("🔧 No selected jobs, returning defaults");
+      const defaults = {
+        count: 0,
+        averageSalary: 0,
+        companies: 0,
+        uniqueCompanies: [],
+        jobTypes: 0,
+        uniqueJobTypes: [],
+        locations: 0,
+        uniqueLocations: [],
+        hasRemoteJobs: false,
+        hasOnsiteJobs: false,
+      };
+      console.log("🔧 Returning defaults:", defaults);
+      return defaults;
     }
-  };
 
-  // Calculate average salary using centralized utility
-  const getAverageSalary = () => {
-    if (!selectedJobs || selectedJobs.length === 0) return "N/A";
+    console.log("🔧 Processing selected jobs for salary calculation...");
 
-    const salaries = selectedJobs.map((job) => job.salary).filter(Boolean);
-    return salaryUtils.formatAverage(salaries, { compactFormat: true });
-  };
+    const totalSalary = selected.reduce((sum, job, index) => {
+      console.log(`🔧 Processing job ${index}:`, job?.title || "Unknown");
+      console.log(`🔧 Job salary:`, job?.salary);
+      console.log(`🔧 Job salary type:`, typeof job?.salary);
 
-  return (
-    <div className="sticky top-0 z-40 bg-gray-900 border border-purple-500/50 rounded-lg shadow-2xl backdrop-blur-sm">
-      {/* Main Action Bar */}
-      <div className="px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Selection Info */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-                <CheckSquare className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-semibold text-white">
-                  {selectionStats.count} job
-                  {selectionStats.count !== 1 ? "s" : ""} selected
-                </span>
-                <span className="text-xs text-gray-400">
-                  {selectionStats.companies} compan
-                  {selectionStats.companies !== 1 ? "ies" : "y"} • Avg.{" "}
-                  {formatSalary(selectionStats.avgSalary)}
-                </span>
-              </div>
-            </div>
+      // Check if job and job.salary exist
+      if (!job || !job.salary) {
+        console.log(`🔧 Job ${index} has no salary, skipping`);
+        return sum;
+      }
 
-            {/* Quick Actions Toggle */}
-            <button
-              onClick={() => setShowQuickActions(!showQuickActions)}
-              className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
-            >
-              <Filter className="w-4 h-4" />
-              <span className="text-sm">Quick Actions</span>
-              <ChevronDown
-                className={`w-4 h-4 transform transition-transform ${
-                  showQuickActions ? "rotate-180" : ""
-                }`}
-              />
-            </button>
+      let avgSalary = 0;
 
-            {/* Analytics Toggle */}
-            <button
-              onClick={() => setShowAnalytics(!showAnalytics)}
-              className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span className="text-sm">Analytics</span>
-              <ChevronDown
-                className={`w-4 h-4 transform transition-transform ${
-                  showAnalytics ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-          </div>
+      if (typeof job.salary === "number") {
+        avgSalary = job.salary;
+        console.log(`🔧 Job ${index} - number salary:`, avgSalary);
+      } else if (typeof job.salary === "string") {
+        // Handle string salaries
+        const parsed = parseFloat(job.salary.replace(/[$,k]/g, ""));
+        avgSalary = job.salary.includes("k") ? parsed * 1000 : parsed;
+        console.log(`🔧 Job ${index} - string salary converted:`, avgSalary);
+      } else if (typeof job.salary === "object" && job.salary !== null) {
+        console.log(`🔧 Job ${index} - object salary:`, job.salary);
+        if (job.salary.min && job.salary.max) {
+          avgSalary = (job.salary.min + job.salary.max) / 2;
+          console.log(`🔧 Job ${index} - calculated average:`, avgSalary);
+        } else if (job.salary.min) {
+          avgSalary = job.salary.min;
+          console.log(`🔧 Job ${index} - using min:`, avgSalary);
+        } else if (job.salary.max) {
+          avgSalary = job.salary.max;
+          console.log(`🔧 Job ${index} - using max:`, avgSalary);
+        } else if (job.salary.amount) {
+          avgSalary = job.salary.amount;
+          console.log(`🔧 Job ${index} - using amount:`, avgSalary);
+        }
+      }
 
-          {/* Main Actions */}
-          <div className="flex items-center gap-3">
-            {/* Save Button */}
-            <button
-              onClick={() => handleAction(onBulkSave, "bulk save")}
-              disabled={isProcessing}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white hover:bg-gray-600 rounded-lg transition-colors"
-            >
-              <Bookmark className="w-4 h-4" />
-              <span>Save All</span>
-            </button>
+      console.log(`🔧 Job ${index} - final avgSalary:`, avgSalary);
+      console.log(`🔧 Job ${index} - running sum:`, sum + avgSalary);
 
-            {/* Export Button */}
-            <button
-              onClick={() => handleAction(onExportSelection, "export")}
-              disabled={isProcessing}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white hover:bg-gray-600 rounded-lg transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              <span>Export</span>
-            </button>
+      return sum + (avgSalary || 0);
+    }, 0);
 
-            {/* Apply Button */}
-            <button
-              onClick={() => handleAction(onBulkApply, "bulk apply")}
-              disabled={isProcessing}
-              className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-colors ${
-                needsUpgrade || exceedsFreeTier
-                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
-                  : "bg-purple-600 text-white hover:bg-purple-700"
-              }`}
-            >
-              {isProcessing ? (
-                <div className="w-4 h-4 border-t-2 border-white rounded-full animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-              <span>
-                {needsUpgrade || exceedsFreeTier
-                  ? "Upgrade & Apply"
-                  : `Apply to ${selectionStats.count}`}
-              </span>
-              {(needsUpgrade || exceedsFreeTier) && (
-                <Zap className="w-4 h-4 text-yellow-400" />
-              )}
-            </button>
+    console.log("🔧 Total salary calculated:", totalSalary);
 
-            {/* Close Button */}
-            <button
-              onClick={onClearSelection}
-              className="p-2 text-gray-400 hover:text-white transition-colors"
-              title="Clear selection"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
+    const companies = [
+      ...new Set(
+        selected
+          .map((job) => job?.company)
+          .filter((company) => company && typeof company === "string")
+      ),
+    ];
 
-      {/* Quick Actions Dropdown */}
-      {showQuickActions && (
-        <div className="border-t border-gray-700 px-6 py-4 bg-gray-800/50">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <button
-              onClick={() =>
-                handleAction(onGenerateCoverLetters, "generate cover letters")
-              }
-              className="flex items-center gap-2 p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-left"
-            >
-              <FileText className="w-4 h-4 text-blue-400" />
-              <div>
-                <div className="text-sm font-medium text-white">
-                  Cover Letters
-                </div>
-                <div className="text-xs text-gray-400">Generate AI letters</div>
-              </div>
-            </button>
+    const jobTypes = [
+      ...new Set(
+        selected
+          .map((job) => job?.type)
+          .filter((type) => type && typeof type === "string")
+      ),
+    ];
 
-            <button
-              onClick={() => handleAction(onShareSelection, "share")}
-              className="flex items-center gap-2 p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-left"
-            >
-              <Share2 className="w-4 h-4 text-green-400" />
-              <div>
-                <div className="text-sm font-medium text-white">Share</div>
-                <div className="text-xs text-gray-400">Share selection</div>
-              </div>
-            </button>
+    const locations = [
+      ...new Set(
+        selected
+          .map((job) => job?.location)
+          .filter((location) => location && typeof location === "string")
+      ),
+    ];
 
-            <button
-              onClick={() => handleAction(onArchiveJobs, "archive")}
-              className="flex items-center gap-2 p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-left"
-            >
-              <Archive className="w-4 h-4 text-orange-400" />
-              <div>
-                <div className="text-sm font-medium text-white">Archive</div>
-                <div className="text-xs text-gray-400">Archive jobs</div>
-              </div>
-            </button>
+    // CRITICAL: Calculate average salary safely
+    const calculatedAverageSalary =
+      selected.length > 0 && totalSalary > 0
+        ? Math.round(totalSalary / selected.length)
+        : 0;
 
-            <button
-              onClick={() => handleAction(onDeleteJobs, "delete")}
-              className="flex items-center gap-2 p-3 bg-gray-700 hover:bg-red-600 rounded-lg transition-colors text-left"
-            >
-              <Trash2 className="w-4 h-4 text-red-400" />
-              <div>
-                <div className="text-sm font-medium text-white">Delete</div>
-                <div className="text-xs text-gray-400">Remove from list</div>
-              </div>
-            </button>
-          </div>
+    console.log("🔧 Calculated average salary:", calculatedAverageSalary);
+    console.log("🔧 Average salary type:", typeof calculatedAverageSalary);
 
-          {/* Quick Select Options */}
-          <div className="mt-4 pt-4 border-t border-gray-700">
-            <div className="text-sm text-gray-400 mb-2">Quick Select:</div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => onQuickSelect?.("remote")}
-                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs text-gray-300 transition-colors"
-              >
-                All Remote
-              </button>
-              <button
-                onClick={() => onQuickSelect?.("senior")}
-                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs text-gray-300 transition-colors"
-              >
-                Senior Level
-              </button>
-              <button
-                onClick={() => onQuickSelect?.("highSalary")}
-                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs text-gray-300 transition-colors"
-              >
-                High Salary (100k+)
-              </button>
-              <button
-                onClick={() => onQuickSelect?.("recent")}
-                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs text-gray-300 transition-colors"
-              >
-                Posted Recently
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+    const result = {
+      count: selected.length,
+      averageSalary: calculatedAverageSalary,
+      companies: companies.length,
+      uniqueCompanies: companies,
+      jobTypes: jobTypes.length,
+      uniqueJobTypes: jobTypes,
+      locations: locations.length,
+      uniqueLocations: locations,
+      hasRemoteJobs: selected.some((job) => job.remote),
+      hasOnsiteJobs: selected.some((job) => !job.remote),
+    };
 
-      {/* Analytics Dropdown */}
-      {showAnalytics && (
-        <div className="border-t border-gray-700 px-6 py-4 bg-gray-800/50">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-400">
-                {getAverageSalary()}
-              </div>
-              <div className="text-gray-400">Avg. Salary</div>
-            </div>
+    console.log("🔧 ========== FINAL SELECTION STATS ==========");
+    console.log("🔧 Final result:", result);
+    console.log("🔧 Final averageSalary:", result.averageSalary);
+    console.log("🔧 Final averageSalary type:", typeof result.averageSalary);
+    console.log("🔧 =======================================");
 
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">
-                {selectedJobs?.filter((job) => job.remote).length || 0}
-              </div>
-              <div className="text-gray-400">Remote Jobs</div>
-            </div>
+    // EXTRA SAFETY CHECK
+    if (typeof result.averageSalary === "object") {
+      console.error(
+        "🚨 CRITICAL ERROR: averageSalary is an object!",
+        result.averageSalary
+      );
+      result.averageSalary = 0; // Force to number
+    }
 
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-400">
-                {selectionStats.companies || 0}
-              </div>
-              <div className="text-gray-400">Companies</div>
-            </div>
+    return result;
+  }, [selectedJobs]);
 
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-400">
-                {selectedJobs?.filter((job) => job.urgentHiring).length || 0}
-              </div>
-              <div className="text-gray-400">Urgent</div>
-            </div>
-          </div>
+  // Single job selection
+  const toggleJobSelection = useCallback(
+    (jobId, event = null) => {
+      console.log("🔧 toggleJobSelection called for:", jobId);
 
-          {/* Salary Distribution */}
-          {selectedJobs && selectedJobs.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-gray-700">
-              <div className="text-sm text-gray-400 mb-2">
-                Salary Distribution:
-              </div>
-              <div className="grid grid-cols-3 gap-4 text-xs">
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-green-400">
-                    {(() => {
-                      const salaries = selectedJobs
-                        .map((job) => job.salary)
-                        .filter(Boolean);
-                      const amounts = salaries
-                        .map((s) => s.min || s.amount || 0)
-                        .filter((a) => a > 0);
-                      const min = amounts.length > 0 ? Math.min(...amounts) : 0;
-                      return salaryUtils.formatAmount(min, {
-                        compactFormat: true,
-                      });
-                    })()}
-                  </div>
-                  <div className="text-gray-400">Minimum</div>
-                </div>
+      setSelectedJobIds((prev) => {
+        const newSet = new Set(prev);
 
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-purple-400">
-                    {getAverageSalary()}
-                  </div>
-                  <div className="text-gray-400">Average</div>
-                </div>
+        // Handle shift+click for range selection
+        if (event?.shiftKey && lastSelectedId && lastSelectedId !== jobId) {
+          const currentIndex = jobs.findIndex((job) => job.id === jobId);
+          const lastIndex = jobs.findIndex((job) => job.id === lastSelectedId);
 
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-blue-400">
-                    {(() => {
-                      const salaries = selectedJobs
-                        .map((job) => job.salary)
-                        .filter(Boolean);
-                      const amounts = salaries
-                        .map((s) => s.max || s.amount || 0)
-                        .filter((a) => a > 0);
-                      const max = amounts.length > 0 ? Math.max(...amounts) : 0;
-                      return salaryUtils.formatAmount(max, {
-                        compactFormat: true,
-                      });
-                    })()}
-                  </div>
-                  <div className="text-gray-400">Maximum</div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+          if (currentIndex !== -1 && lastIndex !== -1) {
+            const start = Math.min(currentIndex, lastIndex);
+            const end = Math.max(currentIndex, lastIndex);
 
-      {/* Upgrade Notice */}
-      {(needsUpgrade || exceedsFreeTier) && (
-        <div className="border-t border-gray-700 px-6 py-3 bg-gradient-to-r from-purple-900/30 to-pink-900/30">
-          <div className="flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-yellow-400" />
-            <div className="flex-1">
-              <div className="text-sm font-medium text-white">
-                {exceedsFreeTier
-                  ? `Upgrade to apply to more than ${maxFreeApplications} jobs`
-                  : `You have ${remainingApplications} applications remaining`}
-              </div>
-              <div className="text-xs text-gray-400">
-                Get unlimited applications with Pro
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-purple-400" />
-              <span className="text-sm text-purple-400 font-medium">
-                $9.99/month
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+            // Add all jobs in range
+            for (let i = start; i <= end; i++) {
+              newSet.add(jobs[i].id);
+            }
+
+            setLastSelectedId(jobId);
+            return newSet;
+          }
+        }
+
+        // Normal toggle
+        if (newSet.has(jobId)) {
+          newSet.delete(jobId);
+        } else {
+          newSet.add(jobId);
+          setLastSelectedId(jobId);
+        }
+
+        console.log("🔧 New selection size:", newSet.size);
+        return newSet;
+      });
+    },
+    [jobs, lastSelectedId]
   );
-}
+
+  // Select all visible jobs
+  const selectAllJobs = useCallback(
+    (jobsToSelect = jobs) => {
+      console.log("🔧 selectAllJobs called with:", jobsToSelect?.length || 0);
+      const newSelectedIds = new Set([...selectedJobIds]);
+      jobsToSelect.forEach((job) => newSelectedIds.add(job.id));
+      setSelectedJobIds(newSelectedIds);
+    },
+    [jobs, selectedJobIds]
+  );
+
+  // Deselect all jobs
+  const clearSelection = useCallback(() => {
+    console.log("🔧 clearSelection called");
+    setSelectedJobIds(new Set());
+    setLastSelectedId(null);
+  }, []);
+
+  // Select by criteria
+  const selectByFilter = useCallback(
+    (filterFn) => {
+      const filteredJobs = jobs.filter(filterFn);
+      const newSelectedIds = new Set([...selectedJobIds]);
+      filteredJobs.forEach((job) => newSelectedIds.add(job.id));
+      setSelectedJobIds(newSelectedIds);
+    },
+    [jobs, selectedJobIds]
+  );
+
+  // Quick selection methods
+  const selectRemoteJobs = useCallback(() => {
+    selectByFilter((job) => job.remote);
+  }, [selectByFilter]);
+
+  const selectByCompany = useCallback(
+    (companyName) => {
+      selectByFilter((job) => job.company === companyName);
+    },
+    [selectByFilter]
+  );
+
+  const selectByJobType = useCallback(
+    (jobType) => {
+      selectByFilter((job) => job.type === jobType);
+    },
+    [selectByFilter]
+  );
+
+  // DEBUGGING: Safe salary range selection
+  const selectBySalaryRange = useCallback(
+    (minSalary, maxSalary) => {
+      selectByFilter((job) => {
+        let avgSalary = 0;
+
+        if (job.salary) {
+          if (typeof job.salary === "number") {
+            avgSalary = job.salary;
+          } else if (typeof job.salary === "object" && job.salary.max) {
+            avgSalary = (job.salary.min + job.salary.max) / 2;
+          }
+        }
+
+        return avgSalary >= minSalary && avgSalary <= maxSalary;
+      });
+    },
+    [selectByFilter]
+  );
+
+  // Check if job is selected
+  const isJobSelected = useCallback(
+    (jobId) => {
+      return selectedJobIds.has(jobId);
+    },
+    [selectedJobIds]
+  );
+
+  // Check selection states
+  const isAllSelected = useMemo(() => {
+    return jobs.length > 0 && jobs.every((job) => selectedJobIds.has(job.id));
+  }, [jobs, selectedJobIds]);
+
+  const isPartiallySelected = useMemo(() => {
+    return selectedJobIds.size > 0 && !isAllSelected;
+  }, [selectedJobIds.size, isAllSelected]);
+
+  return {
+    selectedJobIds,
+    selectedJobs,
+    selectionStats,
+    toggleJobSelection,
+    selectAllJobs,
+    clearSelection,
+    selectByFilter,
+    selectRemoteJobs,
+    selectByCompany,
+    selectByJobType,
+    selectBySalaryRange,
+    isJobSelected,
+    isAllSelected,
+    isPartiallySelected,
+  };
+};

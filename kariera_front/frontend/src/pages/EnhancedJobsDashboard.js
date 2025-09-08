@@ -1,4 +1,4 @@
-// src/pages/EnhancedJobsDashboard.js - Complete integration example
+// DEBUG VERSION - EnhancedJobsDashboard.js
 import React, { useState, useEffect, useCallback } from "react";
 import {
   Search,
@@ -10,14 +10,10 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-// Enhanced components for Step 6
+// Enhanced components
 import { useJobSelection } from "../hooks/useJobSelection";
 import EnhancedBulkActionBar from "../components/jobs/EnhancedBulkActionBar";
 import SelectionSummaryModal from "../components/jobs/SelectionSummaryModal";
-import {
-  quickSelectionUtils,
-  QuickSelectionSuggestions,
-} from "../utils/quickSelection";
 
 // Existing components
 import FilterSidebar from "../components/jobs/FilterSidebar";
@@ -30,7 +26,32 @@ import {
   applyFiltersToJobs,
 } from "../services/mockJobService";
 
+// DEBUG: Global error boundary to catch object rendering
+const ObjectDetectionBoundary = ({ children }) => {
+  useEffect(() => {
+    const originalError = console.error;
+    console.error = (...args) => {
+      if (args[0]?.includes?.("Objects are not valid as a React child")) {
+        console.log("🚨 ========== OBJECT RENDERING ERROR DETECTED ==========");
+        console.log("🚨 Error arguments:", args);
+        console.log("🚨 Stack trace:");
+        console.trace();
+        console.log("🚨 ================================================");
+      }
+      originalError.apply(console, args);
+    };
+
+    return () => {
+      console.error = originalError;
+    };
+  }, []);
+
+  return children;
+};
+
 export default function EnhancedJobsDashboard() {
+  console.log("🔧 ========== ENHANCED JOBS DASHBOARD RENDER ==========");
+
   const { user } = useAuth();
 
   // Core state
@@ -58,7 +79,53 @@ export default function EnhancedJobsDashboard() {
   const [showSmartSuggestions, setShowSmartSuggestions] = useState(true);
   const jobsPerPage = 12;
 
+  // DEBUG: Log what we're passing to useJobSelection
+  console.log("🔧 Dashboard - About to call useJobSelection with:");
+  console.log("🔧 Dashboard - loading:", loading);
+  console.log("🔧 Dashboard - filteredJobs:", filteredJobs?.length || 0);
+  console.log("🔧 Dashboard - filteredJobs sample:", filteredJobs?.slice(0, 2));
+
   // Enhanced selection state using our custom hook
+  const jobSelectionResult = useJobSelection(loading ? [] : filteredJobs || []);
+
+  console.log("🔧 Dashboard - useJobSelection returned:");
+  console.log(
+    "🔧 Dashboard - selectedJobIds:",
+    jobSelectionResult.selectedJobIds
+  );
+  console.log(
+    "🔧 Dashboard - selectedJobs:",
+    jobSelectionResult.selectedJobs?.length || 0
+  );
+  console.log(
+    "🔧 Dashboard - selectionStats:",
+    jobSelectionResult.selectionStats
+  );
+  console.log(
+    "🔧 Dashboard - selectionStats type:",
+    typeof jobSelectionResult.selectionStats
+  );
+
+  // DEBUG: Specifically check averageSalary
+  if (jobSelectionResult.selectionStats?.averageSalary) {
+    console.log(
+      "🔧 Dashboard - averageSalary:",
+      jobSelectionResult.selectionStats.averageSalary
+    );
+    console.log(
+      "🔧 Dashboard - averageSalary type:",
+      typeof jobSelectionResult.selectionStats.averageSalary
+    );
+
+    if (typeof jobSelectionResult.selectionStats.averageSalary === "object") {
+      console.error(
+        "🚨 DASHBOARD CRITICAL: averageSalary is an object!",
+        jobSelectionResult.selectionStats.averageSalary
+      );
+      console.error("🚨 This will cause the React error!");
+    }
+  }
+
   const {
     selectedJobIds,
     selectedJobs,
@@ -74,7 +141,7 @@ export default function EnhancedJobsDashboard() {
     isJobSelected,
     isAllSelected,
     isPartiallySelected,
-  } = useJobSelection(filteredJobs);
+  } = jobSelectionResult;
 
   // Modal state
   const [showApplicationModal, setShowApplicationModal] = useState(false);
@@ -89,16 +156,21 @@ export default function EnhancedJobsDashboard() {
 
   // Load initial jobs
   useEffect(() => {
+    console.log("🔧 Dashboard - Loading jobs...");
+
     const loadJobs = async () => {
       setLoading(true);
       try {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         const jobs = generateMockJobs(100);
+        console.log("🔧 Dashboard - Generated jobs:", jobs?.length || 0);
+        console.log("🔧 Dashboard - Sample job:", jobs?.[0]);
+
         setAllJobs(jobs);
         setError(null);
       } catch (err) {
+        console.error("🔧 Dashboard - Error loading jobs:", err);
         setError("Failed to load jobs. Please try again.");
-        console.error("Error loading jobs:", err);
       } finally {
         setLoading(false);
       }
@@ -109,194 +181,123 @@ export default function EnhancedJobsDashboard() {
 
   // Apply filters and search
   useEffect(() => {
-    const filtered = applyFiltersToJobs(allJobs, {
-      searchQuery,
-      locationQuery,
-      filters,
-      sortBy,
-    });
-    setFilteredJobs(filtered);
-    setCurrentPage(1);
+    console.log("🔧 Dashboard - Applying filters...");
+    console.log("🔧 Dashboard - allJobs:", allJobs?.length || 0);
+    console.log("🔧 Dashboard - searchQuery:", searchQuery);
+    console.log("🔧 Dashboard - filters:", filters);
+
+    if (allJobs.length > 0) {
+      const filtered = applyFiltersToJobs(allJobs, {
+        searchQuery,
+        locationQuery,
+        filters,
+        sortBy,
+      });
+
+      console.log("🔧 Dashboard - Filtered jobs:", filtered?.length || 0);
+      setFilteredJobs(filtered);
+      setCurrentPage(1);
+    }
   }, [allJobs, searchQuery, locationQuery, filters, sortBy]);
 
-  // Handle bulk apply with summary modal
-  const handleBulkApply = useCallback(() => {
-    if (selectedJobs.length === 0) return;
+  // Enhanced bulk operations
+  const handleBulkApply = useCallback(async () => {
+    console.log("🔧 Dashboard - handleBulkApply called");
+    console.log("🔧 Dashboard - selectedJobs for bulk apply:", selectedJobs);
 
-    setSummaryActionType("apply");
-    setShowSelectionSummary(true);
-  }, [selectedJobs.length]);
+    if (userTier === "free" && selectedJobs.length > remainingApplications) {
+      setSummaryActionType("apply");
+      setShowSelectionSummary(true);
+      return;
+    }
 
-  // Handle bulk save
-  const handleBulkSave = useCallback(() => {
-    if (selectedJobs.length === 0) return;
-
-    setSummaryActionType("save");
-    setShowSelectionSummary(true);
-  }, [selectedJobs.length]);
-
-  // Handle cover letter generation
-  const handleGenerateCoverLetters = useCallback(() => {
-    if (selectedJobs.length === 0) return;
-
-    setSummaryActionType("generate_letters");
-    setShowSelectionSummary(true);
-  }, [selectedJobs.length]);
-
-  // Handle export selection
-  const handleExportSelection = useCallback(() => {
-    if (selectedJobs.length === 0) return;
-
-    setSummaryActionType("export");
-    setShowSelectionSummary(true);
-  }, [selectedJobs.length]);
-
-  // Process action from summary modal
-  const handleProceedWithAction = useCallback(
-    async (jobsToProcess) => {
-      console.log(
-        `Processing ${summaryActionType} for ${jobsToProcess.length} jobs:`,
-        jobsToProcess
-      );
-
-      // Simulate API call
+    try {
       await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      switch (summaryActionType) {
-        case "apply":
-          // Update applied status for selected jobs
-          setAllJobs((prev) =>
-            prev.map((job) =>
-              jobsToProcess.some((selected) => selected.id === job.id)
-                ? { ...job, applied: true }
-                : job
-            )
-          );
-          setRemainingApplications((prev) =>
-            Math.max(0, prev - jobsToProcess.length)
-          );
-          break;
-
-        case "save":
-          // Update saved status for selected jobs
-          setAllJobs((prev) =>
-            prev.map((job) =>
-              jobsToProcess.some((selected) => selected.id === job.id)
-                ? { ...job, saved: true }
-                : job
-            )
-          );
-          break;
-
-        case "export":
-          // Trigger download (mock)
-          console.log("Downloading job report...");
-          break;
-
-        case "generate_letters":
-          // Generate cover letters (mock)
-          console.log("Generating cover letters...");
-          break;
-      }
-
-      setShowSelectionSummary(false);
-      clearSelection();
-
-      // Show success message
-      const actionMessages = {
-        apply: `Successfully applied to ${jobsToProcess.length} jobs!`,
-        save: `Successfully saved ${jobsToProcess.length} jobs!`,
-        export: "Job report downloaded successfully!",
-        generate_letters: `Generated ${jobsToProcess.length} cover letters!`,
-      };
-
-      alert(actionMessages[summaryActionType]);
-    },
-    [summaryActionType, clearSelection]
-  );
-
-  // Handle individual job actions
-  const handleJobSave = useCallback((jobId) => {
-    setAllJobs((prev) =>
-      prev.map((job) =>
-        job.id === jobId ? { ...job, saved: !job.saved } : job
-      )
-    );
-  }, []);
-
-  const handleJobApply = useCallback((job) => {
-    setSelectedJobForApplication(job);
-    setShowApplicationModal(true);
-  }, []);
-
-  // Handle application submission
-  const handleApplicationSubmit = useCallback(
-    async (applicationData) => {
-      console.log("Submitting application:", applicationData);
 
       setAllJobs((prev) =>
         prev.map((job) =>
-          job.id === selectedJobForApplication.id
-            ? { ...job, applied: true }
-            : job
+          selectedJobIds.has(job.id) ? { ...job, applied: true } : job
         )
       );
 
-      setRemainingApplications((prev) => Math.max(0, prev - 1));
-      setShowApplicationModal(false);
-      setSelectedJobForApplication(null);
+      setRemainingApplications((prev) =>
+        Math.max(0, prev - selectedJobs.length)
+      );
+      clearSelection();
 
-      alert("Application submitted successfully!");
-    },
-    [selectedJobForApplication]
-  );
+      alert(`Successfully applied to ${selectedJobs.length} jobs!`);
+    } catch (error) {
+      console.error("Error in bulk apply:", error);
+      alert("Failed to apply to jobs. Please try again.");
+    }
+  }, [
+    selectedJobs,
+    selectedJobIds,
+    userTier,
+    remainingApplications,
+    clearSelection,
+  ]);
 
-  // Quick selection handlers
+  const handleBulkSave = useCallback(async () => {
+    console.log("🔧 Dashboard - handleBulkSave called");
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      setAllJobs((prev) =>
+        prev.map((job) =>
+          selectedJobIds.has(job.id) ? { ...job, saved: true } : job
+        )
+      );
+
+      alert(`Successfully saved ${selectedJobs.length} jobs!`);
+    } catch (error) {
+      console.error("Error in bulk save:", error);
+      alert("Failed to save jobs. Please try again.");
+    }
+  }, [selectedJobs, selectedJobIds]);
+
+  const handleGenerateCoverLetters = useCallback(async () => {
+    console.log("🔧 Dashboard - handleGenerateCoverLetters called");
+    setSummaryActionType("generate_letters");
+    setShowSelectionSummary(true);
+  }, []);
+
+  const handleExportSelection = useCallback(async () => {
+    console.log("🔧 Dashboard - handleExportSelection called");
+    setSummaryActionType("export");
+    setShowSelectionSummary(true);
+  }, []);
+
   const handleQuickSelect = useCallback(
     (type) => {
+      console.log("🔧 Dashboard - handleQuickSelect called with:", type);
+
       switch (type) {
         case "remote":
-          selectByFilter((job) => job.remote);
+          selectRemoteJobs();
           break;
-        case "high-salary":
+        case "senior":
+          selectByFilter((job) =>
+            job.experienceLevel?.toLowerCase().includes("senior")
+          );
+          break;
+        case "highSalary":
           selectBySalaryRange(100000, Infinity);
           break;
         case "recent":
           selectByFilter((job) => {
             const posted = new Date(job.posted);
             const now = new Date();
-            const diffDays = (now - posted) / (1000 * 60 * 60 * 24);
-            return diffDays <= 7;
+            const daysAgo = (now - posted) / (1000 * 60 * 60 * 24);
+            return daysAgo <= 7;
           });
           break;
-        case "featured":
-          selectByFilter((job) => job.featured);
+        default:
           break;
       }
     },
-    [selectByFilter, selectBySalaryRange]
-  );
-
-  // Apply smart suggestions
-  const handleApplySuggestion = useCallback(
-    (suggestionJobs) => {
-      suggestionJobs.forEach((job) => {
-        if (!isJobSelected(job.id)) {
-          toggleJobSelection(job.id);
-        }
-      });
-    },
-    [isJobSelected, toggleJobSelection]
-  );
-
-  // Remove job from selection (from summary modal)
-  const handleRemoveJobFromSelection = useCallback(
-    (jobId) => {
-      if (isJobSelected(jobId)) {
-        toggleJobSelection(jobId);
-      }
-    },
-    [isJobSelected, toggleJobSelection]
+    [selectRemoteJobs, selectByFilter, selectBySalaryRange]
   );
 
   // Get current page jobs
@@ -306,175 +307,273 @@ export default function EnhancedJobsDashboard() {
     return filteredJobs.slice(startIndex, endIndex);
   }, [filteredJobs, currentPage, jobsPerPage]);
 
-  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
-  const hasNextPage = currentPage < totalPages;
   const currentPageJobs = getCurrentPageJobs();
 
-  return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Enhanced Bulk Action Bar */}
-      <EnhancedBulkActionBar
-        selectionStats={selectionStats}
-        selectedJobs={selectedJobs}
-        onBulkApply={handleBulkApply}
-        onBulkSave={handleBulkSave}
-        onClearSelection={clearSelection}
-        onGenerateCoverLetters={handleGenerateCoverLetters}
-        onExportSelection={handleExportSelection}
-        onQuickSelect={handleQuickSelect}
-        userTier={userTier}
-        remainingApplications={remainingApplications}
-        isVisible={selectedJobs.length > 0}
-      />
+  // DEBUG: Check if we're about to render anything problematic
+  console.log("🔧 Dashboard - About to render with:");
+  console.log("🔧 Dashboard - loading:", loading);
+  console.log("🔧 Dashboard - error:", error);
+  console.log("🔧 Dashboard - selectionStats:", selectionStats);
+  console.log("🔧 Dashboard - selectedJobs:", selectedJobs?.length || 0);
 
-      {/* Header */}
-      <div className="bg-gray-900 border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            {/* Welcome message */}
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-white">
-                Find your next opportunity,{" "}
-                {user?.firstName || user?.name || "there"}
-              </h1>
-              <div className="flex items-center gap-4 mt-2">
-                <div className="flex items-center gap-2 text-sm text-gray-400">
-                  <Briefcase className="w-4 h-4" />
-                  <span>{filteredJobs.length} jobs available</span>
+  // Loading state
+  if (loading) {
+    console.log("🔧 Dashboard - Rendering loading state");
+    return (
+      <ObjectDetectionBoundary>
+        <div className="min-h-screen bg-black text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-700 rounded w-1/4 mb-8"></div>
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div className="space-y-6">
+                  <div className="h-64 bg-gray-700 rounded"></div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-green-400">
-                  <TrendingUp className="w-4 h-4" />
-                  <span>{remainingApplications} applications remaining</span>
-                </div>
-                {selectedJobs.length > 0 && (
-                  <div className="flex items-center gap-2 text-sm text-purple-400">
-                    <span>{selectedJobs.length} jobs selected</span>
+                <div className="lg:col-span-3 space-y-6">
+                  <div className="h-12 bg-gray-700 rounded"></div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="h-64 bg-gray-700 rounded"></div>
+                    ))}
                   </div>
-                )}
+                </div>
               </div>
             </div>
+          </div>
+        </div>
+      </ObjectDetectionBoundary>
+    );
+  }
 
-            {/* Search bar */}
-            <div className="flex flex-col lg:flex-row gap-4 mb-6">
+  // Error state
+  if (error) {
+    console.log("🔧 Dashboard - Rendering error state");
+    return (
+      <ObjectDetectionBoundary>
+        <div className="min-h-screen bg-black text-white flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4 text-red-400">
+              Error Loading Jobs
+            </h2>
+            <p className="text-gray-400 mb-6">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </ObjectDetectionBoundary>
+    );
+  }
+
+  console.log("🔧 Dashboard - Rendering main dashboard");
+
+  // Main dashboard
+  return (
+    <ObjectDetectionBoundary>
+      <div className="min-h-screen bg-black text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-white">
+                Enhanced Jobs Dashboard
+              </h1>
+              <p className="text-gray-400 mt-2">
+                Find and apply to jobs with powerful selection tools
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-gray-400">
+                {filteredJobs.length} jobs • {selectedJobs.length} selected
+              </div>
+            </div>
+          </div>
+
+          {/* Search and filters */}
+          <div className="bg-gray-900 rounded-xl p-6 mb-8">
+            <div className="flex items-center gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Job title, keywords, or company"
+                  placeholder="Search jobs, companies, or skills..."
+                  className="w-full pl-12 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
-
-              <div className="lg:w-80 relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <div className="relative">
+                <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="City, state, or country"
+                  placeholder="Location"
+                  className="pl-12 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   value={locationQuery}
                   onChange={(e) => setLocationQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
-
               <button
                 onClick={() => setShowFilterSidebar(!showFilterSidebar)}
-                className="lg:hidden px-4 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center gap-2"
+                className="px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white hover:bg-gray-700 transition-colors"
               >
                 <Filter className="w-5 h-5" />
-                Filters
               </button>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Main content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex gap-6">
-          {/* Filter Sidebar */}
-          {showFilterSidebar && (
-            <div className="hidden lg:block w-80 flex-shrink-0 space-y-6">
-              <FilterSidebar filters={filters} onFiltersChange={setFilters} />
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Sidebar */}
+            {showFilterSidebar && (
+              <div className="lg:col-span-1">
+                <div className="sticky top-8 space-y-6">
+                  <FilterSidebar
+                    filters={filters}
+                    onFiltersChange={setFilters}
+                  />
+                </div>
+              </div>
+            )}
 
-              {/* Smart Selection Suggestions */}
-              {showSmartSuggestions && (
-                <QuickSelectionSuggestions
-                  jobs={filteredJobs}
-                  currentSelection={selectedJobs}
-                  onApplySuggestion={handleApplySuggestion}
+            {/* Main content */}
+            <div
+              className={`${
+                showFilterSidebar ? "lg:col-span-3" : "lg:col-span-4"
+              }`}
+            >
+              {/* Enhanced Bulk Action Bar */}
+              <div className="mb-6">
+                <EnhancedBulkActionBar
+                  selectionStats={selectionStats}
+                  selectedJobs={selectedJobs}
+                  onBulkApply={handleBulkApply}
+                  onBulkSave={handleBulkSave}
+                  onClearSelection={clearSelection}
+                  onGenerateCoverLetters={handleGenerateCoverLetters}
+                  onExportSelection={handleExportSelection}
+                  onQuickSelect={handleQuickSelect}
+                  userTier={userTier}
+                  remainingApplications={remainingApplications}
+                  maxFreeApplications={5}
+                  isVisible={selectedJobs.length > 0}
                 />
-              )}
-            </div>
-          )}
+              </div>
 
-          {/* Jobs List */}
-          <div className="flex-1 min-w-0">
-            <JobList
-              jobs={currentPageJobs}
-              loading={loading}
-              error={error}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              selectedJobs={selectedJobIds}
-              onJobSelect={(jobId, selected, event) =>
-                toggleJobSelection(jobId, event)
-              }
-              onSelectAll={(selected) =>
-                selected ? selectAllJobs() : clearSelection()
-              }
-              onBulkApply={handleBulkApply}
-              onBulkSave={handleBulkSave}
-              onJobSave={handleJobSave}
-              onJobApply={handleJobApply}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              sortBy={sortBy}
-              onSortChange={setSortBy}
-              totalCount={filteredJobs.length}
-              currentPage={currentPage}
-              onPageChange={setCurrentPage}
-              hasNextPage={hasNextPage}
-              filters={filters}
-              onFilterChange={setFilters}
-            />
+              {/* Job List */}
+              <JobList
+                jobs={currentPageJobs}
+                loading={loading}
+                error={error}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+                selectedJobs={selectedJobIds}
+                onJobSelect={(jobId, selected) => {
+                  console.log(
+                    "🔧 Dashboard - Job selection changed:",
+                    jobId,
+                    selected
+                  );
+                  toggleJobSelection(jobId);
+                }}
+                onSelectAll={(selected) => {
+                  console.log("🔧 Dashboard - Select all changed:", selected);
+                  if (selected) {
+                    selectAllJobs(currentPageJobs);
+                  } else {
+                    clearSelection();
+                  }
+                }}
+                onBulkApply={handleBulkApply}
+                onBulkSave={handleBulkSave}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+                totalCount={filteredJobs.length}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+                hasNextPage={currentPage * jobsPerPage < filteredJobs.length}
+              />
+            </div>
           </div>
         </div>
+
+        {/* Selection Summary Modal */}
+        {showSelectionSummary && (
+          <SelectionSummaryModal
+            selectedJobs={selectedJobs}
+            selectionStats={selectionStats}
+            onClose={() => setShowSelectionSummary(false)}
+            onProceedWithAction={(actionType) => {
+              console.log("🔧 Dashboard - Proceeding with action:", actionType);
+              setShowSelectionSummary(false);
+
+              switch (actionType) {
+                case "apply":
+                  handleBulkApply();
+                  break;
+                case "save":
+                  handleBulkSave();
+                  break;
+                case "export":
+                  alert("Export functionality will be implemented soon!");
+                  break;
+                case "generate_letters":
+                  alert("Cover letter generation will be implemented soon!");
+                  break;
+                default:
+                  break;
+              }
+            }}
+            actionType={summaryActionType}
+            userTier={userTier}
+            estimatedCost={selectedJobs.length * 2.99}
+            showCostBreakdown={
+              userTier === "free" && selectedJobs.length > remainingApplications
+            }
+          />
+        )}
+
+        {/* Application Modal */}
+        {showApplicationModal && selectedJobForApplication && (
+          <ApplicationModal
+            job={selectedJobForApplication}
+            onClose={() => {
+              setShowApplicationModal(false);
+              setSelectedJobForApplication(null);
+            }}
+            onSubmit={async (applicationData) => {
+              console.log(
+                "🔧 Dashboard - Application submitted:",
+                applicationData
+              );
+
+              // Simulate API call
+              await new Promise((resolve) => setTimeout(resolve, 2000));
+
+              // Update job status
+              setAllJobs((prev) =>
+                prev.map((job) =>
+                  job.id === selectedJobForApplication.id
+                    ? { ...job, applied: true }
+                    : job
+                )
+              );
+
+              setRemainingApplications((prev) => Math.max(0, prev - 1));
+
+              setShowApplicationModal(false);
+              setSelectedJobForApplication(null);
+
+              alert("Application submitted successfully!");
+            }}
+            userTier={userTier}
+            remainingApplications={remainingApplications}
+          />
+        )}
       </div>
-
-      {/* Selection Summary Modal */}
-      {showSelectionSummary && (
-        <SelectionSummaryModal
-          selectedJobs={selectedJobs}
-          selectionStats={selectionStats}
-          onClose={() => setShowSelectionSummary(false)}
-          onProceedWithAction={handleProceedWithAction}
-          onRemoveJob={handleRemoveJobFromSelection}
-          actionType={summaryActionType}
-          userTier={userTier}
-          estimatedCost={
-            summaryActionType === "apply" ? selectedJobs.length * 0.99 : 0
-          }
-          showCostBreakdown={
-            userTier === "free" && selectedJobs.length > remainingApplications
-          }
-        />
-      )}
-
-      {/* Application Modal */}
-      {showApplicationModal && selectedJobForApplication && (
-        <ApplicationModal
-          job={selectedJobForApplication}
-          userTier={userTier}
-          remainingApplications={remainingApplications}
-          onClose={() => {
-            setShowApplicationModal(false);
-            setSelectedJobForApplication(null);
-          }}
-          onSubmit={handleApplicationSubmit}
-        />
-      )}
-    </div>
+    </ObjectDetectionBoundary>
   );
 }

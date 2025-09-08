@@ -1,5 +1,5 @@
-// src/components/jobs/SelectionSummaryModal.js - Updated with consistent salary formatting
-import React, { useState, useMemo } from "react";
+// DEBUG VERSION - SelectionSummaryModal.js
+import React, { useState, useMemo, useEffect } from "react";
 import {
   X,
   CheckCircle,
@@ -22,7 +22,61 @@ import {
   EyeOff,
   Trash2,
 } from "lucide-react";
-import { salaryUtils } from "../../utils/salaryUtils";
+
+// DEBUG: Safe rendering wrapper for this component
+const SafeRender = ({ children, label, value }) => {
+  useEffect(() => {
+    console.log(`🚨 Modal SafeRender [${label}]:`, value);
+    console.log(`🚨 Modal SafeRender [${label}] type:`, typeof value);
+
+    if (value && typeof value === "object" && !React.isValidElement(value)) {
+      console.error(`🚨 MODAL OBJECT DETECTED in ${label}:`, value);
+      console.error(`🚨 This will cause React error!`);
+    }
+  }, [value, label]);
+
+  if (value && typeof value === "object" && !React.isValidElement(value)) {
+    console.error(`🚨 MODAL PREVENTING OBJECT RENDER in ${label}:`, value);
+    return (
+      <span style={{ color: "red" }}>ERROR: Object detected in {label}</span>
+    );
+  }
+
+  return children;
+};
+
+// DEBUG: Safe formatSalary function
+const formatSalary = (amount, context = "unknown") => {
+  console.log(`💰 Modal formatSalary called from ${context}:`, amount);
+  console.log(`💰 Modal formatSalary type:`, typeof amount);
+
+  if (!amount && amount !== 0) {
+    console.log(`💰 Modal formatSalary: amount is falsy, returning $0`);
+    return "$0";
+  }
+
+  if (typeof amount === "object") {
+    console.error(`💰 Modal formatSalary: OBJECT DETECTED!`, amount);
+    return "$0 (object detected)";
+  }
+
+  if (isNaN(amount)) {
+    console.log(`💰 Modal formatSalary: amount is NaN, returning $0`);
+    return "$0";
+  }
+
+  let result;
+  if (amount >= 1000000) {
+    result = `$${(amount / 1000000).toFixed(1)}M`;
+  } else if (amount >= 1000) {
+    result = `$${(amount / 1000).toFixed(0)}k`;
+  } else {
+    result = `$${Math.round(amount)}`;
+  }
+
+  console.log(`💰 Modal formatSalary result:`, result);
+  return result;
+};
 
 export default function SelectionSummaryModal({
   selectedJobs = [],
@@ -31,18 +85,46 @@ export default function SelectionSummaryModal({
   onProceedWithAction,
   onRemoveJob,
   onToggleJobVisibility,
-  actionType = "apply", // 'apply', 'save', 'export', 'generate_letters'
+  actionType = "apply",
   userTier = "free",
   estimatedCost = 0,
   showCostBreakdown = false,
 }) {
-  const [viewMode, setViewMode] = useState("summary"); // 'summary', 'list', 'analytics'
-  const [sortBy, setSortBy] = useState("company"); // 'company', 'salary', 'date', 'title'
+  console.log("🔧 ========== SELECTION SUMMARY MODAL RENDER ==========");
+  console.log("🔧 Modal Props received:");
+  console.log("🔧 - selectedJobs:", selectedJobs?.length || 0);
+  console.log("🔧 - selectionStats:", selectionStats);
+  console.log("🔧 - selectionStats type:", typeof selectionStats);
+  console.log("🔧 - actionType:", actionType);
+
+  // DEBUG: Check averageSalary specifically in modal
+  if (selectionStats?.averageSalary) {
+    console.log(
+      "🔧 Modal - selectionStats.averageSalary:",
+      selectionStats.averageSalary
+    );
+    console.log(
+      "🔧 Modal - selectionStats.averageSalary type:",
+      typeof selectionStats.averageSalary
+    );
+
+    if (typeof selectionStats.averageSalary === "object") {
+      console.error(
+        "🚨 MODAL CRITICAL: averageSalary is an object!",
+        selectionStats.averageSalary
+      );
+    }
+  }
+
+  const [viewMode, setViewMode] = useState("summary");
+  const [sortBy, setSortBy] = useState("company");
   const [showHiddenJobs, setShowHiddenJobs] = useState(true);
   const [hiddenJobIds, setHiddenJobIds] = useState(new Set());
 
   // Sort jobs based on selected criteria
   const sortedJobs = useMemo(() => {
+    console.log("🔧 Modal calculating sortedJobs...");
+
     const visibleJobs = showHiddenJobs
       ? selectedJobs
       : selectedJobs.filter((job) => !hiddenJobIds.has(job.id));
@@ -65,8 +147,10 @@ export default function SelectionSummaryModal({
     });
   }, [selectedJobs, sortBy, showHiddenJobs, hiddenJobIds]);
 
-  // Group jobs by company for analytics
+  // Group jobs by company for analytics - WITH DEBUGGING
   const jobsByCompany = useMemo(() => {
+    console.log("🔧 Modal calculating jobsByCompany...");
+
     const grouped = selectedJobs.reduce((acc, job) => {
       if (!acc[job.company]) {
         acc[job.company] = [];
@@ -76,16 +160,45 @@ export default function SelectionSummaryModal({
     }, {});
 
     return Object.entries(grouped)
-      .map(([company, jobs]) => ({
-        company,
-        jobs,
-        count: jobs.length,
-        avgSalary: salaryUtils.formatAverage(
-          jobs.map((job) => job.salary).filter(Boolean)
-        ),
-        hasRemote: jobs.some((job) => job.remote),
-        locations: [...new Set(jobs.map((job) => job.location))],
-      }))
+      .map(([company, jobs]) => {
+        console.log(
+          `🔧 Modal processing company ${company} with ${jobs.length} jobs`
+        );
+
+        // SAFE calculation of average salary
+        const salarySum = jobs.reduce((sum, job) => {
+          console.log(`🔧 Modal - job salary for ${company}:`, job.salary);
+
+          if (!job.salary) return sum;
+
+          let amount = 0;
+          if (typeof job.salary === "number") {
+            amount = job.salary;
+          } else if (typeof job.salary === "object") {
+            if (job.salary.min && job.salary.max) {
+              amount = (job.salary.min + job.salary.max) / 2;
+            } else if (job.salary.amount) {
+              amount = job.salary.amount;
+            }
+          }
+
+          console.log(`🔧 Modal - calculated amount for ${company}:`, amount);
+          return sum + amount;
+        }, 0);
+
+        const avgSalary =
+          jobs.length > 0 ? Math.round(salarySum / jobs.length) : 0;
+        console.log(`🔧 Modal - final avgSalary for ${company}:`, avgSalary);
+
+        return {
+          company,
+          jobs,
+          count: jobs.length,
+          avgSalary: avgSalary, // This should always be a number now
+          hasRemote: jobs.some((job) => job.remote),
+          locations: [...new Set(jobs.map((job) => job.location))],
+        };
+      })
       .sort((a, b) => b.count - a.count);
   }, [selectedJobs]);
 
@@ -137,9 +250,13 @@ export default function SelectionSummaryModal({
   };
 
   const getOverallSalaryStats = () => {
+    console.log("🔧 Modal calculating overall salary stats...");
+
     const salaries = selectedJobs.map((job) => job.salary).filter(Boolean);
+    console.log("🔧 Modal - filtered salaries:", salaries);
 
     if (salaries.length === 0) {
+      console.log("🔧 Modal - no salaries found");
       return {
         average: "N/A",
         min: "N/A",
@@ -162,26 +279,45 @@ export default function SelectionSummaryModal({
       .map((s) => s.max || s.amount || 0)
       .filter((a) => a > 0);
 
-    return {
-      average: salaryUtils.formatAverage(salaries),
-      min:
-        minAmounts.length > 0
-          ? salaryUtils.formatAmount(Math.min(...minAmounts))
-          : "N/A",
-      max:
-        maxAmounts.length > 0
-          ? salaryUtils.formatAmount(Math.max(...maxAmounts))
-          : "N/A",
+    const avgAmount =
+      amounts.length > 0
+        ? amounts.reduce((a, b) => a + b, 0) / amounts.length
+        : 0;
+
+    const result = {
+      average: Math.round(avgAmount),
+      min: minAmounts.length > 0 ? Math.min(...minAmounts) : 0,
+      max: maxAmounts.length > 0 ? Math.max(...maxAmounts) : 0,
       range:
         amounts.length > 0
-          ? `${salaryUtils.formatAmount(
-              Math.min(...amounts)
-            )} - ${salaryUtils.formatAmount(Math.max(...amounts))}`
+          ? `${Math.min(...amounts)} - ${Math.max(...amounts)}`
           : "N/A",
     };
+
+    console.log("🔧 Modal - salary stats calculated:", result);
+    return result;
   };
 
   const salaryStats = getOverallSalaryStats();
+
+  // SAFE VALUES for rendering
+  const safeAverageSalary = (() => {
+    const value = selectionStats?.averageSalary || 0;
+    if (typeof value === "object") {
+      console.error("🚨 Modal forcing averageSalary object to 0");
+      return 0;
+    }
+    return Number(value) || 0;
+  })();
+
+  const safeSalaryStatsAverage = (() => {
+    const value = salaryStats.average;
+    if (typeof value === "object") {
+      console.error("🚨 Modal forcing salaryStats.average object to 0");
+      return 0;
+    }
+    return Number(value) || 0;
+  })();
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -231,25 +367,48 @@ export default function SelectionSummaryModal({
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-gray-800 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-purple-400">
-                    {selectionStats.count}
+                    <SafeRender
+                      label="modal-summary-count"
+                      value={selectionStats.count}
+                    >
+                      {selectionStats.count}
+                    </SafeRender>
                   </div>
                   <div className="text-sm text-gray-400">Jobs Selected</div>
                 </div>
                 <div className="bg-gray-800 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-green-400">
-                    {salaryStats.average}
+                    <SafeRender
+                      label="modal-summary-avg-salary"
+                      value={safeSalaryStatsAverage}
+                    >
+                      {formatSalary(
+                        safeSalaryStatsAverage,
+                        "modal-summary-average"
+                      )}
+                    </SafeRender>
                   </div>
                   <div className="text-sm text-gray-400">Avg. Salary</div>
                 </div>
                 <div className="bg-gray-800 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-blue-400">
-                    {selectionStats.companies}
+                    <SafeRender
+                      label="modal-summary-companies"
+                      value={selectionStats.companies}
+                    >
+                      {selectionStats.companies}
+                    </SafeRender>
                   </div>
                   <div className="text-sm text-gray-400">Companies</div>
                 </div>
                 <div className="bg-gray-800 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-orange-400">
-                    {selectedJobs.filter((job) => job.remote).length}
+                    <SafeRender
+                      label="modal-summary-remote"
+                      value={selectedJobs.filter((job) => job.remote).length}
+                    >
+                      {selectedJobs.filter((job) => job.remote).length}
+                    </SafeRender>
                   </div>
                   <div className="text-sm text-gray-400">Remote Jobs</div>
                 </div>
@@ -264,25 +423,52 @@ export default function SelectionSummaryModal({
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
                     <div className="text-lg font-semibold text-green-400">
-                      {salaryStats.min}
+                      <SafeRender
+                        label="modal-salary-min"
+                        value={salaryStats.min}
+                      >
+                        {typeof salaryStats.min === "number"
+                          ? formatSalary(salaryStats.min, "modal-salary-min")
+                          : salaryStats.min}
+                      </SafeRender>
                     </div>
                     <div className="text-sm text-gray-400">Minimum</div>
                   </div>
                   <div className="text-center">
                     <div className="text-lg font-semibold text-purple-400">
-                      {salaryStats.average}
+                      <SafeRender
+                        label="modal-salary-avg"
+                        value={safeSalaryStatsAverage}
+                      >
+                        {formatSalary(
+                          safeSalaryStatsAverage,
+                          "modal-salary-average"
+                        )}
+                      </SafeRender>
                     </div>
                     <div className="text-sm text-gray-400">Average</div>
                   </div>
                   <div className="text-center">
                     <div className="text-lg font-semibold text-blue-400">
-                      {salaryStats.max}
+                      <SafeRender
+                        label="modal-salary-max"
+                        value={salaryStats.max}
+                      >
+                        {typeof salaryStats.max === "number"
+                          ? formatSalary(salaryStats.max, "modal-salary-max")
+                          : salaryStats.max}
+                      </SafeRender>
                     </div>
                     <div className="text-sm text-gray-400">Maximum</div>
                   </div>
                   <div className="text-center">
                     <div className="text-lg font-semibold text-orange-400">
-                      {salaryStats.range}
+                      <SafeRender
+                        label="modal-salary-range"
+                        value={salaryStats.range}
+                      >
+                        {salaryStats.range}
+                      </SafeRender>
                     </div>
                     <div className="text-sm text-gray-400">Full Range</div>
                   </div>
@@ -316,10 +502,24 @@ export default function SelectionSummaryModal({
                       </div>
                       <div className="text-right">
                         <div className="font-medium text-white">
-                          {company.count} jobs
+                          <SafeRender
+                            label={`modal-company-count-${company.company}`}
+                            value={company.count}
+                          >
+                            {company.count} jobs
+                          </SafeRender>
                         </div>
                         <div className="text-sm text-green-400">
-                          Avg. {company.avgSalary}
+                          <SafeRender
+                            label={`modal-company-avg-${company.company}`}
+                            value={company.avgSalary}
+                          >
+                            Avg.{" "}
+                            {formatSalary(
+                              company.avgSalary || 0,
+                              `modal-company-${company.company}`
+                            )}
+                          </SafeRender>
                         </div>
                       </div>
                     </div>
@@ -395,9 +595,25 @@ export default function SelectionSummaryModal({
                           <div className="flex items-center gap-1">
                             <DollarSign className="w-4 h-4" />
                             <span className="font-medium text-green-400">
-                              {salaryUtils.formatRange(job.salary, {
-                                fallbackText: "Salary not specified",
-                              })}
+                              <SafeRender
+                                label={`modal-job-salary-${job.id}`}
+                                value={job.salary}
+                              >
+                                {job.salary
+                                  ? typeof job.salary === "object"
+                                    ? `${formatSalary(
+                                        job.salary.min || 0,
+                                        `modal-job-${job.id}-min`
+                                      )} - ${formatSalary(
+                                        job.salary.max || 0,
+                                        `modal-job-${job.id}-max`
+                                      )}`
+                                    : formatSalary(
+                                        job.salary,
+                                        `modal-job-${job.id}`
+                                      )
+                                  : "Salary not specified"}
+                              </SafeRender>
                             </span>
                           </div>
                         </div>
@@ -441,37 +657,70 @@ export default function SelectionSummaryModal({
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
                     <div className="text-2xl font-bold text-green-400">
-                      {
-                        selectedJobs.filter((job) => {
-                          const salary =
-                            job.salary?.max || job.salary?.amount || 0;
-                          return salary < 80000;
-                        }).length
-                      }
+                      <SafeRender
+                        label="modal-analytics-under-80k"
+                        value={
+                          selectedJobs.filter((job) => {
+                            const salary =
+                              job.salary?.max || job.salary?.amount || 0;
+                            return salary < 80000;
+                          }).length
+                        }
+                      >
+                        {
+                          selectedJobs.filter((job) => {
+                            const salary =
+                              job.salary?.max || job.salary?.amount || 0;
+                            return salary < 80000;
+                          }).length
+                        }
+                      </SafeRender>
                     </div>
                     <div className="text-sm text-gray-400">Under $80k</div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-purple-400">
-                      {
-                        selectedJobs.filter((job) => {
-                          const salary =
-                            job.salary?.max || job.salary?.amount || 0;
-                          return salary >= 80000 && salary < 120000;
-                        }).length
-                      }
+                      <SafeRender
+                        label="modal-analytics-80k-120k"
+                        value={
+                          selectedJobs.filter((job) => {
+                            const salary =
+                              job.salary?.max || job.salary?.amount || 0;
+                            return salary >= 80000 && salary < 120000;
+                          }).length
+                        }
+                      >
+                        {
+                          selectedJobs.filter((job) => {
+                            const salary =
+                              job.salary?.max || job.salary?.amount || 0;
+                            return salary >= 80000 && salary < 120000;
+                          }).length
+                        }
+                      </SafeRender>
                     </div>
                     <div className="text-sm text-gray-400">$80k - $120k</div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-blue-400">
-                      {
-                        selectedJobs.filter((job) => {
-                          const salary =
-                            job.salary?.max || job.salary?.amount || 0;
-                          return salary >= 120000;
-                        }).length
-                      }
+                      <SafeRender
+                        label="modal-analytics-over-120k"
+                        value={
+                          selectedJobs.filter((job) => {
+                            const salary =
+                              job.salary?.max || job.salary?.amount || 0;
+                            return salary >= 120000;
+                          }).length
+                        }
+                      >
+                        {
+                          selectedJobs.filter((job) => {
+                            const salary =
+                              job.salary?.max || job.salary?.amount || 0;
+                            return salary >= 120000;
+                          }).length
+                        }
+                      </SafeRender>
                     </div>
                     <div className="text-sm text-gray-400">$120k+</div>
                   </div>
@@ -495,13 +744,27 @@ export default function SelectionSummaryModal({
                             {company.company}
                           </h4>
                           <p className="text-sm text-gray-400">
-                            {company.count} jobs •{" "}
+                            <SafeRender
+                              label={`modal-analytics-company-count-${company.company}`}
+                              value={company.count}
+                            >
+                              {company.count} jobs
+                            </SafeRender>
+                            {" • "}
                             {company.locations.join(", ")}
                           </p>
                         </div>
                         <div className="text-right">
                           <div className="font-semibold text-green-400">
-                            {company.avgSalary}
+                            <SafeRender
+                              label={`modal-analytics-company-avg-${company.company}`}
+                              value={company.avgSalary}
+                            >
+                              {formatSalary(
+                                company.avgSalary || 0,
+                                `modal-analytics-company-${company.company}`
+                              )}
+                            </SafeRender>
                           </div>
                           <div className="text-sm text-gray-400">Average</div>
                         </div>

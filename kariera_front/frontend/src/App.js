@@ -1,5 +1,6 @@
 // src/App.js - Complete Final Version with All Features
 import React from "react";
+import { addGlobalObjectDetection } from "./utils/debugUtils";
 import {
   BrowserRouter as Router,
   Routes,
@@ -43,7 +44,9 @@ import {
   Briefcase,
   Users,
 } from "lucide-react";
-
+if (process.env.NODE_ENV === "development") {
+  addGlobalObjectDetection();
+}
 // Header Component - Enhanced with all navigation
 const Header = () => {
   const { user, logout } = useAuth();
