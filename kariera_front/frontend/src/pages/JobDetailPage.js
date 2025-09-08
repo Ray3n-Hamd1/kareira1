@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { getJobById } from "../services/mockJobService";
 import { salaryUtils } from "../utils/salaryUtils";
+import { formatSalary } from "../utils/salaryUtils";
 
 export default function JobDetailPage() {
   const { jobId } = useParams();

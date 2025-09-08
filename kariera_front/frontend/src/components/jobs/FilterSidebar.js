@@ -14,7 +14,7 @@ import {
   Filter,
   RotateCcw,
 } from "lucide-react";
-import { salaryUtils } from "../../utils/salaryUtils";
+import { formatSalary } from "../../utils/salaryUtils";
 
 const FilterSection = ({ title, icon, children, expanded, onToggle }) => (
   <div className="border-b border-gray-700 last:border-b-0">
@@ -80,7 +80,7 @@ export default function FilterSidebar({
   };
 
   const formatSalaryForDisplay = (amount) => {
-    return salaryUtils.formatForFilter(amount, { locale: "en-US" });
+    return formatSalary.formatForFilter(amount, { locale: "en-US" });
   };
 
   const getSalaryRangeDisplay = () => {
@@ -93,11 +93,11 @@ export default function FilterSidebar({
     const minText =
       min === 0
         ? "No min"
-        : salaryUtils.formatAmount(min, { compactFormat: false });
+        : formatSalary.formatAmount(min, { compactFormat: false });
     const maxText =
       max === 200000
         ? "No max"
-        : salaryUtils.formatAmount(max, { compactFormat: false });
+        : formatSalary.formatAmount(max, { compactFormat: false });
 
     return `${minText} - ${maxText}`;
   };

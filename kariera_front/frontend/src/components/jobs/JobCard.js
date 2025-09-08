@@ -1,4 +1,5 @@
-// src/components/jobs/JobCard.js - Enhanced job card with consistent salary formatting
+// Updated JobCard.js with robust salary formatting
+
 import React from "react";
 import {
   MapPin,
@@ -12,7 +13,6 @@ import {
   Star,
   ExternalLink,
 } from "lucide-react";
-import { salaryUtils } from "../../utils/salaryUtils";
 
 export default function JobCard({
   job,
@@ -20,7 +20,7 @@ export default function JobCard({
   onSelect,
   onToggleSave,
   onApply,
-  viewMode = "grid", // 'grid' or 'list'
+  viewMode = "grid",
   showSelection = true,
 }) {
   const {
@@ -47,13 +47,53 @@ export default function JobCard({
     rating,
   } = job;
 
-  // Use centralized salary formatting
-  const formatSalary = () => {
-    return salaryUtils.formatRange(salary, {
-      showRange: true,
-      separator: " - ",
-      fallbackText: "Salary not specified",
-    });
+  // FIXED: Robust salary formatting that handles all cases
+  const formatSalary = (salaryData) => {
+    // Handle null/undefined
+    if (!salaryData) {
+      return "Salary not specified";
+    }
+
+    // Handle if salary is already a string (fallback)
+    if (typeof salaryData === "string") {
+      return salaryData;
+    }
+
+    // Handle if salary is a number (direct amount)
+    if (typeof salaryData === "number") {
+      return `$${(salaryData / 1000).toFixed(0)}k`;
+    }
+
+    // Handle object with min/max
+    if (typeof salaryData === "object") {
+      if (salaryData.min && salaryData.max) {
+        const currency =
+          salaryData.currency === "USD" ? "$" : salaryData.currency || "$";
+        return `${currency}${(salaryData.min / 1000).toFixed(
+          0
+        )}k - ${currency}${(salaryData.max / 1000).toFixed(0)}k`;
+      }
+
+      if (salaryData.amount) {
+        const currency =
+          salaryData.currency === "USD" ? "$" : salaryData.currency || "$";
+        return `${currency}${(salaryData.amount / 1000).toFixed(0)}k`;
+      }
+
+      if (salaryData.min && !salaryData.max) {
+        const currency =
+          salaryData.currency === "USD" ? "$" : salaryData.currency || "$";
+        return `${currency}${(salaryData.min / 1000).toFixed(0)}k+`;
+      }
+
+      if (salaryData.max && !salaryData.min) {
+        const currency =
+          salaryData.currency === "USD" ? "$" : salaryData.currency || "$";
+        return `Up to ${currency}${(salaryData.max / 1000).toFixed(0)}k`;
+      }
+    }
+
+    return "Competitive salary";
   };
 
   // Format posting time
@@ -72,9 +112,7 @@ export default function JobCard({
 
   // Handle card click (not on interactive elements)
   const handleCardClick = (e) => {
-    // Don't trigger if clicking on interactive elements
     if (e.target.closest("button, input, a")) return;
-    // Navigate to job detail page
     window.location.href = `/jobs/${id}`;
   };
 
@@ -97,7 +135,7 @@ export default function JobCard({
                 checked={isSelected}
                 onChange={(e) => {
                   e.stopPropagation();
-                  onSelect?.(id, e.target.checked);
+                  onSelect?.(id);
                 }}
                 className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
               />
@@ -110,173 +148,134 @@ export default function JobCard({
               <img
                 src={companyLogo}
                 alt={`${company} logo`}
-                className="w-12 h-12 rounded object-cover"
+                className="w-12 h-12 rounded-lg object-cover"
               />
             ) : (
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded flex items-center justify-center text-white font-bold">
+              <div className="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center text-gray-400 font-medium">
                 {company.charAt(0)}
               </div>
             )}
           </div>
 
-          {/* Job Content */}
-          <div className="flex-1 min-w-0">
+          {/* Job Info */}
+          <div className="flex-grow min-w-0">
             <div className="flex items-start justify-between mb-2">
-              <div>
-                <h3 className="text-lg font-semibold text-white truncate pr-4">
+              <div className="flex-grow min-w-0">
+                <h3 className="text-lg font-semibold text-white mb-1 truncate">
                   {title}
-                  {featured && (
-                    <Star className="inline w-4 h-4 text-yellow-400 ml-2" />
-                  )}
                 </h3>
-                <div className="flex items-center gap-2 text-gray-300 text-sm">
-                  <Building2 className="w-4 h-4" />
-                  <span>{company}</span>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-gray-300 font-medium">{company}</span>
                   {rating && (
-                    <>
-                      <span className="text-gray-500">•</span>
-                      <div className="flex items-center gap-1">
-                        <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                        <span>{rating}</span>
-                      </div>
-                    </>
-                  )}
-                  {companySize && (
-                    <>
-                      <span className="text-gray-500">•</span>
-                      <Users className="w-3 h-3" />
-                      <span>{companySize}</span>
-                    </>
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                      <span className="text-sm text-gray-400">{rating}</span>
+                    </div>
                   )}
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 ml-4">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onToggleSave?.(id);
                   }}
-                  className={`p-2 rounded-full transition-colors ${
-                    saved
-                      ? "text-purple-400 bg-purple-400/10"
-                      : "text-gray-400 hover:text-purple-400 hover:bg-gray-700"
-                  }`}
+                  className="p-2 text-gray-400 hover:text-yellow-500 transition-colors"
                   title={saved ? "Remove from saved" : "Save job"}
                 >
                   <BookmarkIcon
-                    className={`w-4 h-4 ${saved ? "fill-current" : ""}`}
+                    className={`w-5 h-5 ${
+                      saved ? "fill-yellow-500 text-yellow-500" : ""
+                    }`}
                   />
                 </button>
+
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.open(`/jobs/${id}`, "_blank");
+                    onApply?.(job);
                   }}
-                  className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-full transition-colors"
-                  title="Open in new tab"
+                  disabled={applied}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    applied
+                      ? "bg-green-600 text-white cursor-not-allowed"
+                      : "bg-purple-600 hover:bg-purple-700 text-white"
+                  }`}
                 >
-                  <ExternalLink className="w-4 h-4" />
+                  {applied ? (
+                    <div className="flex items-center gap-1">
+                      <CheckCircle className="w-4 h-4" />
+                      Applied
+                    </div>
+                  ) : (
+                    "Apply Now"
+                  )}
                 </button>
               </div>
             </div>
 
             {/* Job Details */}
-            <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-400 mb-3">
               <div className="flex items-center gap-1">
                 <MapPin className="w-4 h-4" />
                 <span>{location}</span>
                 {remote && (
-                  <span className="bg-green-400/10 text-green-400 px-2 py-1 rounded text-xs ml-2">
+                  <span className="px-2 py-1 bg-green-600 text-white rounded-full text-xs ml-1">
                     Remote
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-1">
-                <DollarSign className="w-4 h-4" />
-                <span className="font-medium text-green-400">
-                  {formatSalary()}
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
                 <Briefcase className="w-4 h-4" />
                 <span>{type}</span>
               </div>
-              {posted && (
+              <div className="flex items-center gap-1">
+                <DollarSign className="w-4 h-4" />
+                <span className="font-medium text-green-400">
+                  {formatSalary(salary)}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                <span>{formatPostedTime()}</span>
+              </div>
+              {companySize && (
                 <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  <span>{formatPostedTime()}</span>
+                  <Users className="w-4 h-4" />
+                  <span>{companySize}</span>
                 </div>
               )}
             </div>
 
-            {/* Description Preview */}
-            {description && (
-              <p className="text-gray-300 text-sm line-clamp-2 mb-3">
-                {description}
-              </p>
+            {/* Description */}
+            <p className="text-gray-300 text-sm mb-3 line-clamp-2">
+              {description}
+            </p>
+
+            {/* Skills */}
+            {skills.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {skills.slice(0, 5).map((skill, index) => (
+                  <span
+                    key={index}
+                    className="px-2 py-1 bg-gray-700 text-gray-300 rounded-full text-xs"
+                  >
+                    {skill}
+                  </span>
+                ))}
+                {skills.length > 5 && (
+                  <span className="px-2 py-1 bg-gray-700 text-gray-400 rounded-full text-xs">
+                    +{skills.length - 5} more
+                  </span>
+                )}
+              </div>
             )}
 
-            {/* Skills and Benefits */}
-            <div className="flex flex-wrap gap-2 mb-3">
-              {skills.slice(0, 3).map((skill, index) => (
-                <span
-                  key={index}
-                  className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs"
-                >
-                  {skill}
-                </span>
-              ))}
-              {skills.length > 3 && (
-                <span className="text-gray-400 text-xs px-2 py-1">
-                  +{skills.length - 3} more
-                </span>
-              )}
-            </div>
-
-            {/* Status and Actions */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {applied && (
-                  <span className="bg-blue-400/10 text-blue-400 px-2 py-1 rounded text-xs flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3" />
-                    Applied
-                  </span>
-                )}
-                {urgentHiring && (
-                  <span className="bg-red-400/10 text-red-400 px-2 py-1 rounded text-xs">
-                    Urgent
-                  </span>
-                )}
-                {experienceLevel && (
-                  <span className="text-gray-400 text-xs">
-                    {experienceLevel} level
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                {applicationCount > 0 && (
-                  <span className="text-gray-400 text-xs">
-                    {applicationCount} applicants
-                  </span>
-                )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onApply?.(id);
-                  }}
-                  disabled={applied}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    applied
-                      ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                      : "bg-purple-600 text-white hover:bg-purple-700"
-                  }`}
-                >
-                  {applied ? "Applied" : "Apply"}
-                </button>
-              </div>
+            {/* Footer */}
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <span>{applicationCount} applicants</span>
+              {experienceLevel && <span>{experienceLevel} level</span>}
             </div>
           </div>
         </div>
@@ -284,7 +283,7 @@ export default function JobCard({
     );
   }
 
-  // Grid view (original card format)
+  // Grid view (default)
   return (
     <div
       className={`bg-gray-800 rounded-lg p-6 transition-all duration-200 hover:bg-gray-750 border cursor-pointer ${
@@ -296,155 +295,147 @@ export default function JobCard({
     >
       {/* Selection Checkbox */}
       {showSelection && (
-        <div className="flex justify-end mb-2">
+        <div className="flex justify-between items-start mb-4">
           <input
             type="checkbox"
             checked={isSelected}
             onChange={(e) => {
               e.stopPropagation();
-              onSelect?.(id, e.target.checked);
+              onSelect?.(id);
             }}
             className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
           />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSave?.(id);
+            }}
+            className="p-2 text-gray-400 hover:text-yellow-500 transition-colors flex-shrink-0"
+            title={saved ? "Remove from saved" : "Save job"}
+          >
+            <BookmarkIcon
+              className={`w-5 h-5 ${
+                saved ? "fill-yellow-500 text-yellow-500" : ""
+              }`}
+            />
+          </button>
         </div>
       )}
 
-      {/* Company Info */}
+      {/* Company Logo */}
       <div className="flex items-center gap-3 mb-4">
         {companyLogo ? (
           <img
             src={companyLogo}
             alt={`${company} logo`}
-            className="w-10 h-10 rounded object-cover"
+            className="w-12 h-12 rounded-lg object-cover"
           />
         ) : (
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded flex items-center justify-center text-white font-bold text-sm">
+          <div className="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center text-gray-400 font-medium">
             {company.charAt(0)}
           </div>
         )}
-        <div>
-          <h3 className="font-semibold text-white">{company}</h3>
-          {rating && (
-            <div className="flex items-center gap-1 text-sm">
-              <Star className="w-3 h-3 text-yellow-400 fill-current" />
-              <span className="text-gray-300">{rating}</span>
-            </div>
-          )}
+        <div className="flex-grow min-w-0">
+          <h3 className="text-lg font-semibold text-white mb-1 truncate">
+            {title}
+          </h3>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-300 font-medium">{company}</span>
+            {rating && (
+              <div className="flex items-center gap-1">
+                <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                <span className="text-sm text-gray-400">{rating}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Job Title */}
-      <h4 className="text-lg font-semibold text-white mb-2 line-clamp-2">
-        {title}
-        {featured && <Star className="inline w-4 h-4 text-yellow-400 ml-2" />}
-      </h4>
-
-      {/* Job Details */}
-      <div className="space-y-2 text-sm text-gray-300 mb-4">
-        <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-gray-400" />
-          <span>{location}</span>
-          {remote && (
-            <span className="bg-green-400/10 text-green-400 px-2 py-1 rounded text-xs">
-              Remote
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <DollarSign className="w-4 h-4 text-gray-400" />
-          <span className="font-medium text-green-400">{formatSalary()}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Briefcase className="w-4 h-4 text-gray-400" />
-          <span>{type}</span>
-          {experienceLevel && (
-            <>
-              <span className="text-gray-500">•</span>
-              <span>{experienceLevel}</span>
-            </>
-          )}
-        </div>
-        {posted && (
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-gray-400" />
-            <span>{formatPostedTime()}</span>
-          </div>
+      {/* Badges */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {urgentHiring && (
+          <span className="px-2 py-1 text-xs bg-red-600 text-white rounded-full">
+            Urgent Hiring
+          </span>
+        )}
+        {remote && (
+          <span className="px-2 py-1 text-xs bg-green-600 text-white rounded-full">
+            Remote
+          </span>
+        )}
+        {type && (
+          <span className="px-2 py-1 text-xs bg-blue-600 text-white rounded-full">
+            {type}
+          </span>
         )}
       </div>
 
+      {/* Location and Salary */}
+      <div className="space-y-2 mb-4">
+        <div className="flex items-center gap-2 text-sm text-gray-400">
+          <MapPin className="w-4 h-4" />
+          <span>{location}</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-gray-400">
+          <DollarSign className="w-4 h-4" />
+          <span className="font-medium text-green-400">
+            {formatSalary(salary)}
+          </span>
+        </div>
+      </div>
+
+      {/* Description */}
+      <p className="text-gray-300 text-sm mb-4 line-clamp-3">{description}</p>
+
       {/* Skills */}
       {skills.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-4">
+        <div className="flex flex-wrap gap-2 mb-4">
           {skills.slice(0, 3).map((skill, index) => (
             <span
               key={index}
-              className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs"
+              className="px-2 py-1 bg-gray-700 text-gray-300 rounded-full text-xs"
             >
               {skill}
             </span>
           ))}
           {skills.length > 3 && (
-            <span className="text-gray-400 text-xs px-2 py-1">
+            <span className="px-2 py-1 bg-gray-700 text-gray-400 rounded-full text-xs">
               +{skills.length - 3}
             </span>
           )}
         </div>
       )}
 
-      {/* Status Badges */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {applied && (
-          <span className="bg-blue-400/10 text-blue-400 px-2 py-1 rounded text-xs flex items-center gap-1">
-            <CheckCircle className="w-3 h-3" />
-            Applied
-          </span>
-        )}
-        {urgentHiring && (
-          <span className="bg-red-400/10 text-red-400 px-2 py-1 rounded text-xs">
-            Urgent Hiring
-          </span>
-        )}
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleSave?.(id);
-            }}
-            className={`p-2 rounded-full transition-colors ${
-              saved
-                ? "text-purple-400 bg-purple-400/10"
-                : "text-gray-400 hover:text-purple-400 hover:bg-gray-700"
-            }`}
-            title={saved ? "Remove from saved" : "Save job"}
-          >
-            <BookmarkIcon
-              className={`w-4 h-4 ${saved ? "fill-current" : ""}`}
-            />
-          </button>
-          {applicationCount > 0 && (
-            <span className="text-gray-400 text-xs">
-              {applicationCount} applicants
-            </span>
-          )}
+      {/* Footer */}
+      <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+        <div className="flex items-center gap-4 text-xs text-gray-500">
+          <div className="flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            <span>{formatPostedTime()}</span>
+          </div>
+          <span>{applicationCount} applicants</span>
         </div>
 
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onApply?.(id);
+            onApply?.(job);
           }}
           disabled={applied}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             applied
-              ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-              : "bg-purple-600 text-white hover:bg-purple-700"
+              ? "bg-green-600 text-white cursor-not-allowed"
+              : "bg-purple-600 hover:bg-purple-700 text-white"
           }`}
         >
-          {applied ? "Applied" : "Apply"}
+          {applied ? (
+            <div className="flex items-center gap-1">
+              <CheckCircle className="w-4 h-4" />
+              Applied
+            </div>
+          ) : (
+            "Apply Now"
+          )}
         </button>
       </div>
     </div>
