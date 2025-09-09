@@ -1,10 +1,11 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 import "./styles/Settings.css";
 
-// Auth Context
-import { AuthProvider } from "./context/AuthContext";
+// Context Providers
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { JobsProvider } from "./context/JobsContext";
 import PrivateRoute from "./components/PrivateRoute";
 
 // Page components
@@ -21,7 +22,7 @@ import UserDashboard from "./pages/UserDashboard";
 // Layout components
 import Navbar from "./components/Navbar";
 
-// FIXED Landing Page Component
+// Landing Page Component (for non-authenticated users)
 const JobSearchLandingPage = () => {
   return (
     <div className="bg-black text-white min-h-screen">
@@ -45,13 +46,12 @@ const JobSearchLandingPage = () => {
               placeholder="Enter Email address"
               className="w-full px-6 py-4 pr-36 rounded-full border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-purple-600"
             />
-            {/* FIXED: Now redirects to login instead of jobs directly */}
-            <Link
-              to="/login"
+            <a
+              href="/login"
               className="absolute right-1 top-1 px-8 py-3 rounded-full bg-purple-600 hover:bg-purple-700 text-white"
             >
               Get started
-            </Link>
+            </a>
           </div>
         </div>
 
@@ -76,6 +76,11 @@ const JobSearchLandingPage = () => {
                 "Create a professional, tailored resume in seconds with our AI-powered resume builder, designed to meet the requirements of every job and location.",
             },
             {
+              title: "Advanced job matching",
+              description:
+                "Our smart algorithm finds the best job opportunities for you, ensuring you apply to positions that match your skills and experience.",
+            },
+            {
               title: "Cover letter generation using AI",
               description:
                 "Generate personalized, ATS-friendly cover letters that highlight your strengths and resonate with hiring managers, tailored to each job application.",
@@ -84,11 +89,6 @@ const JobSearchLandingPage = () => {
               title: "Automated Application",
               description:
                 "Streamline your job hunt by automatically sending customized applications to top employers, saving you time and effort.",
-            },
-            {
-              title: "Smart Job Matching",
-              description:
-                "Our AI analyzes your profile and preferences to find the perfect job opportunities that match your skills and career goals.",
             },
           ].map((feature, index) => (
             <div
@@ -107,100 +107,95 @@ const JobSearchLandingPage = () => {
   );
 };
 
+// Home component that shows different content based on authentication
+const HomePage = () => {
+  const { isAuthenticated } = useAuth();
+
+  return (
+    <>
+      <Navbar />
+      {isAuthenticated ? <UserDashboard /> : <JobSearchLandingPage />}
+    </>
+  );
+};
+
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="App bg-black text-white min-h-screen">
-          <Routes>
-            {/* Public routes */}
-            <Route
-              path="/"
-              element={
-                <>
-                  <Navbar />
-                  <JobSearchLandingPage />
-                </>
-              }
-            />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+        <JobsProvider>
+          <div className="App bg-black text-white min-h-screen">
+            <Routes>
+              {/* Home route - shows dashboard if authenticated, landing page if not */}
+              <Route path="/" element={<HomePage />} />
 
-            {/* MAIN: Jobs Dashboard - This is the main dashboard after login */}
-            <Route
-              path="/jobs"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <JobsDashboard />
-                  </>
-                </PrivateRoute>
-              }
-            />
+              {/* Auth routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
-            <Route
-              path="/jobs/:id"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <JobDetailPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
+              {/* Job-focused routes */}
+              <Route
+                path="/jobs"
+                element={
+                  <PrivateRoute>
+                    <>
+                      <Navbar />
+                      <JobsDashboard />
+                    </>
+                  </PrivateRoute>
+                }
+              />
 
-            {/* User Dashboard - Overview/Profile */}
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <UserDashboard />
-                  </>
-                </PrivateRoute>
-              }
-            />
+              <Route
+                path="/jobs/:id"
+                element={
+                  <PrivateRoute>
+                    <>
+                      <Navbar />
+                      <JobDetailPage />
+                    </>
+                  </PrivateRoute>
+                }
+              />
 
-            {/* Resume builder - Now in settings/profile */}
-            <Route
-              path="/resume"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <ResumeBuilderPage />
-                  </>
-                </PrivateRoute>
-              }
-            />
+              {/* Dashboard route - same as home for authenticated users */}
+              <Route
+                path="/dashboard"
+                element={
+                  <PrivateRoute>
+                    <>
+                      <Navbar />
+                      <UserDashboard />
+                    </>
+                  </PrivateRoute>
+                }
+              />
 
-            {/* Settings - Contains resume builder and other settings */}
-            <Route
-              path="/settings/*"
-              element={
-                <PrivateRoute>
-                  <Settings />
-                </PrivateRoute>
-              }
-            />
+              {/* Resume builder - protected */}
+              <Route
+                path="/resume"
+                element={
+                  <PrivateRoute>
+                    <>
+                      <Navbar />
+                      <ResumeBuilderPage />
+                    </>
+                  </PrivateRoute>
+                }
+              />
 
-            {/* Fallback: Redirect unknown routes to jobs if authenticated, login if not */}
-            <Route
-              path="*"
-              element={
-                <PrivateRoute>
-                  <>
-                    <Navbar />
-                    <JobsDashboard />
-                  </>
-                </PrivateRoute>
-              }
-            />
-          </Routes>
-        </div>
+              {/* Settings - protected */}
+              <Route
+                path="/settings/*"
+                element={
+                  <PrivateRoute>
+                    <Settings />
+                  </PrivateRoute>
+                }
+              />
+            </Routes>
+          </div>
+        </JobsProvider>
       </Router>
     </AuthProvider>
   );
