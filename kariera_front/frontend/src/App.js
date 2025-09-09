@@ -3,9 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 import "./styles/Settings.css";
 
-// Context Providers
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import { JobsProvider } from "./context/JobsContext";
+// Auth Context
+import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 
 // Page components
@@ -21,9 +20,13 @@ import UserDashboard from "./pages/UserDashboard";
 
 // Layout components
 import Navbar from "./components/Navbar";
+import { Link } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
 
-// Landing Page Component (for non-authenticated users)
+// Fixed Landing Page Component with proper authentication flow
 const JobSearchLandingPage = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <div className="bg-black text-white min-h-screen">
       <main className="container mx-auto px-4 py-16 text-center">
@@ -46,19 +49,20 @@ const JobSearchLandingPage = () => {
               placeholder="Enter Email address"
               className="w-full px-6 py-4 pr-36 rounded-full border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-purple-600"
             />
-            <a
-              href="/login"
+            {/* FIXED: Proper authentication check */}
+            <Link
+              to={isAuthenticated ? "/jobs" : "/register"}
               className="absolute right-1 top-1 px-8 py-3 rounded-full bg-purple-600 hover:bg-purple-700 text-white"
             >
               Get started
-            </a>
+            </Link>
           </div>
         </div>
 
         <div className="flex justify-center space-x-8 text-sm text-gray-400 mb-16">
           {[
             "Automated applications",
-            "Personalized content generation",
+            "Personalized content generation", 
             "Accurate job matching",
           ].map((feature, index) => (
             <div key={index} className="flex items-center">
@@ -107,95 +111,87 @@ const JobSearchLandingPage = () => {
   );
 };
 
-// Home component that shows different content based on authentication
-const HomePage = () => {
-  const { isAuthenticated } = useAuth();
-
-  return (
-    <>
-      <Navbar />
-      {isAuthenticated ? <UserDashboard /> : <JobSearchLandingPage />}
-    </>
-  );
-};
-
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <JobsProvider>
-          <div className="App bg-black text-white min-h-screen">
-            <Routes>
-              {/* Home route - shows dashboard if authenticated, landing page if not */}
-              <Route path="/" element={<HomePage />} />
+        <div className="App bg-black text-white min-h-screen">
+          <Routes>
+            {/* Public routes */}
+            <Route
+              path="/"
+              element={
+                <>
+                  <Navbar />
+                  <JobSearchLandingPage />
+                </>
+              }
+            />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-              {/* Auth routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+            {/* Protected Job Routes */}
+            <Route
+              path="/jobs"
+              element={
+                <PrivateRoute>
+                  <>
+                    <Navbar />
+                    <JobsDashboard />
+                  </>
+                </PrivateRoute>
+              }
+            />
 
-              {/* Job-focused routes */}
-              <Route
-                path="/jobs"
-                element={
-                  <PrivateRoute>
-                    <>
-                      <Navbar />
-                      <JobsDashboard />
-                    </>
-                  </PrivateRoute>
-                }
-              />
+            <Route
+              path="/jobs/:id"
+              element={
+                <PrivateRoute>
+                  <>
+                    <Navbar />
+                    <JobDetailPage />
+                  </>
+                </PrivateRoute>
+              }
+            />
 
-              <Route
-                path="/jobs/:id"
-                element={
-                  <PrivateRoute>
-                    <>
-                      <Navbar />
-                      <JobDetailPage />
-                    </>
-                  </PrivateRoute>
-                }
-              />
+            {/* User Dashboard */}
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <>
+                    <Navbar />
+                    <UserDashboard />
+                  </>
+                </PrivateRoute>
+              }
+            />
 
-              {/* Dashboard route - same as home for authenticated users */}
-              <Route
-                path="/dashboard"
-                element={
-                  <PrivateRoute>
-                    <>
-                      <Navbar />
-                      <UserDashboard />
-                    </>
-                  </PrivateRoute>
-                }
-              />
+            {/* Resume builder */}
+            <Route
+              path="/resume"
+              element={
+                <PrivateRoute>
+                  <>
+                    <Navbar />
+                    <ResumeBuilderPage />
+                  </>
+                </PrivateRoute>
+              }
+            />
 
-              {/* Resume builder - protected */}
-              <Route
-                path="/resume"
-                element={
-                  <PrivateRoute>
-                    <>
-                      <Navbar />
-                      <ResumeBuilderPage />
-                    </>
-                  </PrivateRoute>
-                }
-              />
-
-              {/* Settings - protected */}
-              <Route
-                path="/settings/*"
-                element={
-                  <PrivateRoute>
-                    <Settings />
-                  </PrivateRoute>
-                }
-              />
-            </Routes>
-          </div>
-        </JobsProvider>
+            {/* Settings */}
+            <Route
+              path="/settings/*"
+              element={
+                <PrivateRoute>
+                  <Settings />
+                </PrivateRoute>
+              }
+            />
+          </Routes>
+        </div>
       </Router>
     </AuthProvider>
   );

@@ -1,12 +1,17 @@
-// src/pages/JobsDashboard.js - FIXED VERSION
+// src/pages/JobsDashboard.js - Updated to use real API data
 import React, { useState, useEffect, useCallback } from "react";
-import { Search, MapPin, Filter, Briefcase, TrendingUp } from "lucide-react";
+import {
+  Search,
+  MapPin,
+  Filter,
+  Briefcase,
+  TrendingUp,
+  Heart,
+  ExternalLink,
+  Building2,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-
-// Enhanced components
-import FilterSidebar from "../components/jobs/FilterSidebar";
-import JobList from "../components/jobs/JobList";
-import ApplicationModal from "../components/jobs/ApplicationModal";
+import api from "../services/api";
 
 export default function JobsDashboard() {
   const { user } = useAuth();
@@ -37,212 +42,99 @@ export default function JobsDashboard() {
 
   // Selection state
   const [selectedJobs, setSelectedJobs] = useState(new Set());
+  const [savedJobIds, setSavedJobIds] = useState(new Set());
 
-  // Modal state
-  const [showApplicationModal, setShowApplicationModal] = useState(false);
-  const [selectedJobForApplication, setSelectedJobForApplication] =
-    useState(null);
-
-  // User tier (mock data - replace with real user data)
-  const [userTier, setUserTier] = useState("free");
-  const [remainingApplications, setRemainingApplications] = useState(3);
-
-  // ✅ FIXED: Mock job generator function
-  const generateMockJobs = (count = 20) => {
-    const companies = [
-      "Meta",
-      "Google",
-      "Apple",
-      "Microsoft",
-      "Amazon",
-      "Netflix",
-      "Spotify",
-      "Stripe",
-    ];
-    const positions = [
-      "Frontend Developer",
-      "Backend Developer",
-      "Full Stack Developer",
-      "UI/UX Designer",
-      "Data Scientist",
-      "Product Manager",
-    ];
-    const locations = [
-      "San Francisco, CA",
-      "New York, NY",
-      "Seattle, WA",
-      "Austin, TX",
-      "Remote",
-    ];
-    const skills = [
-      ["React", "JavaScript", "TypeScript", "CSS"],
-      ["Node.js", "Python", "PostgreSQL", "AWS"],
-      ["Figma", "Sketch", "Adobe XD", "Prototyping"],
-      ["Python", "Machine Learning", "SQL", "TensorFlow"],
-    ];
-
-    return Array.from({ length: count }, (_, index) => ({
-      id: index + 1,
-      title: positions[index % positions.length],
-      company: companies[index % companies.length],
-      location: locations[index % locations.length],
-      type: "Full-time",
-      remote: Math.random() > 0.5,
-      salary: {
-        min: 80000 + index * 5000,
-        max: 120000 + index * 8000,
-      },
-      posted: `${Math.floor(Math.random() * 7) + 1} days ago`,
-      description: `Join our team as a ${
-        positions[index % positions.length]
-      } and work on exciting projects with cutting-edge technology.`,
-      skills: skills[index % skills.length],
-      experienceLevel:
-        index % 3 === 0 ? "Senior" : index % 3 === 1 ? "Mid-level" : "Junior",
-      companySize: "1,000-5,000",
-      rating: 4,
-      applicants: Math.floor(Math.random() * 300) + 50,
-      featured: index % 5 === 0,
-      urgentHiring: index % 8 === 0,
-      applied: false,
-      saved: false,
-    }));
-  };
-
-  // ✅ FIXED: Apply filters function
-  const applyFiltersToJobs = (
-    jobs,
-    { searchQuery, locationQuery, filters, sortBy }
-  ) => {
-    let filtered = [...jobs];
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (job) =>
-          job.title.toLowerCase().includes(query) ||
-          job.company.toLowerCase().includes(query) ||
-          job.skills.some((skill) => skill.toLowerCase().includes(query)) ||
-          job.location.toLowerCase().includes(query)
-      );
-    }
-
-    // Apply location filter
-    if (locationQuery.trim()) {
-      const location = locationQuery.toLowerCase();
-      filtered = filtered.filter((job) =>
-        job.location.toLowerCase().includes(location)
-      );
-    }
-
-    // Apply job type filters
-    if (filters.jobType && filters.jobType.length > 0) {
-      filtered = filtered.filter((job) => filters.jobType.includes(job.type));
-    }
-
-    // Apply work setting filter
-    if (filters.workSetting === "remote") {
-      filtered = filtered.filter((job) => job.remote);
-    } else if (filters.workSetting === "onsite") {
-      filtered = filtered.filter((job) => !job.remote);
-    }
-
-    // Apply salary range filter
-    if (filters.salaryRange) {
-      filtered = filtered.filter((job) => {
-        const jobMaxSalary = job.salary?.max || 0;
-        return (
-          jobMaxSalary >= filters.salaryRange.min &&
-          jobMaxSalary <= filters.salaryRange.max
-        );
-      });
-    }
-
-    // Apply experience level filter
-    if (filters.experienceLevel && filters.experienceLevel.length > 0) {
-      filtered = filtered.filter((job) =>
-        filters.experienceLevel.includes(job.experienceLevel)
-      );
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "newest":
-          return new Date(b.posted) - new Date(a.posted);
-        case "oldest":
-          return new Date(a.posted) - new Date(b.posted);
-        case "salary_high":
-          return (b.salary?.max || 0) - (a.salary?.max || 0);
-        case "salary_low":
-          return (a.salary?.max || 0) - (b.salary?.max || 0);
-        case "company":
-          return a.company.localeCompare(b.company);
-        default: // relevance
-          return b.featured ? 1 : -1;
-      }
-    });
-
-    return filtered;
-  };
-
-  // ✅ FIXED: Load initial jobs with proper error handling
+  // Load jobs from real API
   useEffect(() => {
     const loadJobs = async () => {
-      console.log("🔄 Loading jobs...");
       setLoading(true);
       setError(null);
 
       try {
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        console.log("Fetching jobs from API...");
+        const response = await api.get("/jobs/all");
 
-        console.log("📝 Generating mock jobs...");
-        const jobs = generateMockJobs(50); // Generate 50 mock jobs
-
-        console.log("✅ Jobs loaded successfully:", jobs.length);
-        setAllJobs(jobs);
+        if (response.data.success) {
+          console.log(`Loaded ${response.data.jobs.length} jobs from API`);
+          setAllJobs(response.data.jobs);
+          setFilteredJobs(response.data.jobs);
+        } else {
+          throw new Error(response.data.message || "Failed to load jobs");
+        }
       } catch (err) {
-        console.error("❌ Error loading jobs:", err);
-        setError("Failed to load jobs. Please try again.");
+        console.error("Error loading jobs:", err);
+        setError(
+          err.response?.data?.message ||
+            "Failed to load jobs. Please try again."
+        );
+
+        // Fallback to empty array
+        setAllJobs([]);
+        setFilteredJobs([]);
       } finally {
-        // ✅ CRITICAL FIX: Always set loading to false
-        console.log("🏁 Loading complete");
         setLoading(false);
       }
     };
 
     loadJobs();
-  }, []); // ✅ Empty dependency array - only run once
+  }, []);
 
-  // ✅ FIXED: Apply filters and search with proper dependencies
+  // Apply filters and search
   useEffect(() => {
-    console.log("🔍 Applying filters...");
+    let filtered = [...allJobs];
 
-    if (allJobs.length === 0) {
-      setFilteredJobs([]);
-      return;
+    // Apply search query
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(
+        (job) =>
+          job.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          job.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          job.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
 
-    try {
-      const filtered = applyFiltersToJobs(allJobs, {
-        searchQuery,
-        locationQuery,
-        filters,
-        sortBy,
-      });
-
-      console.log("✅ Filtered jobs:", filtered.length);
-      setFilteredJobs(filtered);
-      setCurrentPage(1); // Reset to first page when filters change
-    } catch (err) {
-      console.error("❌ Error applying filters:", err);
-      setFilteredJobs(allJobs); // Fallback to all jobs
+    // Apply location filter
+    if (locationQuery.trim()) {
+      filtered = filtered.filter((job) =>
+        job.location?.toLowerCase().includes(locationQuery.toLowerCase())
+      );
     }
-  }, [allJobs, searchQuery, locationQuery, filters, sortBy]); // ✅ Proper dependencies
 
-  // ✅ FIXED: Handle job selection with useCallback
+    // Apply job type filter
+    if (filters.jobType.length > 0) {
+      filtered = filtered.filter((job) =>
+        filters.jobType.includes(job.type?.toLowerCase())
+      );
+    }
+
+    // Apply remote work filter
+    if (filters.workSetting !== "any") {
+      if (filters.workSetting === "remote") {
+        filtered = filtered.filter((job) => job.isRemote);
+      } else if (filters.workSetting === "onsite") {
+        filtered = filtered.filter((job) => !job.isRemote);
+      }
+    }
+
+    // Apply sorting
+    if (sortBy === "newest") {
+      filtered.sort((a, b) => new Date(b.postedAt) - new Date(a.postedAt));
+    } else if (sortBy === "company") {
+      filtered.sort((a, b) => (a.company || "").localeCompare(b.company || ""));
+    }
+
+    setFilteredJobs(filtered);
+    setCurrentPage(1);
+  }, [allJobs, searchQuery, locationQuery, filters, sortBy]);
+
+  // Get current page jobs
+  const getCurrentPageJobs = useCallback(() => {
+    const startIndex = (currentPage - 1) * jobsPerPage;
+    const endIndex = startIndex + jobsPerPage;
+    return filteredJobs.slice(startIndex, endIndex);
+  }, [filteredJobs, currentPage, jobsPerPage]);
+
+  // Handle job selection
   const handleJobSelect = useCallback((jobId, selected) => {
     setSelectedJobs((prev) => {
       const newSet = new Set(prev);
@@ -255,296 +147,356 @@ export default function JobsDashboard() {
     });
   }, []);
 
-  // ✅ FIXED: Handle select all with useCallback
-  const handleSelectAll = useCallback(
-    (selected, jobIds = []) => {
-      if (selected) {
-        const currentPageJobs = filteredJobs.slice(
-          (currentPage - 1) * jobsPerPage,
-          currentPage * jobsPerPage
-        );
-        const allJobIds =
-          jobIds.length > 0 ? jobIds : currentPageJobs.map((job) => job.id);
-        setSelectedJobs(new Set(allJobIds));
-      } else {
-        setSelectedJobs(new Set());
+  // Handle save job
+  const handleSaveJob = async (jobId) => {
+    try {
+      const response = await api.post("/jobs/save", { jobId });
+
+      if (response.data.success) {
+        setSavedJobIds((prev) => {
+          const newSet = new Set(prev);
+          if (newSet.has(jobId)) {
+            newSet.delete(jobId);
+          } else {
+            newSet.add(jobId);
+          }
+          return newSet;
+        });
       }
-    },
-    [filteredJobs, currentPage, jobsPerPage]
-  );
+    } catch (error) {
+      console.error("Error saving job:", error);
+      alert("Failed to save job. Please try again.");
+    }
+  };
 
-  // ✅ FIXED: Handle bulk apply with proper async handling
+  // Handle bulk apply
   const handleBulkApply = useCallback(async () => {
-    if (selectedJobs.size === 0) return;
+    if (selectedJobs.size === 0) {
+      alert("Please select jobs to apply to");
+      return;
+    }
 
-    console.log("📤 Bulk applying to jobs:", selectedJobs.size);
+    const confirmed = window.confirm(
+      `Apply to ${selectedJobs.size} selected jobs?`
+    );
+    if (!confirmed) return;
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // In a real implementation, you'd call an API to apply to jobs
+      console.log("Applying to jobs:", Array.from(selectedJobs));
 
-      // Update applied status for selected jobs
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Update applied status
       setAllJobs((prev) =>
         prev.map((job) =>
           selectedJobs.has(job.id) ? { ...job, applied: true } : job
         )
       );
 
-      // Reduce remaining applications
-      setRemainingApplications((prev) => Math.max(0, prev - selectedJobs.size));
-
-      // Clear selection
       setSelectedJobs(new Set());
-
-      console.log("✅ Bulk apply completed");
-      // You can replace this with a toast notification
       alert(`Successfully applied to ${selectedJobs.size} jobs!`);
-    } catch (err) {
-      console.error("❌ Error in bulk apply:", err);
+    } catch (error) {
+      console.error("Error applying to jobs:", error);
       alert("Failed to apply to jobs. Please try again.");
     }
   }, [selectedJobs]);
 
-  // ✅ FIXED: Handle bulk save
-  const handleBulkSave = useCallback(async () => {
-    if (selectedJobs.size === 0) return;
-
-    console.log("💾 Bulk saving jobs:", selectedJobs.size);
-
+  // Manual refresh
+  const handleRefresh = async () => {
+    setLoading(true);
     try {
-      // Update saved status for selected jobs
-      setAllJobs((prev) =>
-        prev.map((job) =>
-          selectedJobs.has(job.id) ? { ...job, saved: true } : job
-        )
-      );
-
-      console.log("✅ Bulk save completed");
-      alert(`Successfully saved ${selectedJobs.size} jobs!`);
-    } catch (err) {
-      console.error("❌ Error in bulk save:", err);
-      alert("Failed to save jobs. Please try again.");
-    }
-  }, [selectedJobs]);
-
-  // ✅ FIXED: Handle individual job save
-  const handleJobSave = useCallback((jobId) => {
-    setAllJobs((prev) =>
-      prev.map((job) =>
-        job.id === jobId ? { ...job, saved: !job.saved } : job
-      )
-    );
-  }, []);
-
-  // ✅ FIXED: Handle individual job apply
-  const handleJobApply = useCallback(
-    (jobId) => {
-      if (remainingApplications <= 0) {
-        alert(
-          "You have reached your application limit. Please upgrade your plan."
-        );
-        return;
+      const response = await api.get("/jobs/all");
+      if (response.data.success) {
+        setAllJobs(response.data.jobs);
+        setFilteredJobs(response.data.jobs);
       }
-
-      setAllJobs((prev) =>
-        prev.map((job) => (job.id === jobId ? { ...job, applied: true } : job))
-      );
-
-      setRemainingApplications((prev) => prev - 1);
-    },
-    [remainingApplications]
-  );
-
-  // Get current page jobs
-  const getCurrentPageJobs = () => {
-    const startIndex = (currentPage - 1) * jobsPerPage;
-    const endIndex = startIndex + jobsPerPage;
-    return filteredJobs.slice(startIndex, endIndex);
+    } catch (error) {
+      console.error("Error refreshing jobs:", error);
+      setError("Failed to refresh jobs");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const currentPageJobs = getCurrentPageJobs();
-  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
-  const hasNextPage = currentPage < totalPages;
+  // Trigger job scraping
+  const handleScrapeJobs = async () => {
+    setLoading(true);
+    try {
+      const response = await api.post("/jobs/scrape");
+      if (response.data.success) {
+        alert(`Successfully scraped ${response.data.jobs.length} new jobs!`);
+        // Reload jobs
+        handleRefresh();
+      }
+    } catch (error) {
+      console.error("Error scraping jobs:", error);
+      alert("Failed to scrape jobs. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // ✅ FIXED: Loading state with proper feedback
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500 mx-auto mb-4"></div>
           <div className="text-xl">Loading jobs...</div>
-          <div className="text-gray-400 mt-2">
-            This should only take a moment
-          </div>
         </div>
       </div>
     );
   }
 
-  // ✅ FIXED: Error state
   if (error) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-xl mb-4">{error}</div>
           <button
-            onClick={() => window.location.reload()}
-            className="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg"
+            onClick={handleRefresh}
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
-            Retry
+            Try Again
+          </button>
+          <button
+            onClick={handleScrapeJobs}
+            className="ml-4 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            Scrape New Jobs
           </button>
         </div>
       </div>
     );
   }
 
+  const currentPageJobs = getCurrentPageJobs();
+  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
+
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <div className="bg-gray-900 border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-white">
-                Find your next opportunity,{" "}
-                {user?.firstName || user?.name || "there"}
-              </h1>
-              <div className="flex items-center gap-4 mt-2">
-                <div className="flex items-center gap-2 text-sm text-gray-400">
-                  <Briefcase className="w-4 h-4" />
-                  <span>{filteredJobs.length} jobs available</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-green-400">
-                  <TrendingUp className="w-4 h-4" />
-                  <span>{remainingApplications} applications remaining</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Search Controls */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search jobs, companies, skills..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                />
-              </div>
-
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Location"
-                  value={locationQuery}
-                  onChange={(e) => setLocationQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                />
-              </div>
-
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Find Jobs</h1>
+            <p className="text-gray-400 mt-2">
+              {filteredJobs.length} jobs found
+            </p>
+          </div>
+          <div className="flex space-x-4">
+            <button
+              onClick={handleRefresh}
+              className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
+            >
+              Refresh
+            </button>
+            <button
+              onClick={handleScrapeJobs}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Scrape Jobs
+            </button>
+            {selectedJobs.size > 0 && (
+              <button
+                onClick={handleBulkApply}
+                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
               >
-                <option value="relevance">Most Relevant</option>
-                <option value="newest">Newest First</option>
-                <option value="salary_high">Highest Salary</option>
-                <option value="company">Company A-Z</option>
-              </select>
-            </div>
+                Apply to {selectedJobs.size} Jobs
+              </button>
+            )}
           </div>
         </div>
-      </div>
 
-      {/* Main Content with Sidebar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-8">
-          {/* ✅ RESTORED: Filter Sidebar */}
-          {showFilterSidebar && (
-            <div className="w-80 flex-shrink-0">
-              <FilterSidebar
-                filters={filters}
-                onFiltersChange={setFilters}
-                onClearFilters={() =>
-                  setFilters({
-                    datePosted: "any",
-                    jobType: [],
-                    workSetting: "any",
-                    salaryRange: { min: 0, max: 200000 },
-                    experienceLevel: [],
-                  })
-                }
-                jobCount={filteredJobs.length}
+        {/* Search and Filters */}
+        <div className="mb-8 space-y-4">
+          <div className="flex space-x-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search jobs..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
-          )}
-
-          {/* Jobs List */}
-          <div className="flex-1 min-w-0">
-            {/* Toggle Sidebar Button */}
-            <div className="flex items-center justify-between mb-6">
-              <button
-                onClick={() => setShowFilterSidebar(!showFilterSidebar)}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white hover:bg-gray-700 transition-colors"
-              >
-                <Filter className="w-4 h-4" />
-                {showFilterSidebar ? "Hide Filters" : "Show Filters"}
-              </button>
-
-              <div className="text-sm text-gray-400">
-                Showing {currentPageJobs.length} of {filteredJobs.length} jobs
-              </div>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Location..."
+                value={locationQuery}
+                onChange={(e) => setLocationQuery(e.target.value)}
+                className="w-64 pl-10 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600"
+              />
             </div>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+            >
+              <option value="relevance">Most Relevant</option>
+              <option value="newest">Newest First</option>
+              <option value="company">Company A-Z</option>
+            </select>
+          </div>
 
-            <JobList
-              jobs={currentPageJobs}
-              loading={false}
-              error={null}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              selectedJobs={selectedJobs}
-              onJobSelect={handleJobSelect}
-              onSelectAll={handleSelectAll}
-              onBulkApply={handleBulkApply}
-              onBulkSave={handleBulkSave}
-              onJobSave={handleJobSave}
-              onJobApply={handleJobApply}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              sortBy={sortBy}
-              onSortChange={setSortBy}
-              showFilters={true}
-              totalCount={filteredJobs.length}
-              currentPage={currentPage}
-              onPageChange={setCurrentPage}
-              hasNextPage={hasNextPage}
-              filters={filters}
-              onFilterChange={setFilters}
-            />
+          {/* Quick Filters */}
+          <div className="flex space-x-4">
+            {["remote", "onsite", "any"].map((setting) => (
+              <button
+                key={setting}
+                onClick={() =>
+                  setFilters((prev) => ({ ...prev, workSetting: setting }))
+                }
+                className={`px-4 py-2 rounded-full text-sm ${
+                  filters.workSetting === setting
+                    ? "bg-purple-600 text-white"
+                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                {setting === "any"
+                  ? "All Jobs"
+                  : setting.charAt(0).toUpperCase() + setting.slice(1)}
+              </button>
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* Application Modal */}
-      {showApplicationModal && selectedJobForApplication && (
-        <ApplicationModal
-          job={selectedJobForApplication}
-          onClose={() => {
-            setShowApplicationModal(false);
-            setSelectedJobForApplication(null);
-          }}
-          onSubmit={(applicationData) => {
-            console.log("Application submitted:", applicationData);
-            handleJobApply(selectedJobForApplication.id);
-            setShowApplicationModal(false);
-            setSelectedJobForApplication(null);
-          }}
-        />
-      )}
+        {/* Jobs Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {currentPageJobs.map((job) => (
+            <JobCard
+              key={job.id}
+              job={job}
+              isSelected={selectedJobs.has(job.id)}
+              isSaved={savedJobIds.has(job.id)}
+              onSelect={(selected) => handleJobSelect(job.id, selected)}
+              onSave={() => handleSaveJob(job.id)}
+            />
+          ))}
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center space-x-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-gray-800 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700"
+            >
+              Previous
+            </button>
+            <span className="flex items-center px-4 py-2 text-gray-400">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+              }
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-gray-800 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700"
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
+
+// Job Card Component
+const JobCard = ({ job, isSelected, isSaved, onSelect, onSave }) => {
+  return (
+    <div
+      className={`bg-gray-900 border rounded-xl p-6 transition-all duration-200 ${
+        isSelected
+          ? "border-purple-500 bg-purple-900/20"
+          : "border-gray-700 hover:border-gray-600"
+      }`}
+    >
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={(e) => onSelect(e.target.checked)}
+            className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
+          />
+          <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+            <Building2 className="w-5 h-5 text-white" />
+          </div>
+        </div>
+        <button
+          onClick={onSave}
+          className={`p-2 rounded-lg transition-colors ${
+            isSaved
+              ? "text-red-500 bg-red-500/20"
+              : "text-gray-400 hover:text-red-500 hover:bg-red-500/20"
+          }`}
+        >
+          <Heart className={`w-5 h-5 ${isSaved ? "fill-current" : ""}`} />
+        </button>
+      </div>
+
+      <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2">
+        {job.title}
+      </h3>
+
+      <p className="text-purple-400 mb-2">{job.company}</p>
+
+      <div className="flex items-center text-gray-400 text-sm mb-3">
+        <MapPin className="w-4 h-4 mr-1" />
+        <span>{job.location}</span>
+        {job.isRemote && (
+          <span className="ml-2 px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs">
+            Remote
+          </span>
+        )}
+      </div>
+
+      <p className="text-gray-300 text-sm mb-4 line-clamp-3">
+        {job.description}
+      </p>
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        {job.skills?.slice(0, 3).map((skill, index) => (
+          <span
+            key={index}
+            className="px-2 py-1 bg-gray-800 text-gray-300 rounded text-xs"
+          >
+            {skill}
+          </span>
+        ))}
+      </div>
+
+      <div className="flex justify-between items-center">
+        <span className="text-green-400 font-semibold">{job.salary}</span>
+        <div className="flex space-x-2">
+          {job.applied ? (
+            <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded text-sm">
+              Applied
+            </span>
+          ) : (
+            <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm">
+              Apply Now
+            </button>
+          )}
+          {job.jobUrl && job.jobUrl !== "#" && (
+            <a
+              href={job.jobUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};

@@ -1,282 +1,133 @@
-// Updated JobCard.js with robust salary formatting
-
 import React from "react";
 import {
   MapPin,
   Clock,
   DollarSign,
   Briefcase,
-  BookmarkIcon,
-  Building2,
-  Users,
-  CheckCircle,
-  Star,
   ExternalLink,
+  Bookmark,
+  Building2,
+  Eye,
 } from "lucide-react";
 
-export default function JobCard({
+const JobCard = ({
   job,
+  onApply,
+  onSave,
+  onViewDetails,
   isSelected = false,
   onSelect,
-  onToggleSave,
-  onApply,
   viewMode = "grid",
-  showSelection = true,
-}) {
-  const {
-    id,
-    title,
-    company,
-    location,
-    salary,
-    type,
-    remote,
-    description,
-    requirements = [],
-    posted,
-    applicationCount = 0,
-    companyLogo,
-    saved = false,
-    applied = false,
-    featured = false,
-    urgentHiring = false,
-    benefits = [],
-    skills = [],
-    experienceLevel,
-    companySize,
-    rating,
-  } = job;
-
-  // FIXED: Robust salary formatting that handles all cases
-  const formatSalary = (salaryData) => {
-    // Handle null/undefined
-    if (!salaryData) {
-      return "Salary not specified";
-    }
-
-    // Handle if salary is already a string (fallback)
-    if (typeof salaryData === "string") {
-      return salaryData;
-    }
-
-    // Handle if salary is a number (direct amount)
-    if (typeof salaryData === "number") {
-      return `$${(salaryData / 1000).toFixed(0)}k`;
-    }
-
-    // Handle object with min/max
-    if (typeof salaryData === "object") {
-      if (salaryData.min && salaryData.max) {
-        const currency =
-          salaryData.currency === "USD" ? "$" : salaryData.currency || "$";
-        return `${currency}${(salaryData.min / 1000).toFixed(
-          0
-        )}k - ${currency}${(salaryData.max / 1000).toFixed(0)}k`;
-      }
-
-      if (salaryData.amount) {
-        const currency =
-          salaryData.currency === "USD" ? "$" : salaryData.currency || "$";
-        return `${currency}${(salaryData.amount / 1000).toFixed(0)}k`;
-      }
-
-      if (salaryData.min && !salaryData.max) {
-        const currency =
-          salaryData.currency === "USD" ? "$" : salaryData.currency || "$";
-        return `${currency}${(salaryData.min / 1000).toFixed(0)}k+`;
-      }
-
-      if (salaryData.max && !salaryData.min) {
-        const currency =
-          salaryData.currency === "USD" ? "$" : salaryData.currency || "$";
-        return `Up to ${currency}${(salaryData.max / 1000).toFixed(0)}k`;
-      }
-    }
-
-    return "Competitive salary";
+}) => {
+  const handleApplyClick = (e) => {
+    e.stopPropagation();
+    onApply?.(job);
   };
 
-  // Format posting time
-  const formatPostedTime = () => {
-    if (!posted) return "";
-    const now = new Date();
-    const postedDate = new Date(posted);
-    const diffTime = Math.abs(now - postedDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 1) return "1 day ago";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
-    return `${Math.ceil(diffDays / 30)} months ago`;
+  const handleSaveClick = (e) => {
+    e.stopPropagation();
+    onSave?.(job.id);
   };
 
-  // Handle card click (not on interactive elements)
-  const handleCardClick = (e) => {
-    if (e.target.closest("button, input, a")) return;
-    window.location.href = `/jobs/${id}`;
+  const handleViewDetails = (e) => {
+    e.stopPropagation();
+    onViewDetails?.(job);
+  };
+
+  const handleCardClick = () => {
+    // If there's a selection handler, use it; otherwise show details
+    if (onSelect) {
+      onSelect(job.id, !isSelected);
+    } else {
+      onViewDetails?.(job);
+    }
   };
 
   if (viewMode === "list") {
     return (
       <div
-        className={`bg-gray-800 rounded-lg p-6 transition-all duration-200 hover:bg-gray-750 border cursor-pointer ${
+        className={`bg-white border rounded-lg p-4 hover:shadow-md transition-all cursor-pointer ${
           isSelected
-            ? "border-purple-500 bg-gray-750"
-            : "border-gray-700 hover:border-gray-600"
-        } ${featured ? "ring-2 ring-purple-500 ring-opacity-30" : ""}`}
+            ? "border-blue-500 ring-2 ring-blue-200"
+            : "border-gray-200 hover:border-gray-300"
+        }`}
         onClick={handleCardClick}
       >
-        <div className="flex items-start gap-4">
-          {/* Selection Checkbox */}
-          {showSelection && (
-            <div className="flex-shrink-0 mt-1">
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  onSelect?.(id);
-                }}
-                className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
-              />
-            </div>
-          )}
-
-          {/* Company Logo */}
-          <div className="flex-shrink-0">
-            {companyLogo ? (
-              <img
-                src={companyLogo}
-                alt={`${company} logo`}
-                className="w-12 h-12 rounded-lg object-cover"
-              />
-            ) : (
-              <div className="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center text-gray-400 font-medium">
-                {company.charAt(0)}
-              </div>
-            )}
-          </div>
-
-          {/* Job Info */}
-          <div className="flex-grow min-w-0">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
             <div className="flex items-start justify-between mb-2">
-              <div className="flex-grow min-w-0">
-                <h3 className="text-lg font-semibold text-white mb-1 truncate">
-                  {title}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+                  {job.title}
                 </h3>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-gray-300 font-medium">{company}</span>
-                  {rating && (
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                      <span className="text-sm text-gray-400">{rating}</span>
-                    </div>
-                  )}
+                <div className="flex items-center text-gray-600 mt-1">
+                  <Building2 className="w-4 h-4 mr-1" />
+                  <span>{job.company}</span>
                 </div>
               </div>
-
-              <div className="flex items-center gap-2 ml-4">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleSave?.(id);
-                  }}
-                  className="p-2 text-gray-400 hover:text-yellow-500 transition-colors"
-                  title={saved ? "Remove from saved" : "Save job"}
-                >
-                  <BookmarkIcon
-                    className={`w-5 h-5 ${
-                      saved ? "fill-yellow-500 text-yellow-500" : ""
-                    }`}
-                  />
-                </button>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onApply?.(job);
-                  }}
-                  disabled={applied}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    applied
-                      ? "bg-green-600 text-white cursor-not-allowed"
-                      : "bg-purple-600 hover:bg-purple-700 text-white"
-                  }`}
-                >
-                  {applied ? (
-                    <div className="flex items-center gap-1">
-                      <CheckCircle className="w-4 h-4" />
-                      Applied
-                    </div>
-                  ) : (
-                    "Apply Now"
-                  )}
-                </button>
-              </div>
+              <button
+                onClick={handleSaveClick}
+                className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                title="Save job"
+              >
+                <Bookmark className="w-4 h-4" />
+              </button>
             </div>
 
-            {/* Job Details */}
-            <div className="flex flex-wrap gap-4 text-sm text-gray-400 mb-3">
-              <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
-                <span>{location}</span>
-                {remote && (
-                  <span className="px-2 py-1 bg-green-600 text-white rounded-full text-xs ml-1">
-                    Remote
-                  </span>
-                )}
+            <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
+              <div className="flex items-center">
+                <MapPin className="w-4 h-4 mr-1" />
+                {job.location}
               </div>
-              <div className="flex items-center gap-1">
-                <Briefcase className="w-4 h-4" />
-                <span>{type}</span>
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 mr-1" />
+                {job.posted}
               </div>
-              <div className="flex items-center gap-1">
-                <DollarSign className="w-4 h-4" />
-                <span className="font-medium text-green-400">
-                  {formatSalary(salary)}
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                <span>{formatPostedTime()}</span>
-              </div>
-              {companySize && (
-                <div className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  <span>{companySize}</span>
+              {job.salary && (
+                <div className="flex items-center">
+                  <DollarSign className="w-4 h-4 mr-1" />
+                  {job.salary}
                 </div>
               )}
             </div>
 
-            {/* Description */}
-            <p className="text-gray-300 text-sm mb-3 line-clamp-2">
-              {description}
+            <p className="text-gray-700 text-sm line-clamp-2 mb-3">
+              {job.description}
             </p>
 
-            {/* Skills */}
-            {skills.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-3">
-                {skills.slice(0, 5).map((skill, index) => (
+            {job.skills && job.skills.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-3">
+                {job.skills.slice(0, 3).map((skill, index) => (
                   <span
                     key={index}
-                    className="px-2 py-1 bg-gray-700 text-gray-300 rounded-full text-xs"
+                    className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
                   >
                     {skill}
                   </span>
                 ))}
-                {skills.length > 5 && (
-                  <span className="px-2 py-1 bg-gray-700 text-gray-400 rounded-full text-xs">
-                    +{skills.length - 5} more
+                {job.skills.length > 3 && (
+                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                    +{job.skills.length - 3} more
                   </span>
                 )}
               </div>
             )}
+          </div>
 
-            {/* Footer */}
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              <span>{applicationCount} applicants</span>
-              {experienceLevel && <span>{experienceLevel} level</span>}
-            </div>
+          <div className="ml-4 flex flex-col space-y-2">
+            <button
+              onClick={handleViewDetails}
+              className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium flex items-center"
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              View
+            </button>
+            <button
+              onClick={handleApplyClick}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+            >
+              Apply
+            </button>
           </div>
         </div>
       </div>
@@ -286,158 +137,82 @@ export default function JobCard({
   // Grid view (default)
   return (
     <div
-      className={`bg-gray-800 rounded-lg p-6 transition-all duration-200 hover:bg-gray-750 border cursor-pointer ${
+      className={`bg-white border rounded-lg p-6 hover:shadow-lg transition-all cursor-pointer ${
         isSelected
-          ? "border-purple-500 bg-gray-750"
-          : "border-gray-700 hover:border-gray-600"
-      } ${featured ? "ring-2 ring-purple-500 ring-opacity-30" : ""}`}
+          ? "border-blue-500 ring-2 ring-blue-200"
+          : "border-gray-200 hover:border-gray-300"
+      }`}
       onClick={handleCardClick}
     >
-      {/* Selection Checkbox */}
-      {showSelection && (
-        <div className="flex justify-between items-start mb-4">
-          <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={(e) => {
-              e.stopPropagation();
-              onSelect?.(id);
-            }}
-            className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
-          />
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleSave?.(id);
-            }}
-            className="p-2 text-gray-400 hover:text-yellow-500 transition-colors flex-shrink-0"
-            title={saved ? "Remove from saved" : "Save job"}
-          >
-            <BookmarkIcon
-              className={`w-5 h-5 ${
-                saved ? "fill-yellow-500 text-yellow-500" : ""
-              }`}
-            />
-          </button>
-        </div>
-      )}
-
-      {/* Company Logo */}
-      <div className="flex items-center gap-3 mb-4">
-        {companyLogo ? (
-          <img
-            src={companyLogo}
-            alt={`${company} logo`}
-            className="w-12 h-12 rounded-lg object-cover"
-          />
-        ) : (
-          <div className="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center text-gray-400 font-medium">
-            {company.charAt(0)}
-          </div>
-        )}
-        <div className="flex-grow min-w-0">
-          <h3 className="text-lg font-semibold text-white mb-1 truncate">
-            {title}
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors mb-1">
+            {job.title}
           </h3>
-          <div className="flex items-center gap-2">
-            <span className="text-gray-300 font-medium">{company}</span>
-            {rating && (
-              <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                <span className="text-sm text-gray-400">{rating}</span>
-              </div>
-            )}
+          <div className="flex items-center text-gray-600 mb-2">
+            <Building2 className="w-4 h-4 mr-1" />
+            <span>{job.company}</span>
+          </div>
+          <div className="flex items-center text-sm text-gray-500">
+            <MapPin className="w-4 h-4 mr-1" />
+            {job.location}
           </div>
         </div>
+        <button
+          onClick={handleSaveClick}
+          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+          title="Save job"
+        >
+          <Bookmark className="w-4 h-4" />
+        </button>
       </div>
 
-      {/* Badges */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {urgentHiring && (
-          <span className="px-2 py-1 text-xs bg-red-600 text-white rounded-full">
-            Urgent Hiring
-          </span>
-        )}
-        {remote && (
-          <span className="px-2 py-1 text-xs bg-green-600 text-white rounded-full">
-            Remote
-          </span>
-        )}
-        {type && (
-          <span className="px-2 py-1 text-xs bg-blue-600 text-white rounded-full">
-            {type}
-          </span>
-        )}
-      </div>
+      <p className="text-gray-700 text-sm mb-4 line-clamp-3">
+        {job.description}
+      </p>
 
-      {/* Location and Salary */}
-      <div className="space-y-2 mb-4">
-        <div className="flex items-center gap-2 text-sm text-gray-400">
-          <MapPin className="w-4 h-4" />
-          <span>{location}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-gray-400">
-          <DollarSign className="w-4 h-4" />
-          <span className="font-medium text-green-400">
-            {formatSalary(salary)}
-          </span>
-        </div>
-      </div>
-
-      {/* Description */}
-      <p className="text-gray-300 text-sm mb-4 line-clamp-3">{description}</p>
-
-      {/* Skills */}
-      {skills.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          {skills.slice(0, 3).map((skill, index) => (
+      {job.skills && job.skills.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-4">
+          {job.skills.slice(0, 3).map((skill, index) => (
             <span
               key={index}
-              className="px-2 py-1 bg-gray-700 text-gray-300 rounded-full text-xs"
+              className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
             >
               {skill}
             </span>
           ))}
-          {skills.length > 3 && (
-            <span className="px-2 py-1 bg-gray-700 text-gray-400 rounded-full text-xs">
-              +{skills.length - 3}
+          {job.skills.length > 3 && (
+            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+              +{job.skills.length - 3}
             </span>
           )}
         </div>
       )}
 
-      {/* Footer */}
-      <div className="flex items-center justify-between pt-4 border-t border-gray-700">
-        <div className="flex items-center gap-4 text-xs text-gray-500">
-          <div className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            <span>{formatPostedTime()}</span>
-          </div>
-          <span>{applicationCount} applicants</span>
+      <div className="flex justify-between items-center">
+        <div className="flex items-center text-sm text-gray-500">
+          <Clock className="w-4 h-4 mr-1" />
+          {job.posted}
         </div>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onApply?.(job);
-          }}
-          disabled={applied}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            applied
-              ? "bg-green-600 text-white cursor-not-allowed"
-              : "bg-purple-600 hover:bg-purple-700 text-white"
-          }`}
-        >
-          {applied ? (
-            <div className="flex items-center gap-1">
-              <CheckCircle className="w-4 h-4" />
-              Applied
-            </div>
-          ) : (
-            "Apply Now"
-          )}
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={handleViewDetails}
+            className="flex items-center text-gray-600 hover:text-gray-800 text-sm px-2 py-1 rounded"
+          >
+            <Eye className="w-4 h-4 mr-1" />
+            View
+          </button>
+          <button
+            onClick={handleApplyClick}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
+            Apply
+          </button>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default JobCard;
