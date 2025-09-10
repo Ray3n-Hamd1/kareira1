@@ -99,10 +99,10 @@ const embedAndStoreJobs = async (jobs) => {
 // Vector search for job matching
 async function searchEmbeddings(query, numberOfJobs = 4) {
     try {
-        const queryEmbedding = await generateEmbedding(query);
-        
+        const denseEmbedding = await generateEmbedding(query);
+       
         const searchParams = {
-            vector: queryEmbedding,
+            vector: denseEmbedding,
             topK: Number(numberOfJobs),
             includeValues: false,
             includeMetadata: true

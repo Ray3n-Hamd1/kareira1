@@ -2,6 +2,7 @@
 const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
 const { index } = require('../config/pinecone'); // your Pinecone config
 const { GoogleGenerativeAIEmbeddings } = require('@langchain/google-genai');
+const { getSparseVector } = require('./sparseVectorService');
 require('dotenv').config();
 const embeddings = new GoogleGenerativeAIEmbeddings({
   modelName: 'text-embedding-004',
@@ -91,13 +92,16 @@ async function embedAndStoreJobs(jobs) {
  * @param {number} numberOfJobs
  * @returns {Promise<Object>}
  */
-async function searchEmbeddings(query, numberOfJobs = 4) {
+async function searchEmbeddings(query,skills, numberOfJobs = 4) {
   try {
-    const embedding = await embeddings.embedQuery(query);
+    const denseEmbedding = await embeddings.embedQuery(query);
+    // Sparse vector for resume skills
+    //const sparseEmbedding = await getSparseVector(skills);
 
-
+    // Hybrid search 
     const results = await index.query({
-      vector: embedding,
+      vector: denseEmbedding,
+      //sparseVector: sparseEmbedding,
       topK: numberOfJobs,
       includeValues: false,
       includeMetadata: true,

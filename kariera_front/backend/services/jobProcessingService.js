@@ -19,8 +19,9 @@ async function searchJobMatches(resumeData, numberOfJobs, country, jobTitle) {
 
         const searchQuery = buildSearchQuery(resumeData, jobTitle, country);
         console.log('Query built successfully');
-
-        const searchResults = await searchEmbeddings(searchQuery, numberOfJobs);
+        const skills = resumeData?.skills?.split(",").map(s => s.trim()) || [];
+        console.log("skills : ", skills);
+        const searchResults = await searchEmbeddings(searchQuery, skills, numberOfJobs);
         console.log(`Found ${searchResults.matches.length} matches`);
 
         const formattedResults = formatSearchResults(searchResults);
